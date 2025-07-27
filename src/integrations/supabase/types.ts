@@ -14,7 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          concern: string
+          contact: string
+          created_at: string
+          date: string
+          id: string
+          is_absent: boolean
+          name: string
+          pin: string
+          reason: string
+          serial: number
+          time: string
+          updated_at: string
+        }
+        Insert: {
+          concern: string
+          contact: string
+          created_at?: string
+          date?: string
+          id?: string
+          is_absent?: boolean
+          name: string
+          pin: string
+          reason: string
+          serial: number
+          time: string
+          updated_at?: string
+        }
+        Update: {
+          concern?: string
+          contact?: string
+          created_at?: string
+          date?: string
+          id?: string
+          is_absent?: boolean
+          name?: string
+          pin?: string
+          reason?: string
+          serial?: number
+          time?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      doctor_timings: {
+        Row: {
+          break_end: string
+          break_start: string
+          created_at: string
+          end_time: string
+          id: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          break_end?: string
+          break_start?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Update: {
+          break_end?: string
+          break_start?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
