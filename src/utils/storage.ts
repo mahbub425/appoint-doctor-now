@@ -1,55 +1,156 @@
 import { Appointment, DoctorTimings, DEFAULT_TIMINGS } from '@/types/appointment';
+import { supabase } from '@/integrations/supabase/client';
 
 const STORAGE_KEYS = {
-  APPOINTMENTS: 'doctor_appointments',
-  TIMINGS: 'doctor_timings',
   ADMIN_SESSION: 'admin_session'
 };
 
 export class StorageManager {
-  static getAppointments(): Appointment[] {
+  static async getAppointments(): Promise<Appointment[]> {
     try {
-      const stored = localStorage.getItem(STORAGE_KEYS.APPOINTMENTS);
-      return stored ? JSON.parse(stored) : [];
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('*')
+        .order('serial', { ascending: true });
+      
+      if (error) throw error;
+      
+      return (data || []).map(row => ({
+        id: row.id,
+        name: row.name,
+        pin: row.pin,
+        concern: row.concern,
+        reason: row.reason,
+        contact: row.contact,
+        serial: row.serial,
+        time: row.time,
+        date: row.date,
+        isAbsent: row.is_absent
+      }));
     } catch (error) {
-      console.error('Error loading appointments:', error);
+      console.error('Error fetching appointments:', error);
       return [];
     }
   }
 
-  static saveAppointments(appointments: Appointment[]): void {
+  static async addAppointment(appointment: Appointment): Promise<boolean> {
     try {
-      localStorage.setItem(STORAGE_KEYS.APPOINTMENTS, JSON.stringify(appointments));
+      const { error } = await supabase
+        .from('appointments')
+        .insert({
+          id: appointment.id,
+          name: appointment.name,
+          pin: appointment.pin,
+          concern: appointment.concern,
+          reason: appointment.reason,
+          contact: appointment.contact,
+          serial: appointment.serial,
+          time: appointment.time,
+          date: appointment.date,
+          is_absent: appointment.isAbsent || false
+        });
+      
+      if (error) throw error;
+      return true;
     } catch (error) {
-      console.error('Error saving appointments:', error);
+      console.error('Error adding appointment:', error);
+      return false;
     }
   }
 
-  static addAppointment(appointment: Appointment): void {
-    const appointments = this.getAppointments();
-    appointments.push(appointment);
-    this.saveAppointments(appointments);
-  }
-
-  static updateAppointments(appointments: Appointment[]): void {
-    this.saveAppointments(appointments);
-  }
-
-  static getDoctorTimings(): DoctorTimings {
+  static async updateAppointments(appointments: Appointment[]): Promise<boolean> {
     try {
-      const stored = localStorage.getItem(STORAGE_KEYS.TIMINGS);
-      return stored ? JSON.parse(stored) : DEFAULT_TIMINGS;
+      // Delete all existing appointments for today
+      const today = new Date().toISOString().split('T')[0];
+      await supabase
+        .from('appointments')
+        .delete()
+        .eq('date', today);
+
+      // Insert updated appointments
+      const appointmentsData = appointments.map(apt => ({
+        id: apt.id,
+        name: apt.name,
+        pin: apt.pin,
+        concern: apt.concern,
+        reason: apt.reason,
+        contact: apt.contact,
+        serial: apt.serial,
+        time: apt.time,
+        date: apt.date,
+        is_absent: apt.isAbsent || false
+      }));
+
+      if (appointmentsData.length > 0) {
+        const { error } = await supabase
+          .from('appointments')
+          .insert(appointmentsData);
+        
+        if (error) throw error;
+      }
+      
+      return true;
     } catch (error) {
-      console.error('Error loading timings:', error);
+      console.error('Error updating appointments:', error);
+      return false;
+    }
+  }
+
+  static async getDoctorTimings(): Promise<DoctorTimings> {
+    try {
+      const { data, error } = await supabase
+        .from('doctor_timings')
+        .select('*')
+        .limit(1)
+        .single();
+      
+      if (error) throw error;
+      
+      return {
+        startTime: data.start_time,
+        breakStart: data.break_start,
+        breakEnd: data.break_end,
+        endTime: data.end_time
+      };
+    } catch (error) {
+      console.error('Error fetching doctor timings:', error);
       return DEFAULT_TIMINGS;
     }
   }
 
-  static saveDoctorTimings(timings: DoctorTimings): void {
+  static async saveDoctorTimings(timings: DoctorTimings): Promise<boolean> {
     try {
-      localStorage.setItem(STORAGE_KEYS.TIMINGS, JSON.stringify(timings));
+      const { error } = await supabase
+        .from('doctor_timings')
+        .update({
+          start_time: timings.startTime,
+          break_start: timings.breakStart,
+          break_end: timings.breakEnd,
+          end_time: timings.endTime
+        })
+        .eq('id', await this.getTimingsId());
+      
+      if (error) throw error;
+      return true;
     } catch (error) {
-      console.error('Error saving timings:', error);
+      console.error('Error updating doctor timings:', error);
+      return false;
+    }
+  }
+
+  private static async getTimingsId(): Promise<string> {
+    try {
+      const { data, error } = await supabase
+        .from('doctor_timings')
+        .select('id')
+        .limit(1)
+        .single();
+      
+      if (error) throw error;
+      return data.id;
+    } catch (error) {
+      console.error('Error getting timings ID:', error);
+      throw error;
     }
   }
 

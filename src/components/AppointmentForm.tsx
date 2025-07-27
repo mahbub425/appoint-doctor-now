@@ -53,8 +53,8 @@ export function AppointmentForm({ onAppointmentBooked }: AppointmentFormProps) {
     }
 
     try {
-      const appointments = StorageManager.getAppointments();
-      const timings = StorageManager.getDoctorTimings();
+      const appointments = await StorageManager.getAppointments();
+      const timings = await StorageManager.getDoctorTimings();
       const today = new Date().toISOString().split('T')[0];
 
       // Check if appointment can be booked
@@ -100,7 +100,13 @@ export function AppointmentForm({ onAppointmentBooked }: AppointmentFormProps) {
       };
 
       // Save appointment
-      StorageManager.addAppointment(newAppointment);
+      const success = await StorageManager.addAppointment(newAppointment);
+      if (!success) {
+        setError('Failed to save appointment. Please try again.');
+        setIsSubmitting(false);
+        return;
+      }
+      
       setBookedAppointment(newAppointment);
       onAppointmentBooked();
 

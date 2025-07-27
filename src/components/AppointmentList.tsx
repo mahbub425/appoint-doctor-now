@@ -14,8 +14,8 @@ export function AppointmentList({ refreshTrigger }: AppointmentListProps) {
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    const loadAppointments = () => {
-      const allAppointments = StorageManager.getAppointments();
+    const loadAppointments = async () => {
+      const allAppointments = await StorageManager.getAppointments();
       const todayAppointments = allAppointments
         .filter(apt => apt.date === today && !apt.isAbsent)
         .sort((a, b) => a.serial - b.serial);

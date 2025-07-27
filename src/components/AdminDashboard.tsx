@@ -25,18 +25,24 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ onLogout }: AdminDashboardProps) {
-  const [timings, setTimings] = useState<DoctorTimings>(StorageManager.getDoctorTimings());
+  const [timings, setTimings] = useState<DoctorTimings>();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isUpdatingTimings, setIsUpdatingTimings] = useState(false);
   const [error, setError] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
-    loadAppointments();
+    loadInitialData();
   }, []);
 
-  const loadAppointments = () => {
-    const allAppointments = StorageManager.getAppointments();
+  const loadInitialData = async () => {
+    const doctorTimings = await StorageManager.getDoctorTimings();
+    setTimings(doctorTimings);
+    await loadAppointments();
+  };
+
+  const loadAppointments = async () => {
+    const allAppointments = await StorageManager.getAppointments();
     const today = new Date().toISOString().split('T')[0];
     const todayAppointments = allAppointments
       .filter(apt => apt.date === today)
@@ -50,7 +56,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
     setError('');
 
     // Validate timings
-    if (timings.breakStart <= timings.startTime) {
+    if (!timings || timings.breakStart <= timings.startTime) {
       setError('Break start must be after doctor start time');
       setIsUpdatingTimings(false);
       return;
@@ -68,10 +74,10 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
     try {
       // Save new timings
-      StorageManager.saveDoctorTimings(timings);
+      await StorageManager.saveDoctorTimings(timings);
 
       // Reschedule all existing appointments
-      const allAppointments = StorageManager.getAppointments();
+      const allAppointments = await StorageManager.getAppointments();
       const today = new Date().toISOString().split('T')[0];
       const todayAppointments = allAppointments.filter(apt => apt.date === today);
       const otherAppointments = allAppointments.filter(apt => apt.date !== today);
@@ -84,7 +90,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
         // Combine with other days' appointments
         const updatedAppointments = [...otherAppointments, ...rescheduledAppointments];
-        StorageManager.updateAppointments(updatedAppointments);
+        await StorageManager.updateAppointments(updatedAppointments);
         
         // Simulate notifications to affected patients
         rescheduledAppointments.forEach(apt => {
@@ -92,7 +98,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
         });
       }
 
-      loadAppointments();
+      await loadAppointments();
       toast({
         title: "Timings Updated Successfully",
         description: "Doctor timings have been updated and appointments rescheduled.",
@@ -106,8 +112,10 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
     setIsUpdatingTimings(false);
   };
 
-  const handleMarkAbsent = (appointmentId: string) => {
-    const allAppointments = StorageManager.getAppointments();
+  const handleMarkAbsent = async (appointmentId: string) => {
+    if (!timings) return;
+    
+    const allAppointments = await StorageManager.getAppointments();
     const updatedAppointments = allAppointments.map(apt => 
       apt.id === appointmentId ? { ...apt, isAbsent: true } : apt
     );
@@ -123,7 +131,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
     );
 
     const finalAppointments = [...otherAppointments, ...rescheduledAppointments];
-    StorageManager.updateAppointments(finalAppointments);
+    await StorageManager.updateAppointments(finalAppointments);
 
     // Simulate notifications
     const activeAppointments = rescheduledAppointments.filter(apt => !apt.isAbsent);
@@ -131,15 +139,15 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
       console.log(`Notification sent to ${apt.contact}: Your appointment has been rescheduled to ${apt.time}, Serial: ${apt.serial}`);
     });
 
-    loadAppointments();
+    await loadAppointments();
     toast({
       title: "Patient Marked Absent",
       description: "Patient marked as absent and remaining appointments rescheduled.",
     });
   };
 
-  const handleExportCSV = () => {
-    const allAppointments = StorageManager.getAppointments();
+  const handleExportCSV = async () => {
+    const allAppointments = await StorageManager.getAppointments();
     StorageManager.exportToCSV(allAppointments);
     toast({
       title: "Export Successful",
@@ -189,8 +197,8 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                   <Input
                     id="startTime"
                     type="time"
-                    value={timings.startTime}
-                    onChange={(e) => setTimings({ ...timings, startTime: e.target.value })}
+                    value={timings?.startTime || ''}
+                    onChange={(e) => timings && setTimings({ ...timings, startTime: e.target.value })}
                     required
                   />
                 </div>
@@ -199,8 +207,8 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                   <Input
                     id="breakStart"
                     type="time"
-                    value={timings.breakStart}
-                    onChange={(e) => setTimings({ ...timings, breakStart: e.target.value })}
+                    value={timings?.breakStart || ''}
+                    onChange={(e) => timings && setTimings({ ...timings, breakStart: e.target.value })}
                     required
                   />
                 </div>
@@ -209,8 +217,8 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                   <Input
                     id="breakEnd"
                     type="time"
-                    value={timings.breakEnd}
-                    onChange={(e) => setTimings({ ...timings, breakEnd: e.target.value })}
+                    value={timings?.breakEnd || ''}
+                    onChange={(e) => timings && setTimings({ ...timings, breakEnd: e.target.value })}
                     required
                   />
                 </div>
@@ -219,8 +227,8 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                   <Input
                     id="endTime"
                     type="time"
-                    value={timings.endTime}
-                    onChange={(e) => setTimings({ ...timings, endTime: e.target.value })}
+                    value={timings?.endTime || ''}
+                    onChange={(e) => timings && setTimings({ ...timings, endTime: e.target.value })}
                     required
                   />
                 </div>
