@@ -1,12 +1,31 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Stethoscope, Shield, Calendar, Clock, Users } from 'lucide-react';
 import { AppointmentForm } from '@/components/AppointmentForm';
 import { AppointmentList } from '@/components/AppointmentList';
+import { StorageManager } from '@/utils/storage';
 
 const Index = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [availableDate, setAvailableDate] = useState<string | null>(null);
+  const [isBookingActive, setIsBookingActive] = useState(true);
+
+  useEffect(() => {
+    const fetchAvailableDate = async () => {
+      const date = await StorageManager.getDoctorAvailableDate();
+      setAvailableDate(date);
+
+      // Check if the date is valid for booking
+      const today = new Date().toISOString().split('T')[0];
+      if (!date || new Date(date) < new Date(today)) {
+        setIsBookingActive(false);
+      } else {
+        setIsBookingActive(true);
+      }
+    };
+    fetchAvailableDate();
+  }, []);
 
   const handleAppointmentBooked = () => {
     setRefreshTrigger(prev => prev + 1);
@@ -55,12 +74,18 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Appointment Booking Form */}
           <div>
-            <AppointmentForm onAppointmentBooked={handleAppointmentBooked} />
+            {isBookingActive ? (
+              <AppointmentForm onAppointmentBooked={handleAppointmentBooked} />
+            ) : (
+              <div className="text-center text-red-600 font-medium">
+                এই সপ্তাহের জন্য এখনো ডাক্তারের আসার তারিখ নির্ধারণ করা হয়নি। অনুগ্রহ করে পরবর্তীতে চেষ্টা করুন。
+              </div>
+            )}
           </div>
 
           {/* Appointment List */}
           <div>
-            <AppointmentList refreshTrigger={refreshTrigger} />
+            <AppointmentList refreshTrigger={refreshTrigger} availableDate={availableDate} />
           </div>
         </div>
 

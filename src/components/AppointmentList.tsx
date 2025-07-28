@@ -9,19 +9,20 @@ import { Button } from '@/components/ui/button';
 
 interface AppointmentListProps {
   refreshTrigger: number;
+  availableDate?: string | null;
 }
 
-export function AppointmentList({ refreshTrigger }: AppointmentListProps) {
+export function AppointmentList({ refreshTrigger, availableDate }: AppointmentListProps) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [cancelDialog, setCancelDialog] = useState<{ open: boolean; appointmentId: string | null }>({ open: false, appointmentId: null });
-  const today = new Date().toISOString().split('T')[0];
+  const selectedDate = availableDate || new Date().toISOString().split('T')[0];
   const currentTime = new Date();
 
   useEffect(() => {
     const loadAppointments = async () => {
       const allAppointments = await StorageManager.getAppointments();
-      const todayAppointments = allAppointments
-        .filter(apt => apt.date === today && !apt.isAbsent)
+      const filteredAppointments = allAppointments
+        .filter(apt => apt.date === selectedDate && !apt.isAbsent)
         .map(apt => {
           const appointmentTime = new Date(`${apt.date}T${apt.time}`);
           if (appointmentTime < currentTime) {
@@ -30,11 +31,11 @@ export function AppointmentList({ refreshTrigger }: AppointmentListProps) {
           return apt;
         })
         .sort((a, b) => a.serial - b.serial);
-      setAppointments(todayAppointments);
+      setAppointments(filteredAppointments);
     };
 
     loadAppointments();
-  }, [refreshTrigger, today]);
+  }, [refreshTrigger, selectedDate]);
 
   const handleCancel = async (appointmentId: string) => {
     // Call backend API to cancel the appointment
@@ -66,7 +67,7 @@ export function AppointmentList({ refreshTrigger }: AppointmentListProps) {
           </Badge>
         </CardTitle>
         <CardDescription className="flex justify-between items-center">
-          <span>Scheduled appointments for {new Date(today).toLocaleDateString()}</span>
+          <span>Scheduled appointments for {new Date(selectedDate).toLocaleDateString()}</span>
           <span className="text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full shadow-md">
             Current Serial: {appointments.find(apt => !apt.isCompleted)?.serial || 'N/A'}
           </span>

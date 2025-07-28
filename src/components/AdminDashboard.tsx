@@ -32,12 +32,17 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [error, setError] = useState('');
   const [absentDialog, setAbsentDialog] = useState<{ open: boolean; appointmentId: string | null }>({ open: false, appointmentId: null });
   const [availableDate, setAvailableDate] = useState<string | null>(null);
+  const [bookingActivationDate, setBookingActivationDate] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     loadInitialData();
     loadAvailableDate();
   }, []);
+
+  useEffect(() => {
+    loadAppointments();
+  }, [availableDate]);
 
   const loadInitialData = async () => {
     const doctorTimings = await StorageManager.getDoctorTimings();
@@ -52,11 +57,11 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
   const loadAppointments = async () => {
     const allAppointments = await StorageManager.getAppointments();
-    const today = new Date().toISOString().split('T')[0];
-    const todayAppointments = allAppointments
-      .filter(apt => apt.date === today)
+    const selectedDate = availableDate || new Date().toISOString().split('T')[0];
+    const selectedDateAppointments = allAppointments
+      .filter(apt => apt.date === selectedDate)
       .sort((a, b) => a.serial - b.serial);
-    setAppointments(todayAppointments);
+    setAppointments(selectedDateAppointments);
   };
 
   const handleTimingsUpdate = async (e: React.FormEvent) => {
@@ -188,9 +193,13 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
     const success = await StorageManager.setDoctorAvailableDate(availableDate);
     if (success) {
+      // Clear all appointments for the previous date
+      await StorageManager.clearAllAppointments(); // Clear all appointments
+      setAppointments([]); // Clear the appointments state
+
       toast({
         title: 'Success',
-        description: 'Doctor available date updated successfully.',
+        description: `Doctor available date updated to ${availableDate}. All previous appointments have been cleared.`,
       });
     } else {
       toast({
@@ -199,6 +208,35 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
         variant: 'destructive',
       });
     }
+  };
+
+  const handleBookingActivationDateUpdate = async () => {
+    if (!bookingActivationDate) {
+      toast({
+        title: 'Error',
+        description: 'Please select a valid booking activation date.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const success = await StorageManager.setBookingActivationDate(bookingActivationDate);
+    if (success) {
+      toast({
+        title: 'Success',
+        description: `Booking activation date updated to ${bookingActivationDate}.`,
+      });
+    } else {
+      toast({
+        title: 'Error',
+        description: 'Failed to update the booking activation date.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const getFormattedDate = () => {
+    return availableDate ? new Date(availableDate).toLocaleDateString() : 'Not Set';
   };
 
   return (
@@ -308,6 +346,28 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
           </CardContent>
         </Card>
 
+        {/* Set Booking Activation Date */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Set Booking Activation Date</CardTitle>
+            <CardDescription>
+              Select the date from which users can start booking appointments.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Label htmlFor="bookingActivationDate">Booking Activation Date</Label>
+            <Input
+              id="bookingActivationDate"
+              type="date"
+              value={bookingActivationDate || ''}
+              onChange={(e) => setBookingActivationDate(e.target.value)}
+            />
+            <Button onClick={handleBookingActivationDateUpdate} className="mt-4">
+              Update Activation Date
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Appointment Management */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
@@ -323,7 +383,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                   </Badge>
                 </CardTitle>
                 <CardDescription>
-                  Manage patient appointments for {new Date().toLocaleDateString()}
+                  Manage patient appointments for {getFormattedDate()}
                 </CardDescription>
               </CardHeader>
               <CardContent>

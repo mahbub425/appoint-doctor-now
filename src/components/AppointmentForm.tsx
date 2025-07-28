@@ -56,11 +56,28 @@ export function AppointmentForm({ onAppointmentBooked }: AppointmentFormProps) {
     setError('');
 
     // Check if available date is set
-    const today = new Date().toISOString().split('T')[0];
-    if (!availableDate || availableDate !== today) {
-      setError('এই সপ্তাহে ডাক্টার আসার ডেট এখনো নির্ধারণ হয় নি।');
+    if (!availableDate) {
+      setError('Doctor availability date is not set. Please try again later.');
       setIsSubmitting(false);
       return;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    // Check if the selected date is in the past
+    if (new Date(availableDate) < new Date(today)) {
+      setError('Cannot book appointment: The selected date is in the past.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Allow booking for future dates
+    if (availableDate !== today) {
+      const futureAppointments = appointments.filter(apt => apt.date === availableDate && !apt.isAbsent);
+      if (futureAppointments.length >= 17) {
+        setError('Cannot book appointment: Maximum number of appointments for the selected date has been reached.');
+        setIsSubmitting(false);
+        return;
+      }
     }
 
     // Validate form
@@ -97,8 +114,15 @@ export function AppointmentForm({ onAppointmentBooked }: AppointmentFormProps) {
         return;
       }
 
+      // Check if the maximum number of appointments for the day is reached
+      const todayAppointments = appointments.filter(apt => apt.date === availableDate && !apt.isAbsent);
+      if (todayAppointments.length >= 17) {
+        setError('Cannot book appointment: Maximum number of appointments for the day has been reached.');
+        setIsSubmitting(false);
+        return;
+      }
+
       // Calculate appointment details
-      const todayAppointments = appointments.filter(apt => apt.date === today && !apt.isAbsent);
       const appointmentTime = AppointmentScheduler.calculateAppointmentTime(
         todayAppointments,
         formData.reason as keyof typeof APPOINTMENT_DURATIONS,
@@ -155,6 +179,7 @@ export function AppointmentForm({ onAppointmentBooked }: AppointmentFormProps) {
       setError('An error occurred while booking your appointment. Please try again.');
     }
 
+    // Reset isSubmitting state after booking process
     setIsSubmitting(false);
   };
 

@@ -284,4 +284,38 @@ export class StorageManager {
       return false;
     }
   }
+
+  static async clearAppointmentsForDate(date: string): Promise<void> {
+    try {
+      await supabase
+        .from('appointments')
+        .delete()
+        .eq('date', date);
+    } catch (error) {
+      console.error(`Error clearing appointments for date ${date}:`, error);
+    }
+  }
+
+  static async clearAllAppointments(): Promise<void> {
+    try {
+      await supabase
+        .from('appointments')
+        .delete();
+    } catch (error) {
+      console.error('Error clearing all appointments:', error);
+    }
+  }
+
+  static async setBookingActivationDate(date: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('settings')
+        .upsert({ key: 'bookingActivationDate', value: date }, { onConflict: ['key'] });
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error setting booking activation date:', error);
+      return false;
+    }
+  }
 }
