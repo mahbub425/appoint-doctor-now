@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,7 +26,17 @@ export function AppointmentForm({ onAppointmentBooked }: AppointmentFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookedAppointment, setBookedAppointment] = useState<Appointment | null>(null);
   const [error, setError] = useState<string>('');
+  const [availableDate, setAvailableDate] = useState<string | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    loadAvailableDate();
+  }, []);
+
+  const loadAvailableDate = async () => {
+    const date = await StorageManager.getDoctorAvailableDate();
+    setAvailableDate(date);
+  };
 
   const resetForm = () => {
     setFormData({
@@ -44,6 +54,14 @@ export function AppointmentForm({ onAppointmentBooked }: AppointmentFormProps) {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
+
+    // Check if available date is set
+    const today = new Date().toISOString().split('T')[0];
+    if (!availableDate || availableDate !== today) {
+      setError('এই সপ্তাহে ডাক্টার আসার ডেট এখনো নির্ধারণ হয় নি।');
+      setIsSubmitting(false);
+      return;
+    }
 
     // Validate form
     if (!formData.name || !formData.pin || !formData.concern || !formData.reason || !formData.contact) {

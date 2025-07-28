@@ -178,6 +178,53 @@ export class StorageManager {
     }
   }
 
+  static async getDoctorAvailableDate(): Promise<string | null> {
+    try {
+      const { data, error } = await supabase
+        .from('doctor_available_date')
+        .select('date')
+        .limit(1)
+        .single();
+
+      if (error) throw error;
+
+      return data?.date || null;
+    } catch (error) {
+      console.error('Error fetching doctor available date:', error);
+      return null;
+    }
+  }
+
+  static async setDoctorAvailableDate(date: string): Promise<boolean> {
+    try {
+      const { data: existingData } = await supabase
+        .from('doctor_available_date')
+        .select('id')
+        .limit(1)
+        .maybeSingle();
+
+      if (existingData) {
+        const { error } = await supabase
+          .from('doctor_available_date')
+          .update({ date })
+          .eq('id', existingData.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('doctor_available_date')
+          .insert({ date });
+
+        if (error) throw error;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error setting doctor available date:', error);
+      return false;
+    }
+  }
+
   static isAdminLoggedIn(): boolean {
     try {
       const session = localStorage.getItem(STORAGE_KEYS.ADMIN_SESSION);
@@ -220,5 +267,21 @@ export class StorageManager {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  }
+
+  static async cancelAppointment(appointmentId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .update({ is_absent: true })
+        .eq('id', appointmentId);
+
+      if (error) throw error;
+
+      return true;
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+      return false;
+    }
   }
 }

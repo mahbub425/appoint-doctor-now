@@ -19,6 +19,7 @@ import { Appointment, DoctorTimings } from '@/types/appointment';
 import { StorageManager } from '@/utils/storage';
 import { AppointmentScheduler } from '@/utils/appointmentScheduler';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -29,16 +30,24 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isUpdatingTimings, setIsUpdatingTimings] = useState(false);
   const [error, setError] = useState('');
+  const [absentDialog, setAbsentDialog] = useState<{ open: boolean; appointmentId: string | null }>({ open: false, appointmentId: null });
+  const [availableDate, setAvailableDate] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     loadInitialData();
+    loadAvailableDate();
   }, []);
 
   const loadInitialData = async () => {
     const doctorTimings = await StorageManager.getDoctorTimings();
     setTimings(doctorTimings);
     await loadAppointments();
+  };
+
+  const loadAvailableDate = async () => {
+    const date = await StorageManager.getDoctorAvailableDate();
+    setAvailableDate(date);
   };
 
   const loadAppointments = async () => {
@@ -163,6 +172,35 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const activeAppointments = appointments.filter(apt => !apt.isAbsent);
   const absentAppointments = appointments.filter(apt => apt.isAbsent);
 
+  const handleMarkAbsentWithDialog = (appointmentId: string) => {
+    setAbsentDialog({ open: true, appointmentId });
+  };
+
+  const handleDateUpdate = async () => {
+    if (!availableDate) {
+      toast({
+        title: 'Error',
+        description: 'Please select a valid date.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const success = await StorageManager.setDoctorAvailableDate(availableDate);
+    if (success) {
+      toast({
+        title: 'Success',
+        description: 'Doctor available date updated successfully.',
+      });
+    } else {
+      toast({
+        title: 'Error',
+        description: 'Failed to update the doctor available date.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-muted/30 p-4">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -248,6 +286,28 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
           </CardContent>
         </Card>
 
+        {/* Set Doctor Available Date */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Set Doctor Available Date</CardTitle>
+            <CardDescription>
+              Select the date when the doctor will be available for appointments.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Label htmlFor="availableDate">Available Date</Label>
+            <Input
+              id="availableDate"
+              type="date"
+              value={availableDate || ''}
+              onChange={(e) => setAvailableDate(e.target.value)}
+            />
+            <Button onClick={handleDateUpdate} className="mt-4">
+              Update Date
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Appointment Management */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
@@ -299,7 +359,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleMarkAbsent(appointment.id)}
+                          onClick={() => handleMarkAbsentWithDialog(appointment.id)}
                           className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
                         >
                           <UserX className="h-4 w-4 mr-1" />
@@ -355,6 +415,28 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
             )}
           </div>
         </div>
+
+        <Dialog open={absentDialog.open} onOpenChange={(open) => setAbsentDialog({ open, appointmentId: null })}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>পেশেন্ট কি অনুপস্থিত?</DialogTitle>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  handleMarkAbsent(absentDialog.appointmentId!);
+                  setAbsentDialog({ open: false, appointmentId: null });
+                }}
+              >
+                Yes
+              </Button>
+              <Button variant="secondary" onClick={() => setAbsentDialog({ open: false, appointmentId: null })}>
+                No
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

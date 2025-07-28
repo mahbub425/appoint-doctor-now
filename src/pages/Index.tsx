@@ -16,21 +16,36 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Stethoscope className="h-8 w-8 text-primary" />
-              <div>
-                <h1 className="text-2xl font-bold">Doctor Appointment System</h1>
-                <p className="text-sm text-muted-foreground">Company Employee Health Services</p>
-              </div>
+        <div className="container mx-auto px-2 sm:px-4 py-6">
+          <div className="flex items-start justify-between">
+            {/* Left: Onnorokom & Healing Services */}
+            <div className="flex flex-col items-start">
+              <span className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-primary font-serif drop-shadow-md" style={{fontFamily: 'Noto Serif Bengali, serif'}}>
+                অন্যরকম
+              </span>
+              <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-normal mt-1" style={{color:'#343434', fontFamily: 'Noto Serif Bengali, serif'}}>
+                হিলিং সার্ভিসেস
+              </span>
             </div>
-            <Link to="/admin">
-              <Button variant="outline" className="flex items-center space-x-2">
-                <Shield className="h-4 w-4" />
-                <span>Admin Login</span>
-              </Button>
-            </Link>
+            {/* Right: Doctor Info */}
+            <div className="flex flex-col items-end text-right">
+              <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-emerald-700 font-sans" style={{fontFamily: 'Montserrat, Poppins, Arial, sans-serif'}}>
+                Dr. Md. Shojib Hossen Sipo
+              </span>
+              <span className="text-[15px] text-black font-normal font-sans mt-1" style={{lineHeight: '1.2rem'}}>
+                MBBS, FCGP, MPH, DUMS (DU), Diploma in Asthma (UK), CCD (BIRDEM)
+              </span>
+              <span className="text-[15px] text-black font-normal font-sans" style={{lineHeight: '1.2rem'}}>
+                PG Diploma in Diabetes (UK), EMO, Medical College For Women and Hospital
+              </span>
+              <span className="text-[15px] text-black font-normal font-sans" style={{lineHeight: '1.2rem'}}>
+                Ex-Lec. Shaheed Monsur Ali Medical College and Hospital
+              </span>
+            </div>
+          </div>
+          {/* Admin Notice */}
+          <div className="mt-6 bg-yellow-50 border border-yellow-300 rounded p-3 text-sm text-yellow-900 text-center font-medium">
+            ডাক্তারের চেম্বারে আসার পূর্বে অনুগ্রহ করে ওয়েবসাইটটি রিফ্রেশ করে আপনার সিরিয়াল এবং অ্যাপয়েন্টমেন্টের সময় পুনরায় যাচাই করে নিন। কারণ, কোনো কোনো দিন ডাক্তার নির্ধারিত সময়ের চেয়ে আগে বা পরে আসতে পারেন, এছাড়াও আপনার পূর্ববর্তী সিরিয়ালের কেউ অনুপস্থিত থাকেলে আপনার সিরিয়াল এবং সময় পরিবর্তিত হওয়ার সম্ভাবনা থাকে।
           </div>
         </div>
       </header>

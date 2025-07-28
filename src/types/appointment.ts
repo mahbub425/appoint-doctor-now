@@ -9,6 +9,7 @@ export interface Appointment {
   time: string;
   date: string;
   isAbsent?: boolean;
+  isCompleted?: boolean;
 }
 
 export interface DoctorTimings {
