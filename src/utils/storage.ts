@@ -51,7 +51,16 @@ export class StorageManager {
           is_absent: appointment.isAbsent || false
         });
       if (error) {
-        console.error('Supabase insert error details:', error.message, error.details, error.hint);
+        // Log the full error object and its stringified version
+        console.error('Supabase insert error object:', error);
+        try {
+          console.error('Supabase insert error (stringified):', JSON.stringify(error));
+        } catch (e) {
+          // ignore if error can't be stringified
+        }
+        if (error.message || error.details || error.hint) {
+          console.error('Supabase insert error details:', error.message, error.details, error.hint);
+        }
         throw error;
       }
       return true;
