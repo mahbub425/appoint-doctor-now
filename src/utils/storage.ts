@@ -120,37 +120,44 @@ export class StorageManager {
 
   static async saveDoctorTimings(timings: DoctorTimings): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('doctor_timings')
-        .update({
-          start_time: timings.startTime,
-          break_start: timings.breakStart,
-          break_end: timings.breakEnd,
-          end_time: timings.endTime
-        })
-        .eq('id', await this.getTimingsId());
-      
-      if (error) throw error;
-      return true;
-    } catch (error) {
-      console.error('Error updating doctor timings:', error);
-      return false;
-    }
-  }
-
-  private static async getTimingsId(): Promise<string> {
-    try {
-      const { data, error } = await supabase
+      // First check if any timing record exists
+      const { data: existingData } = await supabase
         .from('doctor_timings')
         .select('id')
         .limit(1)
-        .single();
+        .maybeSingle();
+
+      if (existingData) {
+        // Update existing record
+        const { error } = await supabase
+          .from('doctor_timings')
+          .update({
+            start_time: timings.startTime,
+            break_start: timings.breakStart,
+            break_end: timings.breakEnd,
+            end_time: timings.endTime
+          })
+          .eq('id', existingData.id);
+        
+        if (error) throw error;
+      } else {
+        // Create new record if none exists
+        const { error } = await supabase
+          .from('doctor_timings')
+          .insert({
+            start_time: timings.startTime,
+            break_start: timings.breakStart,
+            break_end: timings.breakEnd,
+            end_time: timings.endTime
+          });
+        
+        if (error) throw error;
+      }
       
-      if (error) throw error;
-      return data.id;
+      return true;
     } catch (error) {
-      console.error('Error getting timings ID:', error);
-      throw error;
+      console.error('Error saving doctor timings:', error);
+      return false;
     }
   }
 
