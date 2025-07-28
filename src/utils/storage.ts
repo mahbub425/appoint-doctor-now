@@ -36,7 +36,6 @@ export class StorageManager {
   static async addAppointment(appointment: Appointment): Promise<boolean> {
     try {
       console.log('StorageManager.addAppointment called with:', appointment);
-      
       const { error } = await supabase
         .from('appointments')
         .insert({
@@ -51,16 +50,18 @@ export class StorageManager {
           date: appointment.date,
           is_absent: appointment.isAbsent || false
         });
-      
-      console.log('Supabase insert result - error:', error);
-      
       if (error) {
-        console.error('Supabase insert error details:', error);
+        console.error('Supabase insert error details:', error.message, error.details, error.hint);
         throw error;
       }
       return true;
     } catch (error) {
-      console.error('Error adding appointment:', error);
+      // Show more details in the console for debugging
+      if (error instanceof Error) {
+        console.error('Error adding appointment:', error.message, error.stack);
+      } else {
+        console.error('Error adding appointment:', error);
+      }
       return false;
     }
   }

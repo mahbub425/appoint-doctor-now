@@ -97,7 +97,7 @@ export function AppointmentForm({ onAppointmentBooked }: AppointmentFormProps) {
 
       // Create appointment
       const newAppointment: Appointment = {
-        id: Date.now().toString(),
+        id: crypto.randomUUID(),
         name: formData.name,
         pin: formData.pin,
         concern: formData.concern,
@@ -115,7 +115,8 @@ export function AppointmentForm({ onAppointmentBooked }: AppointmentFormProps) {
       console.log('Save appointment result:', success);
       
       if (!success) {
-        setError('Failed to save appointment. Please try again.');
+        setError('Failed to save appointment. Please try again. Check the console for details.');
+        // Optionally, you can show the last error from StorageManager if you store it globally or return it
         setIsSubmitting(false);
         return;
       }
