@@ -53,9 +53,14 @@ export function AppointmentForm({ onAppointmentBooked }: AppointmentFormProps) {
     }
 
     try {
+      console.log('Starting appointment booking process...');
       const appointments = await StorageManager.getAppointments();
       const timings = await StorageManager.getDoctorTimings();
       const today = new Date().toISOString().split('T')[0];
+
+      console.log('Fetched appointments:', appointments);
+      console.log('Fetched timings:', timings);
+      console.log('Today date:', today);
 
       // Check if appointment can be booked
       const { canBook, error: bookingError } = AppointmentScheduler.canBookAppointment(
@@ -65,6 +70,8 @@ export function AppointmentForm({ onAppointmentBooked }: AppointmentFormProps) {
         formData.reason as keyof typeof APPOINTMENT_DURATIONS,
         timings
       );
+
+      console.log('Can book appointment:', canBook, 'Error:', bookingError);
 
       if (!canBook) {
         setError(bookingError || 'Cannot book appointment');
@@ -79,6 +86,8 @@ export function AppointmentForm({ onAppointmentBooked }: AppointmentFormProps) {
         formData.reason as keyof typeof APPOINTMENT_DURATIONS,
         timings
       );
+
+      console.log('Calculated appointment time:', appointmentTime);
 
       if (!appointmentTime) {
         setError('Cannot schedule: Exceeds doctor availability.');
@@ -99,8 +108,12 @@ export function AppointmentForm({ onAppointmentBooked }: AppointmentFormProps) {
         date: today
       };
 
+      console.log('Attempting to save appointment:', newAppointment);
+
       // Save appointment
       const success = await StorageManager.addAppointment(newAppointment);
+      console.log('Save appointment result:', success);
+      
       if (!success) {
         setError('Failed to save appointment. Please try again.');
         setIsSubmitting(false);
