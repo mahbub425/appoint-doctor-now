@@ -14,7 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string
+          concern: string
+          created_at: string
+          id: string
+          name: string
+          phone: string
+          pin: number
+          reason: string
+          serial_number: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time: string
+          concern: string
+          created_at?: string
+          id?: string
+          name: string
+          phone: string
+          pin: number
+          reason: string
+          serial_number: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string
+          concern?: string
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string
+          pin?: number
+          reason?: string
+          serial_number?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      doctor_schedules: {
+        Row: {
+          availability_date: string
+          break_end: string
+          break_start: string
+          created_at: string
+          end_time: string
+          id: string
+          max_appointments: number
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          availability_date: string
+          break_end?: string
+          break_start?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          max_appointments?: number
+          start_time?: string
+          updated_at?: string
+        }
+        Update: {
+          availability_date?: string
+          break_end?: string
+          break_start?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          max_appointments?: number
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
