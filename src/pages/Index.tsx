@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { AppointmentBookingForm } from "@/components/AppointmentBookingForm";
-import { AppointmentList } from "@/components/AppointmentList";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import { NoticeSection } from "@/components/NoticeSection";
-import { toast } from "@/hooks/use-toast";
 
 interface DoctorSchedule {
   id: string;
@@ -30,119 +30,20 @@ interface Appointment {
 }
 
 const Index = () => {
-  const [schedule, setSchedule] = useState<DoctorSchedule | null>(null);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchSchedule = async () => {
-    const { data, error } = await supabase
-      .from("doctor_schedules")
-      .select("*")
-      .gte("availability_date", new Date().toISOString().split('T')[0])
-      .order("availability_date", { ascending: true })
-      .limit(1)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Error fetching schedule:", error);
-      return;
-    }
-
-    setSchedule(data);
-  };
-
-  const fetchAppointments = async () => {
-    if (!schedule) return;
-
-    const { data, error } = await supabase
-      .from("appointments")
-      .select("*")
-      .eq("appointment_date", schedule.availability_date)
-      .order("serial_number", { ascending: true });
-
-    if (error) {
-      console.error("Error fetching appointments:", error);
-      return;
-    }
-
-    setAppointments(data || []);
-  };
+  const navigate = useNavigate();
+  const { user, isAdmin, isDoctor, isUser, loading } = useAuth();
 
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      await fetchSchedule();
-      setLoading(false);
-    };
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    if (schedule) {
-      fetchAppointments();
-    }
-  }, [schedule]);
-
-  // Set up real-time subscription for appointments
-  useEffect(() => {
-    if (!schedule) return;
-
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'appointments',
-          filter: `appointment_date=eq.${schedule.availability_date}`
-        },
-        () => fetchAppointments()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [schedule]);
-
-  const calculateAppointmentTime = (serialNumber: number, reason: string) => {
-    if (!schedule) return "";
-
-    const durations: { [key: string]: number } = {
-      "New Patient": 10,
-      "Follow Up": 7,
-      "Report Show": 12
-    };
-
-    let currentTime = new Date(`2000-01-01T${schedule.start_time}`);
-    const breakStart = new Date(`2000-01-01T${schedule.break_start}`);
-    const breakEnd = new Date(`2000-01-01T${schedule.break_end}`);
-
-    // Calculate time for appointments before this one
-    for (let i = 1; i < serialNumber; i++) {
-      const appointment = appointments.find(apt => apt.serial_number === i);
-      if (appointment) {
-        const duration = durations[appointment.reason] || 10;
-        currentTime.setMinutes(currentTime.getMinutes() + duration);
-
-        // Skip break time
-        if (currentTime >= breakStart && currentTime < breakEnd) {
-          currentTime = new Date(breakEnd);
-        }
+    if (!loading && user) {
+      if (isAdmin) {
+        navigate("/admin");
+      } else if (isDoctor) {
+        navigate("/doctor");
+      } else if (isUser) {
+        navigate("/user");
       }
     }
-
-    return currentTime.toTimeString().slice(0, 5);
-  };
-
-  const handleBookingSuccess = (newAppointment: Appointment) => {
-    setAppointments(prev => [...prev, newAppointment].sort((a, b) => a.serial_number - b.serial_number));
-    toast({
-      title: "Appointment Booked Successfully",
-      description: `Your appointment is scheduled for ${newAppointment.appointment_time} on ${newAppointment.appointment_date}`,
-    });
-  };
+  }, [user, isAdmin, isDoctor, isUser, loading, navigate]);
 
   if (loading) {
     return (
@@ -158,17 +59,59 @@ const Index = () => {
       <NoticeSection />
       
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <AppointmentBookingForm
-            schedule={schedule}
-            appointments={appointments}
-            calculateAppointmentTime={calculateAppointmentTime}
-            onBookingSuccess={handleBookingSuccess}
-          />
-          <AppointmentList
-            schedule={schedule}
-            appointments={appointments}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle>Patient Portal</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                Book appointments, view medical history, and manage your profile.
+              </p>
+              <Button 
+                onClick={() => navigate("/auth")}
+                className="w-full"
+              >
+                Access Patient Portal
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle>Doctor Panel</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                Manage your schedule, view appointments, and handle consultations.
+              </p>
+              <Button 
+                onClick={() => navigate("/auth")}
+                className="w-full"
+                variant="outline"
+              >
+                Doctor Login
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle>Admin Panel</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                Complete system management, user oversight, and analytics.
+              </p>
+              <Button 
+                onClick={() => navigate("/admin")}
+                className="w-full"
+                variant="secondary"
+              >
+                Admin Access
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
