@@ -5,7 +5,7 @@ export const Header = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           {/* Left Section */}
           <div className="flex flex-col">
-            <h1 className="text-4xl font-bold text-blue-600">অন্যরকম</h1>
+            <h1 className="text-4xl font-bold" style={{ color: '#0000FF' }}>অন্যরকম</h1>
             <p className="text-lg" style={{ color: '#282828' }}>হিলিং সার্ভিসেস</p>
           </div>
           

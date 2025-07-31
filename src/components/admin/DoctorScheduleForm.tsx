@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -24,6 +25,7 @@ interface DoctorScheduleFormProps {
 
 export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorScheduleFormProps) => {
   const [formData, setFormData] = useState({
+    doctor_id: "",
     availability_date: "",
     start_time: "11:00",
     break_start: "13:15",
@@ -31,11 +33,28 @@ export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorSchedul
     end_time: "16:30",
     max_appointments: 17
   });
+  const [doctors, setDoctors] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    // Fetch active doctors
+    const fetchDoctors = async () => {
+      const { data, error } = await supabase
+        .from("doctors")
+        .select("id, name, degree")
+        .eq("is_active", true)
+        .order("name");
+      
+      if (!error && data) {
+        setDoctors(data);
+      }
+    };
+    
+    fetchDoctors();
+    
     if (schedule) {
       setFormData({
+        doctor_id: "",
         availability_date: schedule.availability_date,
         start_time: schedule.start_time.slice(0, 5),
         break_start: schedule.break_start.slice(0, 5),
@@ -79,6 +98,7 @@ export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorSchedul
         const { data, error } = await supabase
           .from("doctor_schedules")
           .insert({
+            doctor_id: formData.doctor_id,
             availability_date: formData.availability_date,
             start_time: formData.start_time + ":00",
             break_start: formData.break_start + ":00",
@@ -119,6 +139,26 @@ export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorSchedul
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="doctor">Select Doctor</Label>
+            <Select
+              value={formData.doctor_id}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, doctor_id: value }))}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a doctor" />
+              </SelectTrigger>
+              <SelectContent>
+                {doctors.map((doctor) => (
+                  <SelectItem key={doctor.id} value={doctor.id}>
+                    Dr. {doctor.name} - {doctor.degree}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="availability_date">Doctor Availability Date</Label>
             <Input

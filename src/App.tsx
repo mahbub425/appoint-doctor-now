@@ -10,6 +10,7 @@ import UserDashboard from "./pages/UserDashboard";
 import BookAppointment from "./pages/BookAppointment";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import Admin from "./pages/Admin";
+import DoctorLogin from "./pages/DoctorLogin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/user" element={<UserDashboard />} />
             <Route path="/book-appointment/:doctorId" element={<BookAppointment />} />
             <Route path="/doctor" element={<DoctorDashboard />} />
+            <Route path="/doctor-login" element={<DoctorLogin />} />
             <Route path="/admin" element={<Admin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
