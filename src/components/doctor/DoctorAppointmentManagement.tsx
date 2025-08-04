@@ -323,22 +323,14 @@ const AppointmentTable = ({ appointments, onAcceptReject, onViewDetails, showAct
                     >
                       View
                     </Button>
-                    {showActions && appointment.status === 'upcoming' && (
-                      <>
-                        <Button
-                          size="sm"
-                          onClick={() => onAcceptReject(appointment.id, 'accepted')}
-                        >
-                          Accept
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => onAcceptReject(appointment.id, 'rejected')}
-                        >
-                          Reject
-                        </Button>
-                      </>
+                    {showActions && (appointment.status === 'upcoming' || appointment.status === 'accepted') && (
+                      <Button
+                        size="sm"
+                        onClick={() => onAcceptReject(appointment.id, 'completed')}
+                        variant="default"
+                      >
+                        Mark Complete
+                      </Button>
                     )}
                   </div>
                 </TableCell>
