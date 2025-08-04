@@ -75,7 +75,7 @@ const DoctorListWithLoginCheck = () => {
 
   const handleBookAppointment = (doctorId: string) => {
     if (!user) {
-      toast.error("You can't book any appointment without login");
+      navigate("/auth");
       return;
     }
     navigate(`/book-appointment/${doctorId}`);
