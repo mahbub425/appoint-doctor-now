@@ -263,10 +263,8 @@ export type Database = {
           auth_user_id: string | null
           concern: string
           created_at: string
-          email: string | null
           id: string
           name: string
-          password_hash: string | null
           phone: string
           pin: string
           updated_at: string
@@ -275,10 +273,8 @@ export type Database = {
           auth_user_id?: string | null
           concern: string
           created_at?: string
-          email?: string | null
           id?: string
           name: string
-          password_hash?: string | null
           phone: string
           pin: string
           updated_at?: string
@@ -287,10 +283,8 @@ export type Database = {
           auth_user_id?: string | null
           concern?: string
           created_at?: string
-          email?: string | null
           id?: string
           name?: string
-          password_hash?: string | null
           phone?: string
           pin?: string
           updated_at?: string

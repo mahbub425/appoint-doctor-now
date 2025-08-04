@@ -13,15 +13,13 @@ const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
     name: "",
     pin: "",
     concern: "",
     phone: ""
   });
 
-  const { signUp, signIn, user } = useAuth();
+  const { pinSignUp, pinSignIn, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,15 +29,6 @@ const Auth = () => {
   }, [user, navigate]);
 
   const handleSubmit = async () => {
-    if (!formData.email || !formData.password) {
-      toast({
-        title: "Error",
-        description: "Email and password are required",
-        variant: "destructive"
-      });
-      return;
-    }
-
     if (isSignUp) {
       if (!formData.name || !formData.pin || !formData.concern || !formData.phone) {
         toast({
@@ -60,13 +49,22 @@ const Auth = () => {
         });
         return;
       }
+    } else {
+      if (!formData.pin) {
+        toast({
+          title: "Error",
+          description: "Employee PIN is required",
+          variant: "destructive"
+        });
+        return;
+      }
     }
 
     setLoading(true);
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(formData.email, formData.password, {
+        const { error } = await pinSignUp({
           name: formData.name,
           pin: formData.pin,
           concern: formData.concern,
@@ -74,13 +72,7 @@ const Auth = () => {
         });
 
         if (error) {
-          if (error.message.includes("already registered")) {
-            toast({
-              title: "Error",
-              description: "Email already registered. Please sign in instead.",
-              variant: "destructive"
-            });
-          } else if (error.message.includes("PIN already exists")) {
+          if (error.message.includes("PIN already exists")) {
             toast({
               title: "Error",
               description: "PIN already exists. Please choose a different PIN.",
@@ -96,17 +88,17 @@ const Auth = () => {
         } else {
           toast({
             title: "Success",
-            description: "Account created successfully! Please check your email to verify your account."
+            description: "Account created successfully!"
           });
           setIsSignUp(false);
         }
       } else {
-        const { error } = await signIn(formData.email, formData.password);
+        const { error } = await pinSignIn(formData.pin);
 
         if (error) {
           toast({
             title: "Error",
-            description: "Invalid email or password",
+            description: "Invalid Employee PIN",
             variant: "destructive"
           });
         } else {
@@ -154,12 +146,12 @@ const Auth = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="pin">PIN</Label>
+                <Label htmlFor="pin">Employee PIN</Label>
                 <Input
                   id="pin"
                   value={formData.pin}
                   onChange={(e) => setFormData(prev => ({ ...prev, pin: e.target.value }))}
-                  placeholder="Enter a unique PIN"
+                  placeholder="Enter a unique Employee PIN"
                 />
               </div>
 
@@ -192,27 +184,17 @@ const Auth = () => {
             </>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-              placeholder="Enter your email"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-              placeholder="Enter your password"
-            />
-          </div>
+          {!isSignUp && (
+            <div className="space-y-2">
+              <Label htmlFor="pin">Employee PIN</Label>
+              <Input
+                id="pin"
+                value={formData.pin}
+                onChange={(e) => setFormData(prev => ({ ...prev, pin: e.target.value }))}
+                placeholder="Enter your Employee PIN"
+              />
+            </div>
+          )}
 
           <Button 
             onClick={handleSubmit} 

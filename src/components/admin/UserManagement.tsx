@@ -18,7 +18,6 @@ interface User {
   pin: string;
   concern: string;
   phone: string;
-  email: string;
   created_at: string;
   is_active?: boolean;
 }
@@ -196,8 +195,7 @@ export const UserManagement = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>PIN</TableHead>
-                  <TableHead>Email</TableHead>
+                  <TableHead>Employee PIN</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Concern</TableHead>
                   <TableHead>Joined</TableHead>
@@ -209,7 +207,6 @@ export const UserManagement = () => {
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell>{user.pin}</TableCell>
-                    <TableCell>{user.email}</TableCell>
                     <TableCell>{user.phone}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{user.concern}</Badge>

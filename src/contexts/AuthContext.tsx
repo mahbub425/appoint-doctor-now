@@ -10,6 +10,8 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, userData: any) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  pinSignUp: (userData: any) => Promise<{ error: any }>;
+  pinSignIn: (pin: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
   isDoctor: boolean;
@@ -138,10 +140,93 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return { error };
   };
 
+  const pinSignUp = async (userData: any) => {
+    try {
+      // Check if PIN already exists
+      const { data: existingUsers, error: checkError } = await supabase
+        .from('users')
+        .select('pin')
+        .eq('pin', userData.pin);
+
+      if (checkError) {
+        console.error('PIN check error:', checkError);
+        return { error: checkError };
+      }
+
+      if (existingUsers && existingUsers.length > 0) {
+        return { error: { message: 'PIN already exists' } };
+      }
+
+      // Insert user without Supabase auth
+      const { data, error } = await supabase
+        .from('users')
+        .insert([{
+          name: userData.name,
+          pin: userData.pin,
+          concern: userData.concern,
+          phone: userData.phone
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('User creation error:', error);
+        return { error };
+      }
+
+      return { error: null };
+    } catch (error) {
+      console.error('PIN signup error:', error);
+      return { error };
+    }
+  };
+
+  const pinSignIn = async (pin: string) => {
+    try {
+      const { data: users, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('pin', pin);
+
+      if (error) {
+        console.error('PIN login error:', error);
+        return { error };
+      }
+
+      if (!users || users.length === 0) {
+        return { error: { message: 'Invalid PIN' } };
+      }
+
+      const user = users[0];
+      
+      // Set user profile and simulate login
+      setUserProfile(user);
+      
+      // Create a mock user object for compatibility
+      const mockUser = {
+        id: user.id,
+        email: user.pin + '@mock.local', // Mock email for compatibility
+        user_metadata: { name: user.name }
+      };
+      
+      setUser(mockUser as any);
+
+      return { error: null };
+    } catch (error) {
+      console.error('PIN login error:', error);
+      return { error };
+    }
+  };
+
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setUserProfile(null);
-    setDoctorProfile(null);
+    try {
+      await supabase.auth.signOut();
+      setUserProfile(null);
+      setDoctorProfile(null);
+      setUser(null);
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
 
   // Check user roles
@@ -157,6 +242,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loading,
     signUp,
     signIn,
+    pinSignUp,
+    pinSignIn,
     signOut,
     isAdmin,
     isDoctor,

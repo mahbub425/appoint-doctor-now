@@ -22,7 +22,7 @@ interface Appointment {
   status: string;
   user: {
     name: string;
-    email: string;
+    pin: string;
   };
 }
 
@@ -46,7 +46,7 @@ export const DoctorAppointmentManagement = () => {
         .from("appointments")
         .select(`
           *,
-          user:users(name, email)
+          user:users(name, pin)
         `)
         .eq("doctor_id", doctorProfile.id)
         .order("appointment_date", { ascending: false })
@@ -57,7 +57,11 @@ export const DoctorAppointmentManagement = () => {
         return;
       }
 
-      setAppointments(data || []);
+      // Filter out appointments with invalid user data
+      const validAppointments = (data || []).filter(appointment => 
+        appointment && appointment.user && typeof appointment.user === 'object' && appointment.user.name
+      );
+      setAppointments(validAppointments as Appointment[]);
     } catch (error) {
       console.error("Error fetching appointments:", error);
     } finally {
@@ -208,8 +212,8 @@ export const DoctorAppointmentManagement = () => {
                   <p className="text-muted-foreground">{selectedAppointment.pin}</p>
                 </div>
                 <div>
-                  <p className="font-medium">Email:</p>
-                  <p className="text-muted-foreground">{selectedAppointment.user?.email || 'N/A'}</p>
+                  <p className="font-medium">Employee PIN:</p>
+                  <p className="text-muted-foreground">{selectedAppointment.user?.pin || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="font-medium">Phone:</p>

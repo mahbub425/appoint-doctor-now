@@ -20,6 +20,7 @@ interface Doctor {
   designation: string;
   specialties: string[];
   username: string;
+  password_hash: string;
   is_active: boolean;
   created_at: string;
 }
@@ -305,6 +306,7 @@ export const DoctorManagement = () => {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Username</TableHead>
+                  <TableHead>Password</TableHead>
                   <TableHead>Degree</TableHead>
                   <TableHead>Specialties</TableHead>
                   <TableHead>Status</TableHead>
@@ -317,6 +319,20 @@ export const DoctorManagement = () => {
                   <TableRow key={doctor.id}>
                     <TableCell className="font-medium">{doctor.name}</TableCell>
                     <TableCell>{doctor.username}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <code className="text-sm bg-muted px-2 py-1 rounded max-w-20 truncate">
+                          {doctor.password_hash}
+                        </code>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => navigator.clipboard.writeText(doctor.password_hash)}
+                        >
+                          Copy
+                        </Button>
+                      </div>
+                    </TableCell>
                     <TableCell className="max-w-xs truncate">{doctor.degree}</TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
