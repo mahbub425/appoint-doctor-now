@@ -91,7 +91,7 @@ const Index = () => {
                 Manage your schedule, view appointments, and handle consultations.
               </p>
               <Button 
-                onClick={() => navigate("/auth")}
+                onClick={() => navigate("/doctor-login")}
                 className="w-full"
                 variant="outline"
               >

@@ -225,7 +225,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       console.log("PIN login successful, user data:", user);
       
-      // Set user profile and simulate login
+      // Clear doctor profile and set user profile for PIN login
+      setDoctorProfile(null);
       setUserProfile(user);
       
       // Create a mock user object for compatibility
