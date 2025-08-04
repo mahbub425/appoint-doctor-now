@@ -260,8 +260,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Check user roles
   const isAdmin = user?.email === "admin@admin.com" || false;
-  const isDoctor = !!doctorProfile;
-  const isUser = !!userProfile;
+  const isDoctor = !!doctorProfile && !userProfile; // Only doctor if no user profile
+  const isUser = !!userProfile && !doctorProfile; // Only user if no doctor profile
 
   const value = {
     user,
