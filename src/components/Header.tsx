@@ -1,4 +1,9 @@
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+
 export const Header = () => {
+  const navigate = useNavigate();
+
   return (
     <header className="bg-background border-b border-border">
       <div className="container mx-auto px-4 py-6">
@@ -10,15 +15,13 @@ export const Header = () => {
           </div>
           
           {/* Right Section */}
-          <div className="flex flex-col text-right">
-            <h2 className="text-2xl font-semibold text-foreground mb-2">
-              Dr. Md. Shojib Hossen Sipo
-            </h2>
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p>MBBS, FCGP, MPH, DUMS (DU), Diploma in Asthma (UK), CCD (BIRDEM),</p>
-              <p>PG Diploma in Diabetes (UK), EMO, Medical College For Women and Hospital</p>
-              <p>Ex-Lec. Shaheed Monsur Ali Medical College and Hospital</p>
-            </div>
+          <div className="flex">
+            <Button 
+              onClick={() => navigate("/auth")}
+              className="px-6 py-2"
+            >
+              লগিন
+            </Button>
           </div>
         </div>
       </div>
