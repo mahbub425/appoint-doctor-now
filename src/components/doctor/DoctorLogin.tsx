@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,8 @@ export const DoctorLogin = ({ onLoginSuccess }: DoctorLoginProps) => {
     setError("");
 
     try {
+      console.log("Attempting login with username:", credentials.username);
+      
       // Query doctors table for username and password match
       const { data: doctors, error } = await supabase
         .from("doctors")
@@ -32,24 +35,43 @@ export const DoctorLogin = ({ onLoginSuccess }: DoctorLoginProps) => {
         .eq("username", credentials.username)
         .eq("is_active", true);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Database error:", error);
+        throw error;
+      }
+
+      console.log("Found doctors:", doctors);
 
       if (!doctors || doctors.length === 0) {
+        console.log("No doctor found with username:", credentials.username);
         setError("Invalid username or password");
         setIsSubmitting(false);
         return;
       }
 
       const doctor = doctors[0];
+      console.log("Doctor found:", doctor);
+      console.log("Comparing password:", credentials.password, "with stored:", doctor.password_hash);
       
       // Direct password comparison as requested
       if (doctor.password_hash === credentials.password) {
-        // Store doctor session
-        localStorage.setItem('doctorSession', JSON.stringify({
+        console.log("Password match successful");
+        
+        // Store complete doctor information in localStorage
+        const doctorSessionData = {
           id: doctor.id,
           username: doctor.username,
-          name: doctor.name
-        }));
+          name: doctor.name,
+          degree: doctor.degree,
+          experience: doctor.experience,
+          designation: doctor.designation,
+          specialties: doctor.specialties,
+          is_active: doctor.is_active,
+          created_at: doctor.created_at,
+          updated_at: doctor.updated_at
+        };
+        
+        localStorage.setItem('doctorSession', JSON.stringify(doctorSessionData));
         
         toast({
           title: "Login Successful",
@@ -58,6 +80,7 @@ export const DoctorLogin = ({ onLoginSuccess }: DoctorLoginProps) => {
         
         onLoginSuccess(doctor);
       } else {
+        console.log("Password mismatch");
         setError("Invalid username or password");
       }
     } catch (error: any) {

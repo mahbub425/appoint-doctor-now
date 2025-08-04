@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,14 +37,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
+    // Check for doctor session in localStorage
+    const checkDoctorSession = () => {
+      const doctorSession = localStorage.getItem('doctorSession');
+      if (doctorSession) {
+        try {
+          const doctorData = JSON.parse(doctorSession);
+          setDoctorProfile(doctorData);
+          setLoading(false);
+          return true;
+        } catch (error) {
+          console.error('Error parsing doctor session:', error);
+          localStorage.removeItem('doctorSession');
+        }
+      }
+      return false;
+    };
+
+    // First check for doctor session
+    if (checkDoctorSession()) {
+      return;
+    }
+
+    // Set up auth state listener for regular users
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Fetch profile data when user signs in
+        // Clear doctor profile when regular user signs in
         if (session?.user) {
+          setDoctorProfile(null);
           setTimeout(() => {
             fetchUserProfile(session.user.id);
           }, 0);
@@ -220,7 +244,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
+      // Clear doctor session from localStorage
+      localStorage.removeItem('doctorSession');
+      
+      // Sign out from Supabase auth
       await supabase.auth.signOut();
+      
       setUserProfile(null);
       setDoctorProfile(null);
       setUser(null);
