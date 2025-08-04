@@ -86,33 +86,33 @@ const DoctorListWithLoginCheck = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Available Doctors</h2>
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
+      <h2 className="text-xl sm:text-2xl font-bold text-foreground">Available Doctors</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
         {doctors.map((doctor) => (
-          <Card key={doctor.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-lg">{doctor.name}</CardTitle>
-              <p className="text-sm text-muted-foreground">{doctor.degree}</p>
+          <Card key={doctor.id} className="hover:shadow-md transition-shadow border-border">
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="text-lg sm:text-xl text-foreground">{doctor.name}</CardTitle>
+              <p className="text-xs sm:text-sm text-primary font-medium">{doctor.degree}</p>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4 pt-0">
               <div>
-                <p className="text-sm font-medium">Designation:</p>
-                <p className="text-sm text-muted-foreground">{doctor.designation}</p>
+                <p className="text-xs sm:text-sm font-medium text-foreground">Designation:</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">{doctor.designation}</p>
               </div>
               
               <div>
-                <p className="text-sm font-medium">Experience:</p>
-                <p className="text-sm text-muted-foreground">{doctor.experience}</p>
+                <p className="text-xs sm:text-sm font-medium text-foreground">Experience:</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">{doctor.experience}</p>
               </div>
 
               {doctor.specialties && doctor.specialties.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium mb-2">Specialties:</p>
+                  <p className="text-xs sm:text-sm font-medium mb-2 text-foreground">Specialties:</p>
                   <div className="flex flex-wrap gap-1">
                     {doctor.specialties.map((specialty, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
+                      <Badge key={index} variant="secondary" className="text-xs px-2 py-1">
                         {specialty}
                       </Badge>
                     ))}
@@ -121,8 +121,8 @@ const DoctorListWithLoginCheck = () => {
               )}
 
               <div>
-                <p className="text-sm font-medium">Next Availability:</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm font-medium text-foreground">Next Availability:</p>
+                <p className="text-xs sm:text-sm text-secondary font-medium">
                   {doctor.next_availability 
                     ? formatDate(doctor.next_availability)
                     : "No upcoming availability"
@@ -131,9 +131,10 @@ const DoctorListWithLoginCheck = () => {
               </div>
 
               <Button 
-                className="w-full"
+                className="w-full text-sm sm:text-base py-2 sm:py-3"
                 onClick={() => handleBookAppointment(doctor.id)}
                 disabled={!doctor.next_availability}
+                size="sm"
               >
                 {doctor.next_availability ? "Book Appointment" : "Not Available"}
               </Button>
@@ -185,7 +186,7 @@ const Index = () => {
       <Header />
       <NoticeSection />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <DoctorListWithLoginCheck />
       </div>
     </div>
