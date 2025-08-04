@@ -101,7 +101,7 @@ export const DoctorManagement = () => {
           designation: doctorForm.designation,
           specialties: specialtiesArray,
           username: doctorForm.username,
-          password_hash: `$2b$10$dummy_hash_for_${doctorForm.password}`, // In real app, hash properly
+          password_hash: doctorForm.password, // Store plain password as requested
           is_active: true
         });
 
@@ -171,7 +171,7 @@ export const DoctorManagement = () => {
 
       // Only update password if provided
       if (doctorForm.password) {
-        updateData.password_hash = `$2b$10$dummy_hash_for_${doctorForm.password}`;
+        updateData.password_hash = doctorForm.password;
       }
 
       const { error } = await supabase

@@ -42,7 +42,7 @@ export const DoctorLogin = ({ onLoginSuccess }: DoctorLoginProps) => {
 
       const doctor = doctors[0];
       
-      // Simple password comparison (in production, use proper hashing)
+      // Direct password comparison as requested
       if (doctor.password_hash === credentials.password) {
         // Store doctor session
         localStorage.setItem('doctorSession', JSON.stringify({
