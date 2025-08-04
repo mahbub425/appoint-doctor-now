@@ -34,12 +34,17 @@ const Index = () => {
   const { user, isAdmin, isDoctor, isUser, loading } = useAuth();
 
   useEffect(() => {
+    console.log("Index.tsx redirect check - loading:", loading, "user:", !!user, "isAdmin:", isAdmin, "isDoctor:", isDoctor, "isUser:", isUser);
+    
     if (!loading && user) {
       if (isAdmin) {
+        console.log("Redirecting to admin");
         navigate("/admin");
       } else if (isDoctor) {
+        console.log("Redirecting to doctor");
         navigate("/doctor");
       } else if (isUser) {
+        console.log("Redirecting to user");
         navigate("/user");
       }
     }

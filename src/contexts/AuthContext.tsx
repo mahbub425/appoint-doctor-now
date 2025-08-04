@@ -223,6 +223,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const user = users[0];
       
+      console.log("PIN login successful, user data:", user);
+      
       // Set user profile and simulate login
       setUserProfile(user);
       
@@ -233,6 +235,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         user_metadata: { name: user.name }
       };
       
+      console.log("Setting mock user:", mockUser);
       setUser(mockUser as any);
 
       return { error: null };
@@ -262,6 +265,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const isAdmin = user?.email === "admin@admin.com" || false;
   const isDoctor = !!doctorProfile && !userProfile; // Only doctor if no user profile
   const isUser = !!userProfile && !doctorProfile; // Only user if no doctor profile
+  
+  console.log("Auth state - user:", !!user, "userProfile:", !!userProfile, "doctorProfile:", !!doctorProfile, "isUser:", isUser, "isDoctor:", isDoctor, "isAdmin:", isAdmin);
 
   const value = {
     user,
