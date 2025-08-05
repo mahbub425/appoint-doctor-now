@@ -179,7 +179,7 @@ export const AnalyticsDashboard = () => {
         .from("appointments")
         .select(`
           *,
-          user:users(name, email),
+          user:users(name, phone),
           doctor:doctors(name)
         `);
 
@@ -199,14 +199,14 @@ export const AnalyticsDashboard = () => {
       }
 
       // Create CSV content
-      const headers = ["Date", "Doctor", "Patient", "Email", "Concern", "Reason", "Serial", "Time", "Status"];
+      const headers = ["Date", "Doctor", "Patient", "Phone", "Concern", "Reason", "Serial", "Time", "Status"];
       const csvContent = [
         headers.join(","),
         ...(data || []).map((row: any) => [
           new Date(row.appointment_date).toLocaleDateString('en-GB'),
           row.doctor?.name || 'Unknown',
           row.user?.name || row.name,
-          row.user?.email || 'N/A',
+          row.user?.phone || row.phone || 'N/A',
           row.concern,
           row.reason,
           row.serial_number,
