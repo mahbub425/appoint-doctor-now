@@ -91,15 +91,24 @@ export const DoctorScheduleViewing = () => {
       if (error) {
         toast({
           title: "Error",
-          description: "Failed to update schedule. Admin approval may be required.",
+          description: "Failed to update schedule",
           variant: "destructive"
         });
         return;
       }
 
+      // Reschedule appointments for this doctor's schedule
+      await supabase.rpc('reschedule_appointments_for_doctor', {
+        p_doctor_id: doctorProfile.id,
+        p_availability_date: editingSchedule.availability_date,
+        p_start_time: editForm.start_time,
+        p_break_start: editForm.break_start,
+        p_break_end: editForm.break_end
+      });
+
       toast({
         title: "Success",
-        description: "Schedule updated successfully"
+        description: "Schedule updated and appointments rescheduled successfully"
       });
 
       setEditingSchedule(null);
@@ -191,7 +200,7 @@ export const DoctorScheduleViewing = () => {
                       onClick={() => handleEditSchedule(schedule)}
                       className="w-full"
                     >
-                      Request Edit
+                      Edit Schedule
                     </Button>
                   </DialogTrigger>
                   <DialogContent>

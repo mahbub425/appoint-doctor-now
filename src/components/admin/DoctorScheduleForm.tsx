@@ -10,6 +10,7 @@ import { toast } from "@/hooks/use-toast";
 
 interface DoctorSchedule {
   id: string;
+  doctor_id: string;
   availability_date: string;
   start_time: string;
   break_start: string;
@@ -87,13 +88,24 @@ export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorSchedul
           .single();
 
         if (error) throw error;
+
+        // Reschedule appointments only for this doctor and date
+        await supabase.rpc('reschedule_appointments_for_doctor', {
+          p_doctor_id: schedule.doctor_id,
+          p_availability_date: formData.availability_date,
+          p_start_time: formData.start_time + ":00",
+          p_break_start: formData.break_start + ":00",
+          p_break_end: formData.break_end + ":00"
+        });
+
         onScheduleUpdate(data);
       } else {
-        // Creating new schedule - clear old appointments first
+        // Creating new schedule - only delete appointments for this doctor/date
         await supabase
           .from("appointments")
           .delete()
-          .neq("id", "00000000-0000-0000-0000-000000000000"); // Delete all
+          .eq("doctor_id", formData.doctor_id)
+          .eq("appointment_date", formData.availability_date);
 
         const { data, error } = await supabase
           .from("doctor_schedules")

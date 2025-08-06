@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LogOut, Users, UserCheck, Calendar, BarChart } from "lucide-react";
 import { DoctorScheduleForm } from "./DoctorScheduleForm";
-import { AppointmentManagement } from "./AppointmentManagement";
+import { AppointmentManagementEnhanced } from "./AppointmentManagementEnhanced";
 import { UserManagement } from "./UserManagement";
 import { DoctorManagement } from "./EnhancedDoctorManagement";
-import { AnalyticsDashboard } from "./AnalyticsDashboard";
+import { AnalyticsDashboardEnhanced } from "./AnalyticsDashboardEnhanced";
 
 
 interface AdminDashboardProps {
@@ -56,7 +56,7 @@ export const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
           </TabsList>
 
           <TabsContent value="analytics">
-            <AnalyticsDashboard />
+            <AnalyticsDashboardEnhanced />
           </TabsContent>
 
           <TabsContent value="users">
@@ -72,7 +72,7 @@ export const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
           </TabsContent>
 
           <TabsContent value="appointments">
-            <AppointmentManagement schedule={null} appointments={[]} onAppointmentsUpdate={() => {}} />
+            <AppointmentManagementEnhanced />
           </TabsContent>
         </Tabs>
       </main>

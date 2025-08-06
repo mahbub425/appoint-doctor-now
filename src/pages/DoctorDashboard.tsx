@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { DoctorNav } from "@/components/doctor/DoctorNav";
 import { DoctorProfileManagement } from "@/components/doctor/DoctorProfileManagement";
 import { DoctorScheduleViewing } from "@/components/doctor/DoctorScheduleViewing";
-import { DoctorAppointmentManagement } from "@/components/doctor/DoctorAppointmentManagement";
+import { DoctorAppointmentManagementEnhanced } from "@/components/doctor/DoctorAppointmentManagementEnhanced";
 import { ConsultationManagement } from "@/components/doctor/ConsultationManagement";
 import { useNavigate } from "react-router-dom";
 
@@ -67,11 +67,11 @@ const DoctorDashboard = () => {
       case "schedule":
         return <DoctorScheduleViewing />;
       case "appointments":
-        return <DoctorAppointmentManagement />;
+        return <DoctorAppointmentManagementEnhanced />;
       case "consultations":
         return <ConsultationManagement />;
       default:
-        return <DoctorAppointmentManagement />;
+        return <DoctorAppointmentManagementEnhanced />;
     }
   };
 
