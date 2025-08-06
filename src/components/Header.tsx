@@ -21,7 +21,7 @@ export const Header = () => {
               className="px-4 py-2 sm:px-6 w-full sm:w-auto text-sm sm:text-base"
               size="sm"
             >
-              লগিন
+              Login
             </Button>
           </div>
         </div>
