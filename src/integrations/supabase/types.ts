@@ -296,7 +296,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_old_appointments: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      reschedule_appointments_for_doctor: {
+        Args: {
+          p_doctor_id: string
+          p_availability_date: string
+          p_start_time: string
+          p_break_start: string
+          p_break_end: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
