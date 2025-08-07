@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -13,7 +13,7 @@ interface Analytics {
   totalPrescriptions: number;
   appointmentsByDoctor: Array<{ name: string; appointments: number }>;
   appointmentsByStatus: Array<{ name: string; value: number }>;
-  monthlyGrowth: Array<{ month: string; users: number; appointments: number }>;
+  monthlyGrowth: Array<{ month: string; users: number; appointments: number; prescriptions: number }>;
 }
 
 export const AnalyticsDashboardEnhanced = () => {
@@ -148,10 +148,56 @@ export const AnalyticsDashboardEnhanced = () => {
         value
       }));
 
-      // Process monthly growth (simplified for now)
-      const monthlyGrowth = [
-        { month: 'Last Month', users: users.length, appointments: appointments.length }
-      ];
+      // Process monthly growth with proper date calculations
+      const monthlyGrowth = [];
+      const now = new Date();
+      const startDateObj = new Date(startDate);
+      
+      // Generate months based on selected date range
+      const getMonthsToShow = () => {
+        switch (selectedDateRange) {
+          case 'today':
+          case 'last_7_days':
+            return 1;
+          case 'last_1_month':
+            return 1;
+          case 'last_3_months':
+            return 3;
+          case 'last_6_months':
+          default:
+            return 6;
+        }
+      };
+
+      const monthsToShow = getMonthsToShow();
+      
+      for (let i = monthsToShow - 1; i >= 0; i--) {
+        const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthStart = monthDate.toISOString().split('T')[0];
+        const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).toISOString().split('T')[0];
+        
+        // Filter data for this month
+        const monthUsers = users.filter(user => {
+          const userDate = user.created_at?.split('T')[0];
+          return userDate >= monthStart && userDate <= monthEnd;
+        }).length;
+        
+        const monthAppointments = appointments.filter(apt => {
+          return apt.appointment_date >= monthStart && apt.appointment_date <= monthEnd;
+        }).length;
+        
+        const monthPrescriptions = prescriptions.filter(pres => {
+          const presDate = pres.created_at?.split('T')[0];
+          return presDate >= monthStart && presDate <= monthEnd;
+        }).length;
+        
+        monthlyGrowth.push({
+          month: monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          users: monthUsers,
+          appointments: monthAppointments,
+          prescriptions: monthPrescriptions
+        });
+      }
 
       setAnalytics({
         totalUsers: users.length,
@@ -372,6 +418,44 @@ export const AnalyticsDashboardEnhanced = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Monthly Growth Line Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Monthly Growth Trend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={analytics.monthlyGrowth}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Line 
+                type="monotone" 
+                dataKey="users" 
+                stroke="#8884d8" 
+                strokeWidth={2}
+                name="Users"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="appointments" 
+                stroke="#82ca9d" 
+                strokeWidth={2}
+                name="Appointments"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="prescriptions" 
+                stroke="#ffc658" 
+                strokeWidth={2}
+                name="Prescriptions"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
     </div>
   );
 };
