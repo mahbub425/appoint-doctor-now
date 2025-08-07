@@ -8,6 +8,7 @@ import { DoctorProfileManagement } from "@/components/doctor/DoctorProfileManage
 import { DoctorScheduleViewing } from "@/components/doctor/DoctorScheduleViewing";
 import { DoctorAppointmentManagementEnhanced } from "@/components/doctor/DoctorAppointmentManagementEnhanced";
 import { ConsultationManagement } from "@/components/doctor/ConsultationManagement";
+import { NotificationIcon } from "@/components/NotificationIcon";
 import { useNavigate } from "react-router-dom";
 
 type TabType = "profile" | "schedule" | "appointments" | "consultations";
@@ -84,9 +85,12 @@ const DoctorDashboard = () => {
               <h1 className="text-2xl font-bold">Welcome, Dr. {currentDoctorProfile.name.split(' ').pop()}</h1>
               <p className="text-sm text-muted-foreground">{currentDoctorProfile.designation}</p>
             </div>
-            <Button onClick={handleSignOut} variant="outline">
-              Logout
-            </Button>
+            <div className="flex items-center gap-4">
+              <NotificationIcon userType="doctor" />
+              <Button onClick={handleSignOut} variant="outline">
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </header>

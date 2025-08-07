@@ -7,6 +7,7 @@ import { DoctorList } from "@/components/user/DoctorList";
 import { UserAppointmentsList } from "@/components/user/UserAppointmentsList";
 import { ProfileManagement } from "@/components/user/ProfileManagement";
 import { MedicalHistory } from "@/components/user/MedicalHistory";
+import { NotificationIcon } from "@/components/NotificationIcon";
 
 type TabType = "doctors" | "appointments" | "profile" | "history";
 
@@ -43,9 +44,12 @@ const UserDashboard = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Welcome, {userProfile.name}</h1>
-            <Button onClick={signOut} variant="outline">
-              Logout
-            </Button>
+            <div className="flex items-center gap-4">
+              <NotificationIcon userType="user" />
+              <Button onClick={signOut} variant="outline">
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </header>

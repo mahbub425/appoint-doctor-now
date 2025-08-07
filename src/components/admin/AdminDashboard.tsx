@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LogOut, Users, UserCheck, Calendar, BarChart } from "lucide-react";
-import { DoctorScheduleForm } from "./DoctorScheduleForm";
+import { DoctorScheduleManagement } from "./DoctorScheduleManagement";
 import { AppointmentManagementEnhanced } from "./AppointmentManagementEnhanced";
 import { UserManagement } from "./UserManagement";
 import { DoctorManagement } from "./EnhancedDoctorManagement";
 import { AnalyticsDashboardEnhanced } from "./AnalyticsDashboardEnhanced";
+import { NotificationIcon } from "@/components/NotificationIcon";
 
 
 interface AdminDashboardProps {
@@ -22,10 +23,13 @@ export const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-            <Button onClick={onLogout} variant="outline">
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
+            <div className="flex items-center gap-4">
+              <NotificationIcon userType="admin" />
+              <Button onClick={onLogout} variant="outline">
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -68,7 +72,7 @@ export const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
           </TabsContent>
 
           <TabsContent value="schedules">
-            <DoctorScheduleForm schedule={null} onScheduleUpdate={() => {}} />
+            <DoctorScheduleManagement />
           </TabsContent>
 
           <TabsContent value="appointments">

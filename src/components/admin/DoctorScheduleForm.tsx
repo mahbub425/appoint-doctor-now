@@ -20,8 +20,8 @@ interface DoctorSchedule {
 }
 
 interface DoctorScheduleFormProps {
-  schedule: DoctorSchedule | null;
-  onScheduleUpdate: (schedule: DoctorSchedule) => void;
+  schedule?: DoctorSchedule | null;
+  onScheduleUpdate: () => void;
 }
 
 export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorScheduleFormProps) => {
@@ -98,7 +98,7 @@ export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorSchedul
           p_break_end: formData.break_end + ":00"
         });
 
-        onScheduleUpdate(data);
+        onScheduleUpdate();
       } else {
         // Creating new schedule - only delete appointments for this doctor/date
         await supabase
@@ -122,7 +122,7 @@ export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorSchedul
           .single();
 
         if (error) throw error;
-        onScheduleUpdate(data);
+        onScheduleUpdate();
       }
 
       toast({
