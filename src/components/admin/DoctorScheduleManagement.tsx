@@ -146,7 +146,53 @@ export const DoctorScheduleManagement = () => {
   };
 
   const handleDelete = async (scheduleId: string) => {
+    const scheduleToDelete = schedules.find(s => s.id === scheduleId);
+    if (!scheduleToDelete) return;
+
     try {
+      // First check if there are any appointments for this schedule
+      const { data: appointments, error: appointmentError } = await supabase
+        .from("appointments")
+        .select("id")
+        .eq("doctor_id", scheduleToDelete.doctor_id)
+        .eq("appointment_date", scheduleToDelete.availability_date);
+
+      if (appointmentError) {
+        console.error("Error checking appointments:", appointmentError);
+        toast({
+          title: "Error",
+          description: "Failed to check existing appointments",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // If there are appointments, show warning
+      if (appointments && appointments.length > 0) {
+        const confirmed = window.confirm(
+          `This schedule has ${appointments.length} appointment(s). Deleting it will also cancel these appointments. Are you sure you want to continue?`
+        );
+        
+        if (!confirmed) return;
+
+        // Delete appointments first
+        const { error: deleteAppointmentsError } = await supabase
+          .from("appointments")
+          .delete()
+          .eq("doctor_id", scheduleToDelete.doctor_id)
+          .eq("appointment_date", scheduleToDelete.availability_date);
+
+        if (deleteAppointmentsError) {
+          console.error("Error deleting appointments:", deleteAppointmentsError);
+          toast({
+            title: "Error",
+            description: "Failed to cancel appointments",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+
       const { error } = await supabase
         .from('doctor_schedules')
         .delete()
@@ -156,7 +202,9 @@ export const DoctorScheduleManagement = () => {
 
       toast({
         title: "Success",
-        description: "Schedule deleted successfully",
+        description: appointments && appointments.length > 0 
+          ? `Schedule and ${appointments.length} appointment(s) deleted successfully`
+          : "Schedule deleted successfully",
       });
 
       fetchSchedules();
