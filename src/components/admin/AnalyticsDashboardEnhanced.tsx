@@ -199,9 +199,13 @@ export const AnalyticsDashboardEnhanced = () => {
         });
       }
 
+      // Calculate totals based on filter
+      const filteredTotalUsers = selectedDoctor === "all" ? users.length : users.length;
+      const filteredTotalDoctors = selectedDoctor === "all" ? doctors.length : 1;
+      
       setAnalytics({
-        totalUsers: users.length,
-        totalDoctors: doctors.length,
+        totalUsers: filteredTotalUsers,
+        totalDoctors: filteredTotalDoctors,
         totalAppointments: appointments.length,
         totalPrescriptions: prescriptions.length,
         appointmentsByDoctor,
