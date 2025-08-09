@@ -89,6 +89,7 @@ export type Database = {
           doctor_id: string | null
           end_time: string
           id: string
+          location: string | null
           max_appointments: number
           start_time: string
           updated_at: string
@@ -101,6 +102,7 @@ export type Database = {
           doctor_id?: string | null
           end_time?: string
           id?: string
+          location?: string | null
           max_appointments?: number
           start_time?: string
           updated_at?: string
@@ -113,6 +115,7 @@ export type Database = {
           doctor_id?: string | null
           end_time?: string
           id?: string
+          location?: string | null
           max_appointments?: number
           start_time?: string
           updated_at?: string
@@ -306,6 +309,7 @@ export type Database = {
           concern: string
           created_at: string
           id: string
+          is_blocked: boolean | null
           name: string
           phone: string
           pin: string
@@ -316,6 +320,7 @@ export type Database = {
           concern: string
           created_at?: string
           id?: string
+          is_blocked?: boolean | null
           name: string
           phone: string
           pin: string
@@ -326,6 +331,7 @@ export type Database = {
           concern?: string
           created_at?: string
           id?: string
+          is_blocked?: boolean | null
           name?: string
           phone?: string
           pin?: string

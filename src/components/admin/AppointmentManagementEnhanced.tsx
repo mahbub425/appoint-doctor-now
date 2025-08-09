@@ -263,14 +263,14 @@ export const AppointmentManagementEnhanced = () => {
     
     switch (appointment.status) {
       case 'absent':
-        return <Badge variant="destructive">Absent</Badge>;
+        return <Badge variant="destructive" className="bg-red-500 text-white">Absent</Badge>;
       case 'completed':
-        return <Badge variant="outline">Completed</Badge>;
+        return <Badge variant="default" className="bg-green-500 text-white">Completed</Badge>;
       default:
         if (appointmentDateTime < now) {
-          return <Badge variant="secondary">Completed</Badge>;
+          return <Badge variant="default" className="bg-green-500 text-white">Completed</Badge>;
         }
-        return <Badge variant="default">Upcoming</Badge>;
+        return <Badge variant="secondary" className="bg-gray-500 text-white">Upcoming</Badge>;
     }
   };
 

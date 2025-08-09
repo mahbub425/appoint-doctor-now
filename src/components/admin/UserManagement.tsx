@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Trash2, Edit, UserCheck, UserX } from "lucide-react";
+import { Trash2, Edit, UserCheck, UserX, Ban, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -20,6 +20,7 @@ interface User {
   phone: string;
   created_at: string;
   is_active?: boolean;
+  is_blocked?: boolean;
 }
 
 export const UserManagement = () => {
@@ -114,6 +115,37 @@ export const UserManagement = () => {
     }
   };
 
+  const handleToggleBlock = async (userId: string, isBlocked: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("users")
+        .update({ is_blocked: !isBlocked })
+        .eq("id", userId);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to update user status",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: `User ${!isBlocked ? 'blocked' : 'unblocked'} successfully`
+      });
+
+      fetchUsers();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleDeleteUser = async (userId: string) => {
     try {
       // First delete related appointments
@@ -198,6 +230,7 @@ export const UserManagement = () => {
                   <TableHead>Employee PIN</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Concern</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -211,6 +244,11 @@ export const UserManagement = () => {
                     <TableCell>
                       <Badge variant="outline">{user.concern}</Badge>
                     </TableCell>
+                    <TableCell>
+                      <Badge variant={user.is_blocked ? "destructive" : "default"}>
+                        {user.is_blocked ? "Blocked" : "Active"}
+                      </Badge>
+                    </TableCell>
                     <TableCell>{formatDate(user.created_at)}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
@@ -220,6 +258,14 @@ export const UserManagement = () => {
                           onClick={() => handleEditUser(user)}
                         >
                           <Edit className="h-4 w-4" />
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant={user.is_blocked ? "default" : "destructive"}
+                          onClick={() => handleToggleBlock(user.id, user.is_blocked || false)}
+                        >
+                          {user.is_blocked ? <ShieldCheck className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
                         </Button>
                         
                         <AlertDialog>

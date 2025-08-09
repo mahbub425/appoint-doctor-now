@@ -275,8 +275,22 @@ export const DoctorScheduleManagement = () => {
 
   return (
     <div className="space-y-6">
-      {/* Doctor Schedule Form */}
-      <DoctorScheduleForm onScheduleUpdate={onScheduleUpdate} />
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Schedule Management</h2>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button>
+              Add Schedules
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Add Doctor Schedule</DialogTitle>
+            </DialogHeader>
+            <DoctorScheduleForm onScheduleUpdate={onScheduleUpdate} />
+          </DialogContent>
+        </Dialog>
+      </div>
 
       {/* Schedule List */}
       <Card>

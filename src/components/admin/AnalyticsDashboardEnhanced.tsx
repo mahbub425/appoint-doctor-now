@@ -7,13 +7,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 interface Analytics {
-  totalUsers: number;
-  totalDoctors: number;
-  totalAppointments: number;
-  totalPrescriptions: number;
-  appointmentsByDoctor: Array<{ name: string; appointments: number }>;
-  appointmentsByStatus: Array<{ name: string; value: number }>;
-  monthlyGrowth: Array<{ month: string; users: number; appointments: number; prescriptions: number }>;
+  totalPatients: number;
+  totalVisits: number;
+  totalSchedules: number;
+  rating: number;
+  visitsByDoctor: Array<{ name: string; visits: number }>;
+  visitsByReason: Array<{ name: string; value: number }>;
+  monthlyGrowth: Array<{ month: string; visits: number }>;
 }
 
 export const AnalyticsDashboardEnhanced = () => {
@@ -92,7 +92,7 @@ export const AnalyticsDashboardEnhanced = () => {
         .select(`
           id,
           appointment_date,
-          status,
+          reason,
           doctor:doctors(name)
         `)
         .gte("appointment_date", startDate)
@@ -102,58 +102,56 @@ export const AnalyticsDashboardEnhanced = () => {
         appointmentsQuery = appointmentsQuery.eq("doctor_id", selectedDoctor);
       }
 
-      // Base query for prescriptions
-      let prescriptionsQuery = supabase
-        .from("prescriptions")
-        .select("id, created_at")
-        .gte("created_at", startDate + "T00:00:00")
-        .lte("created_at", endDate + "T23:59:59");
+      // Query for schedules
+      let schedulesQuery = supabase
+        .from("doctor_schedules")
+        .select("id, availability_date")
+        .gte("availability_date", startDate)
+        .lte("availability_date", endDate);
 
       if (selectedDoctor !== "all") {
-        prescriptionsQuery = prescriptionsQuery.eq("doctor_id", selectedDoctor);
+        schedulesQuery = schedulesQuery.eq("doctor_id", selectedDoctor);
       }
 
-      const [appointmentsResponse, prescriptionsResponse, usersResponse, doctorsResponse] = await Promise.all([
+      const [appointmentsResponse, schedulesResponse, usersResponse, doctorsResponse] = await Promise.all([
         appointmentsQuery,
-        prescriptionsQuery,
+        schedulesQuery,
         supabase.from("users").select("id, created_at"),
         supabase.from("doctors").select("id, name").eq("is_active", true)
       ]);
 
-      if (appointmentsResponse.error || prescriptionsResponse.error || usersResponse.error || doctorsResponse.error) {
+      if (appointmentsResponse.error || schedulesResponse.error || usersResponse.error || doctorsResponse.error) {
         console.error("Error fetching analytics data");
         return;
       }
 
       const appointments = appointmentsResponse.data || [];
-      const prescriptions = prescriptionsResponse.data || [];
+      const schedules = schedulesResponse.data || [];
       const users = usersResponse.data || [];
       const doctors = doctorsResponse.data || [];
 
-      // Process appointments by doctor
-      const appointmentsByDoctor = doctors.map(doctor => ({
+      // Process visits by doctor
+      const visitsByDoctor = doctors.map(doctor => ({
         name: doctor.name,
-        appointments: appointments.filter(apt => apt.doctor?.name === doctor.name).length
+        visits: appointments.filter(apt => apt.doctor?.name === doctor.name).length
       }));
 
-      // Process appointments by status
-      const statusCounts = appointments.reduce((acc, apt) => {
-        const status = apt.status || 'upcoming';
-        acc[status] = (acc[status] || 0) + 1;
+      // Process visits by reason
+      const reasonCounts = appointments.reduce((acc, apt) => {
+        const reason = apt.reason || 'Other';
+        acc[reason] = (acc[reason] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
-      const appointmentsByStatus = Object.entries(statusCounts).map(([name, value]) => ({
-        name: name.charAt(0).toUpperCase() + name.slice(1),
+      const visitsByReason = Object.entries(reasonCounts).map(([name, value]) => ({
+        name: name,
         value
       }));
 
-      // Process monthly growth with proper date calculations
+      // Process monthly growth
       const monthlyGrowth = [];
       const now = new Date();
-      const startDateObj = new Date(startDate);
       
-      // Generate months based on selected date range
       const getMonthsToShow = () => {
         switch (selectedDateRange) {
           case 'today':
@@ -176,40 +174,29 @@ export const AnalyticsDashboardEnhanced = () => {
         const monthStart = monthDate.toISOString().split('T')[0];
         const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).toISOString().split('T')[0];
         
-        // Filter data for this month
-        const monthUsers = users.filter(user => {
-          const userDate = user.created_at?.split('T')[0];
-          return userDate >= monthStart && userDate <= monthEnd;
-        }).length;
-        
-        const monthAppointments = appointments.filter(apt => {
+        const monthVisits = appointments.filter(apt => {
           return apt.appointment_date >= monthStart && apt.appointment_date <= monthEnd;
-        }).length;
-        
-        const monthPrescriptions = prescriptions.filter(pres => {
-          const presDate = pres.created_at?.split('T')[0];
-          return presDate >= monthStart && presDate <= monthEnd;
         }).length;
         
         monthlyGrowth.push({
           month: monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-          users: monthUsers,
-          appointments: monthAppointments,
-          prescriptions: monthPrescriptions
+          visits: monthVisits
         });
       }
 
-      // Calculate totals based on filter
-      const filteredTotalUsers = selectedDoctor === "all" ? users.length : users.length;
-      const filteredTotalDoctors = selectedDoctor === "all" ? doctors.length : 1;
+      // Calculate totals (Total Patients is not filtered, others are filtered)
+      const totalPatients = users.length; // Always total users, not filtered
+      const totalVisits = appointments.length;
+      const totalSchedules = schedules.length;
+      const rating = 0; // Placeholder for future implementation
       
       setAnalytics({
-        totalUsers: filteredTotalUsers,
-        totalDoctors: filteredTotalDoctors,
-        totalAppointments: appointments.length,
-        totalPrescriptions: prescriptions.length,
-        appointmentsByDoctor,
-        appointmentsByStatus,
+        totalPatients,
+        totalVisits,
+        totalSchedules,
+        rating,
+        visitsByDoctor,
+        visitsByReason,
         monthlyGrowth
       });
 
@@ -341,37 +328,37 @@ export const AnalyticsDashboardEnhanced = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalUsers}</div>
+            <div className="text-2xl font-bold">{analytics.totalPatients}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Doctors</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Visits</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalDoctors}</div>
+            <div className="text-2xl font-bold">{analytics.totalVisits}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Appointments</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Schedules</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalAppointments}</div>
+            <div className="text-2xl font-bold">{analytics.totalSchedules}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Prescriptions</CardTitle>
+            <CardTitle className="text-sm font-medium">Rating</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalPrescriptions}</div>
+            <div className="text-2xl font-bold">{analytics.rating}</div>
           </CardContent>
         </Card>
       </div>
@@ -380,16 +367,16 @@ export const AnalyticsDashboardEnhanced = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Appointments by Doctor</CardTitle>
+            <CardTitle>Visits by Doctor</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={analytics.appointmentsByDoctor}>
+              <BarChart data={analytics.visitsByDoctor}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip />
-                <Bar dataKey="appointments" fill="#8884d8" />
+                <Tooltip formatter={(value) => [`${value} Visits`, 'Visits']} />
+                <Bar dataKey="visits" fill="#8884d8" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -397,13 +384,13 @@ export const AnalyticsDashboardEnhanced = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Appointments by Status</CardTitle>
+            <CardTitle>Visits by Reason</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={analytics.appointmentsByStatus}
+                  data={analytics.visitsByReason}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -412,7 +399,7 @@ export const AnalyticsDashboardEnhanced = () => {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {analytics.appointmentsByStatus.map((entry, index) => (
+                  {analytics.visitsByReason.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -434,27 +421,13 @@ export const AnalyticsDashboardEnhanced = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip />
+              <Tooltip formatter={(value) => [`${value} Visits`, 'Visits']} />
               <Line 
                 type="monotone" 
-                dataKey="users" 
+                dataKey="visits" 
                 stroke="#8884d8" 
                 strokeWidth={2}
-                name="Users"
-              />
-              <Line 
-                type="monotone" 
-                dataKey="appointments" 
-                stroke="#82ca9d" 
-                strokeWidth={2}
-                name="Appointments"
-              />
-              <Line 
-                type="monotone" 
-                dataKey="prescriptions" 
-                stroke="#ffc658" 
-                strokeWidth={2}
-                name="Prescriptions"
+                name="Visits"
               />
             </LineChart>
           </ResponsiveContainer>
