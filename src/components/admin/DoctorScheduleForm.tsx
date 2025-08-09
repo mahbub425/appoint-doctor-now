@@ -12,6 +12,7 @@ interface DoctorSchedule {
   id: string;
   doctor_id: string;
   availability_date: string;
+  location?: string;
   start_time: string;
   break_start: string;
   break_end: string;
@@ -28,6 +29,7 @@ export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorSchedul
   const [formData, setFormData] = useState({
     doctor_id: "",
     availability_date: "",
+    location: "",
     start_time: "11:00",
     break_start: "13:15",
     break_end: "14:30",
@@ -57,6 +59,7 @@ export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorSchedul
       setFormData({
         doctor_id: "",
         availability_date: schedule.availability_date,
+        location: schedule.location || "",
         start_time: schedule.start_time.slice(0, 5),
         break_start: schedule.break_start.slice(0, 5),
         break_end: schedule.break_end.slice(0, 5),
@@ -77,6 +80,7 @@ export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorSchedul
           .from("doctor_schedules")
           .update({
             availability_date: formData.availability_date,
+            location: formData.location,
             start_time: formData.start_time + ":00",
             break_start: formData.break_start + ":00",
             break_end: formData.break_end + ":00",
@@ -112,6 +116,7 @@ export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorSchedul
           .insert({
             doctor_id: formData.doctor_id,
             availability_date: formData.availability_date,
+            location: formData.location,
             start_time: formData.start_time + ":00",
             break_start: formData.break_start + ":00",
             break_end: formData.break_end + ":00",
@@ -180,6 +185,23 @@ export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorSchedul
               onChange={(e) => setFormData(prev => ({ ...prev, availability_date: e.target.value }))}
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="location">Location</Label>
+            <Select
+              value={formData.location}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select location" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Karwan Bazar">Karwan Bazar</SelectItem>
+                <SelectItem value="Motijheel">Motijheel</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

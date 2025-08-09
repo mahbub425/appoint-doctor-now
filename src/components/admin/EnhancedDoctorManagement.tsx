@@ -472,6 +472,15 @@ export const DoctorManagement = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <Label htmlFor="doctor-username">Username *</Label>
+                <Input
+                  id="doctor-username"
+                  value={doctorForm.username}
+                  onChange={(e) => setDoctorForm(prev => ({ ...prev, username: e.target.value }))}
+                  placeholder="dr_username"
+                />
+              </div>
+              <div>
                 <Label htmlFor="doctor-password">
                   Password {editingDoctor ? "(leave empty to keep current)" : "*"}
                 </Label>
@@ -481,15 +490,6 @@ export const DoctorManagement = () => {
                   value={doctorForm.password}
                   onChange={(e) => setDoctorForm(prev => ({ ...prev, password: e.target.value }))}
                   placeholder="Password for doctor login"
-                />
-              </div>
-              <div>
-                <Label htmlFor="doctor-username">Username *</Label>
-                <Input
-                  id="doctor-username"
-                  value={doctorForm.username}
-                  onChange={(e) => setDoctorForm(prev => ({ ...prev, username: e.target.value }))}
-                  placeholder="dr_username"
                 />
               </div>
             </div>
