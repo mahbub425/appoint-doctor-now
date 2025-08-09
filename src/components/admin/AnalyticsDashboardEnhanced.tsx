@@ -26,6 +26,62 @@ export const AnalyticsDashboardEnhanced = () => {
   useEffect(() => {
     fetchDoctors();
     fetchAnalytics();
+
+    // Set up real-time subscriptions for automatic updates
+    const appointmentsChannel = supabase
+      .channel('appointments-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'appointments'
+        },
+        () => {
+          console.log('Appointments table changed, refreshing analytics...');
+          fetchAnalytics();
+        }
+      )
+      .subscribe();
+
+    const schedulesChannel = supabase
+      .channel('schedules-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'doctor_schedules'
+        },
+        () => {
+          console.log('Doctor schedules table changed, refreshing analytics...');
+          fetchAnalytics();
+        }
+      )
+      .subscribe();
+
+    const usersChannel = supabase
+      .channel('users-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'users'
+        },
+        () => {
+          console.log('Users table changed, refreshing analytics...');
+          fetchAnalytics();
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscriptions on unmount
+    return () => {
+      supabase.removeChannel(appointmentsChannel);
+      supabase.removeChannel(schedulesChannel);
+      supabase.removeChannel(usersChannel);
+    };
   }, []);
 
   useEffect(() => {
@@ -291,7 +347,7 @@ export const AnalyticsDashboardEnhanced = () => {
         <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
         
         <div className="flex flex-col sm:flex-row gap-4">
-          <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
+            <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Filter by doctor" />
             </SelectTrigger>
