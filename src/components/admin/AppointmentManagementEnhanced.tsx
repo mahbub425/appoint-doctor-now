@@ -122,8 +122,8 @@ export const AppointmentManagementEnhanced = () => {
         break;
       case 'last_6_months':
       default:
-        const sixMonths = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
-        startDate = sixMonths.toISOString().split('T')[0];
+        // Show all data for last 6 months and beyond
+        startDate = '2020-01-01'; // Very old date to capture all data
         break;
     }
 

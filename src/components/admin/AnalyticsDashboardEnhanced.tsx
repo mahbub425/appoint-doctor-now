@@ -130,8 +130,8 @@ export const AnalyticsDashboardEnhanced = () => {
         break;
       case 'last_6_months':
       default:
-        const sixMonths = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
-        startDate = sixMonths.toISOString().split('T')[0];
+        // Show data from the beginning of time for last 6 months and beyond
+        startDate = '2020-01-01'; // Very old date to capture all data
         break;
     }
 
