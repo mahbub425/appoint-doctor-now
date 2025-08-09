@@ -52,6 +52,28 @@ export const AppointmentManagementEnhanced = () => {
   useEffect(() => {
     fetchDoctors();
     fetchAppointments();
+
+    // Set up real-time subscriptions for automatic updates
+    const appointmentsChannel = supabase
+      .channel('appointments-changes-mgmt')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'appointments'
+        },
+        () => {
+          console.log('Appointments table changed, refreshing appointment list...');
+          fetchAppointments();
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscriptions on unmount
+    return () => {
+      supabase.removeChannel(appointmentsChannel);
+    };
   }, []);
 
   useEffect(() => {
