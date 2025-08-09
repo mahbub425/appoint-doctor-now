@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
@@ -31,6 +33,7 @@ export const DoctorAppointmentManagementEnhanced = () => {
   const [loading, setLoading] = useState(true);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [activeTab, setActiveTab] = useState("upcoming");
+  const [dateFilter, setDateFilter] = useState("");
   const { doctorProfile } = useAuth();
 
   useEffect(() => {
@@ -148,40 +151,59 @@ export const DoctorAppointmentManagementEnhanced = () => {
     
     switch (appointment.status) {
       case 'absent':
-        return <Badge variant="destructive">Absent</Badge>;
+        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Absent</Badge>;
       case 'completed':
-        return <Badge variant="outline">Completed</Badge>;
+        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Completed</Badge>;
       default:
         if (appointmentDateTime < now) {
-          return <Badge variant="secondary">Completed</Badge>;
+          return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Completed</Badge>;
         }
-        return <Badge variant="default">Upcoming</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">Upcoming</Badge>;
+    }
+  };
+
+  const getReasonBadge = (reason: string) => {
+    switch (reason) {
+      case 'New Patient':
+        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">{reason}</Badge>;
+      case 'Follow Up':
+        return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">{reason}</Badge>;
+      case 'Report Show':
+        return <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">{reason}</Badge>;
+      default:
+        return <Badge variant="outline">{reason}</Badge>;
     }
   };
 
   const filterAppointments = (status: string) => {
     const now = new Date();
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    let filteredAppointments = appointments;
+
+    // Apply date filter if set
+    if (dateFilter) {
+      filteredAppointments = appointments.filter(apt => 
+        apt.appointment_date === dateFilter
+      );
+    }
     
     switch (status) {
       case 'upcoming':
-        return appointments.filter(apt => {
+        return filteredAppointments.filter(apt => {
           const appointmentDateTime = new Date(`${apt.appointment_date}T${apt.appointment_time}`);
           return appointmentDateTime >= now && apt.status !== 'absent' && apt.status !== 'completed';
         });
       case 'past':
-        return appointments.filter(apt => {
-          const appointmentDate = new Date(apt.appointment_date);
+        return filteredAppointments.filter(apt => {
           const appointmentDateTime = new Date(`${apt.appointment_date}T${apt.appointment_time}`);
-          return (appointmentDateTime < now || apt.status === 'completed') && 
-                 appointmentDate >= sixMonthsAgo;
+          return appointmentDateTime < now || apt.status === 'completed' || apt.status === 'absent';
         });
-      case 'absent':
-        return appointments.filter(apt => apt.status === 'absent');
       default:
-        return appointments;
+        return filteredAppointments;
     }
+  };
+
+  const getTotalAppointments = () => {
+    return appointments.length;
   };
 
   const formatDate = (dateString: string) => {
@@ -201,8 +223,31 @@ export const DoctorAppointmentManagementEnhanced = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Appointment Management</h2>
         <div className="text-sm text-muted-foreground">
-          Total: {getTabCount(activeTab)} appointments
+          Total: {getTotalAppointments()} Appointments
         </div>
+      </div>
+
+      {/* Date Filter */}
+      <div className="flex gap-4 items-end">
+        <div className="space-y-2">
+          <Label htmlFor="date-filter">Filter by Date</Label>
+          <Input
+            id="date-filter"
+            type="date"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="w-48"
+          />
+        </div>
+        {dateFilter && (
+          <Button 
+            variant="outline" 
+            onClick={() => setDateFilter("")}
+            className="mb-0"
+          >
+            Clear Filter
+          </Button>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
@@ -212,9 +257,6 @@ export const DoctorAppointmentManagementEnhanced = () => {
           </TabsTrigger>
           <TabsTrigger value="past">
             Past ({getTabCount('past')})
-          </TabsTrigger>
-          <TabsTrigger value="absent">
-            Absent ({getTabCount('absent')})
           </TabsTrigger>
         </TabsList>
 
@@ -226,6 +268,7 @@ export const DoctorAppointmentManagementEnhanced = () => {
             onViewDetails={setSelectedAppointment}
             showAbsentAction={true}
             showCompleteAction={true}
+            getReasonBadge={getReasonBadge}
           />
         </TabsContent>
 
@@ -237,17 +280,7 @@ export const DoctorAppointmentManagementEnhanced = () => {
             onViewDetails={setSelectedAppointment}
             showAbsentAction={false}
             showCompleteAction={false}
-          />
-        </TabsContent>
-
-        <TabsContent value="absent">
-          <AppointmentTable 
-            appointments={filterAppointments('absent')}
-            onMarkAbsent={handleMarkAbsent}
-            onMarkComplete={handleMarkComplete}
-            onViewDetails={setSelectedAppointment}
-            showAbsentAction={false}
-            showCompleteAction={false}
+            getReasonBadge={getReasonBadge}
           />
         </TabsContent>
       </Tabs>
@@ -308,6 +341,7 @@ interface AppointmentTableProps {
   onViewDetails: (appointment: Appointment) => void;
   showAbsentAction: boolean;
   showCompleteAction: boolean;
+  getReasonBadge: (reason: string) => JSX.Element;
 }
 
 const AppointmentTable = ({ 
@@ -316,7 +350,8 @@ const AppointmentTable = ({
   onMarkComplete,
   onViewDetails, 
   showAbsentAction,
-  showCompleteAction 
+  showCompleteAction,
+  getReasonBadge 
 }: AppointmentTableProps) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-GB');
@@ -328,14 +363,14 @@ const AppointmentTable = ({
     
     switch (appointment.status) {
       case 'absent':
-        return <Badge variant="destructive">Absent</Badge>;
+        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Absent</Badge>;
       case 'completed':
-        return <Badge variant="outline">Completed</Badge>;
+        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Completed</Badge>;
       default:
         if (appointmentDateTime < now) {
-          return <Badge variant="secondary">Completed</Badge>;
+          return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Completed</Badge>;
         }
-        return <Badge variant="default">Upcoming</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">Upcoming</Badge>;
     }
   };
 
@@ -375,7 +410,7 @@ const AppointmentTable = ({
                 <TableCell>{appointment.serial_number}</TableCell>
                 <TableCell>{appointment.name}</TableCell>
                 <TableCell>{appointment.concern}</TableCell>
-                <TableCell>{appointment.reason}</TableCell>
+                <TableCell>{getReasonBadge(appointment.reason)}</TableCell>
                 <TableCell>{getStatusBadge(appointment)}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
