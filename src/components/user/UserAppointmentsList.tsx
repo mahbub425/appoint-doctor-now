@@ -3,11 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
 
 interface Appointment {
   id: string;
@@ -35,7 +32,6 @@ export const UserAppointmentsList = () => {
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const { userProfile } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (userProfile) {
@@ -126,22 +122,6 @@ export const UserAppointmentsList = () => {
     return <Badge variant="outline">Upcoming</Badge>;
   };
 
-  const handleViewAppointment = (appointment: Appointment) => {
-    const appointmentData = {
-      id: appointment.id,
-      name: appointment.name,
-      appointment_date: appointment.appointment_date,
-      appointment_time: appointment.appointment_time,
-      doctor_name: appointment.doctor?.name || 'Unknown',
-      location: appointment.location || 'Not specified',
-      reason: appointment.reason,
-      serial_number: appointment.serial_number,
-      pin: userProfile?.pin || ''
-    };
-    
-    navigate('/appointment-details', { state: appointmentData });
-  };
-
   if (loading) {
     return <div className="text-center py-8">Loading appointments...</div>;
   }
@@ -193,7 +173,6 @@ export const UserAppointmentsList = () => {
                   <TableHead>Concern</TableHead>
                   <TableHead>Reason</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -207,16 +186,6 @@ export const UserAppointmentsList = () => {
                     <TableCell>{appointment.concern}</TableCell>
                     <TableCell>{appointment.reason}</TableCell>
                     <TableCell>{getStatusBadge(appointment)}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewAppointment(appointment)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
