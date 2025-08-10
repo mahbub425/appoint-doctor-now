@@ -54,7 +54,7 @@ export const AppointmentBookingForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookedAppointment, setBookedAppointment] = useState<Appointment | null>(null);
 
-  const concerns = ["OPL", "OG", "Udvash", "Rokomari", "Unmesh", "Uttoron"];
+  const concerns = ["OnnoRokom Group", "OnnoRokom Projukti Limited", "Udvash-Unmesh-Uttoron", "OnnoRorkom Electronics Co. Ltd.", "OnnoRokom Solutions Ltd.", "Pi Labs Bangladesh Ltd.", "OnnoRokom EdTech Ltd.", "Techshop Bangladesh"];
   const reasons = ["New Patient", "Follow Up", "Report Show"];
 
   const validatePhoneNumber = (phone: string) => {

@@ -156,12 +156,14 @@ export const ProfileManagement = () => {
                       <SelectValue placeholder="Select your concern" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="OPL">OPL</SelectItem>
-                      <SelectItem value="OG">OG</SelectItem>
-                      <SelectItem value="Udvash">Udvash</SelectItem>
-                      <SelectItem value="Rokomari">Rokomari</SelectItem>
-                      <SelectItem value="Unmesh">Unmesh</SelectItem>
-                      <SelectItem value="Uttoron">Uttoron</SelectItem>
+                      <SelectItem value="OnnoRokom Group">OnnoRokom Group</SelectItem>
+                      <SelectItem value="OnnoRokom Projukti Limited">OnnoRokom Projukti Limited</SelectItem>
+                      <SelectItem value="Udvash-Unmesh-Uttoron">Udvash-Unmesh-Uttoron</SelectItem>
+                      <SelectItem value="OnnoRorkom Electronics Co. Ltd.">OnnoRorkom Electronics Co. Ltd.</SelectItem>
+                      <SelectItem value="OnnoRokom Solutions Ltd.">OnnoRokom Solutions Ltd.</SelectItem>
+                      <SelectItem value="Pi Labs Bangladesh Ltd.">Pi Labs Bangladesh Ltd.</SelectItem>
+                      <SelectItem value="OnnoRokom EdTech Ltd.">OnnoRokom EdTech Ltd.</SelectItem>
+                      <SelectItem value="Techshop Bangladesh">Techshop Bangladesh</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

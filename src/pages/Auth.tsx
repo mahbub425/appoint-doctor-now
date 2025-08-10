@@ -53,7 +53,7 @@ const Auth = () => {
       if (!formData.pin) {
         toast({
           title: "Error",
-          description: "Employee PIN is required",
+          description: "PIN is required",
           variant: "destructive"
         });
         return;
@@ -98,7 +98,7 @@ const Auth = () => {
         if (error) {
           toast({
             title: "Error",
-            description: "Invalid Employee PIN",
+            description: "Invalid PIN",
             variant: "destructive"
           });
         } else {
@@ -146,12 +146,12 @@ const Auth = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="pin">Employee PIN</Label>
+                <Label htmlFor="pin">PIN</Label>
                 <Input
                   id="pin"
                   value={formData.pin}
                   onChange={(e) => setFormData(prev => ({ ...prev, pin: e.target.value }))}
-                  placeholder="Enter a unique Employee PIN"
+                  placeholder="Enter a unique PIN"
                 />
               </div>
 
@@ -162,12 +162,14 @@ const Auth = () => {
                     <SelectValue placeholder="Select your concern" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="OPL">OPL</SelectItem>
-                    <SelectItem value="OG">OG</SelectItem>
-                    <SelectItem value="Udvash">Udvash</SelectItem>
-                    <SelectItem value="Rokomari">Rokomari</SelectItem>
-                    <SelectItem value="Unmesh">Unmesh</SelectItem>
-                    <SelectItem value="Uttoron">Uttoron</SelectItem>
+                    <SelectItem value="OnnoRokom Group">OnnoRokom Group</SelectItem>
+                    <SelectItem value="OnnoRokom Projukti Limited">OnnoRokom Projukti Limited</SelectItem>
+                    <SelectItem value="Udvash-Unmesh-Uttoron">Udvash-Unmesh-Uttoron</SelectItem>
+                    <SelectItem value="OnnoRorkom Electronics Co. Ltd.">OnnoRorkom Electronics Co. Ltd.</SelectItem>
+                    <SelectItem value="OnnoRokom Solutions Ltd.">OnnoRokom Solutions Ltd.</SelectItem>
+                    <SelectItem value="Pi Labs Bangladesh Ltd.">Pi Labs Bangladesh Ltd.</SelectItem>
+                    <SelectItem value="OnnoRokom EdTech Ltd.">OnnoRokom EdTech Ltd.</SelectItem>
+                    <SelectItem value="Techshop Bangladesh">Techshop Bangladesh</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -186,12 +188,12 @@ const Auth = () => {
 
           {!isSignUp && (
             <div className="space-y-2">
-              <Label htmlFor="pin">Employee PIN</Label>
+              <Label htmlFor="pin">PIN</Label>
               <Input
                 id="pin"
                 value={formData.pin}
                 onChange={(e) => setFormData(prev => ({ ...prev, pin: e.target.value }))}
-                placeholder="Enter your Employee PIN"
+                placeholder="Enter your PIN"
               />
             </div>
           )}

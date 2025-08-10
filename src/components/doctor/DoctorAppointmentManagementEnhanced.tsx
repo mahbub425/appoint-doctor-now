@@ -303,7 +303,7 @@ export const DoctorAppointmentManagementEnhanced = () => {
                   <p className="text-muted-foreground">{selectedAppointment.pin}</p>
                 </div>
                 <div>
-                  <p className="font-medium">Employee PIN:</p>
+                  <p className="font-medium">User PIN:</p>
                   <p className="text-muted-foreground">{selectedAppointment.user?.pin || 'N/A'}</p>
                 </div>
                 <div>
