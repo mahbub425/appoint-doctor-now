@@ -3,8 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface Appointment {
   id: string;
@@ -15,6 +18,7 @@ interface Appointment {
   appointment_time: string;
   serial_number: number;
   status: string;
+  location?: string;
   doctor: {
     name: string;
   };
@@ -31,6 +35,7 @@ export const UserAppointmentsList = () => {
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const { userProfile } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (userProfile) {
@@ -71,7 +76,8 @@ export const UserAppointmentsList = () => {
         .from("appointments")
         .select(`
           *,
-          doctor:doctors(name)
+          doctor:doctors(name),
+          doctor_schedules!inner(location)
         `)
         .eq("user_id", userProfile.id)
         .order("appointment_date", { ascending: false })
@@ -120,6 +126,22 @@ export const UserAppointmentsList = () => {
     return <Badge variant="outline">Upcoming</Badge>;
   };
 
+  const handleViewAppointment = (appointment: Appointment) => {
+    const appointmentData = {
+      id: appointment.id,
+      name: appointment.name,
+      appointment_date: appointment.appointment_date,
+      appointment_time: appointment.appointment_time,
+      doctor_name: appointment.doctor?.name || 'Unknown',
+      location: appointment.location || 'Not specified',
+      reason: appointment.reason,
+      serial_number: appointment.serial_number,
+      pin: userProfile?.pin || ''
+    };
+    
+    navigate('/appointment-details', { state: appointmentData });
+  };
+
   if (loading) {
     return <div className="text-center py-8">Loading appointments...</div>;
   }
@@ -165,11 +187,13 @@ export const UserAppointmentsList = () => {
                 <TableRow>
                   <TableHead>Date</TableHead>
                   <TableHead>Time</TableHead>
+                  <TableHead>Location</TableHead>
                   <TableHead>Serial</TableHead>
                   <TableHead>Doctor</TableHead>
                   <TableHead>Concern</TableHead>
                   <TableHead>Reason</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -177,11 +201,22 @@ export const UserAppointmentsList = () => {
                   <TableRow key={appointment.id}>
                     <TableCell>{formatDate(appointment.appointment_date)}</TableCell>
                     <TableCell>{appointment.appointment_time}</TableCell>
+                    <TableCell>{appointment.location || 'Not specified'}</TableCell>
                     <TableCell>{appointment.serial_number}</TableCell>
                     <TableCell>{appointment.doctor?.name || 'Unknown'}</TableCell>
                     <TableCell>{appointment.concern}</TableCell>
                     <TableCell>{appointment.reason}</TableCell>
                     <TableCell>{getStatusBadge(appointment)}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewAppointment(appointment)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

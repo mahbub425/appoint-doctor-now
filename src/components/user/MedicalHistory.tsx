@@ -171,8 +171,23 @@ export const MedicalHistory = () => {
 
   return (
     <div className="space-y-6">
+      <h2 className="text-2xl font-bold">Medical History</h2>
+
+      {/* Coming Soon Banner */}
+      <Card>
+        <CardContent className="py-16">
+          <div className="text-center space-y-4">
+            <div className="text-6xl">🚧</div>
+            <h3 className="text-2xl font-semibold text-muted-foreground">Coming Soon</h3>
+            <p className="text-muted-foreground">
+              Medical history features are currently under development.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+      
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Medical History</h2>
+        <h3 className="text-xl font-semibold">Document Management</h3>
         
         <Dialog>
           <DialogTrigger asChild>
