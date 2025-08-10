@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import UserDashboard from "./pages/UserDashboard";
 import BookAppointment from "./pages/BookAppointment";
+import AppointmentDetails from "./pages/AppointmentDetails";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import Admin from "./pages/Admin";
 import DoctorLogin from "./pages/DoctorLogin";
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/user" element={<UserDashboard />} />
             <Route path="/book-appointment/:doctorId" element={<BookAppointment />} />
+            <Route path="/appointment-details" element={<AppointmentDetails />} />
             <Route path="/doctor" element={<DoctorDashboard />} />
             <Route path="/doctor-login" element={<DoctorLogin />} />
             <Route path="/admin" element={<Admin />} />

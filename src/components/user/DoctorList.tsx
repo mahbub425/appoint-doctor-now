@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { MapPin, Calendar } from "lucide-react";
 
 interface Doctor {
   id: string;
@@ -14,6 +15,7 @@ interface Doctor {
   specialties: string[];
   is_active: boolean;
   next_availability?: string;
+  location?: string;
 }
 
 export const DoctorList = () => {
@@ -42,7 +44,7 @@ export const DoctorList = () => {
         (doctorsData || []).map(async (doctor) => {
           const { data: schedule } = await supabase
             .from("doctor_schedules")
-            .select("availability_date")
+            .select("availability_date, location")
             .eq("doctor_id", doctor.id)
             .gte("availability_date", new Date().toISOString().split('T')[0])
             .order("availability_date", { ascending: true })
@@ -51,7 +53,8 @@ export const DoctorList = () => {
 
           return {
             ...doctor,
-            next_availability: schedule?.availability_date || null
+            next_availability: schedule?.availability_date || null,
+            location: schedule?.location || null
           };
         })
       );
@@ -78,38 +81,24 @@ export const DoctorList = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {doctors.map((doctor) => (
-          <Card key={doctor.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-lg">{doctor.name}</CardTitle>
-              <p className="text-sm text-muted-foreground">{doctor.degree}</p>
+          <Card key={doctor.id} className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/20 bg-gradient-to-br from-card to-card/80">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl font-bold text-primary mb-2">{doctor.name}</CardTitle>
+              <div className="space-y-1">
+                <p className="text-muted-foreground text-sm font-medium">{doctor.degree}</p>
+                <p className="text-muted-foreground text-sm">{doctor.designation}</p>
+                <p className="text-muted-foreground text-sm">{doctor.experience}</p>
+                <p className="text-muted-foreground text-sm">{doctor.specialties?.join(", ")}</p>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <p className="text-sm font-medium">Designation:</p>
-                <p className="text-sm text-muted-foreground">{doctor.designation}</p>
-              </div>
-              
-              <div>
-                <p className="text-sm font-medium">Experience:</p>
-                <p className="text-sm text-muted-foreground">{doctor.experience}</p>
-              </div>
-
-              {doctor.specialties && doctor.specialties.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium mb-2">Specialties:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {doctor.specialties.map((specialty, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {specialty}
-                      </Badge>
-                    ))}
-                  </div>
+              {/* Next Availability - Prominent Display */}
+              <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-lg border-l-4 border-primary">
+                <div className="flex items-center gap-2 mb-2">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  <span className="font-semibold text-primary text-lg">Next Availability</span>
                 </div>
-              )}
-
-              <div>
-                <p className="text-sm font-medium">Next Availability:</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-lg font-bold text-foreground">
                   {doctor.next_availability 
                     ? formatDate(doctor.next_availability)
                     : "No upcoming availability"
@@ -117,8 +106,19 @@ export const DoctorList = () => {
                 </p>
               </div>
 
+              {/* Location - Prominent Display */}
+              {doctor.location && (
+                <div className="bg-gradient-to-r from-secondary/20 to-secondary/10 p-4 rounded-lg border-l-4 border-secondary">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MapPin className="h-5 w-5 text-secondary" />
+                    <span className="font-semibold text-secondary text-lg">Location</span>
+                  </div>
+                  <p className="text-lg font-bold text-foreground">{doctor.location}</p>
+                </div>
+              )}
+
               <Button 
-                className="w-full"
+                className="w-full h-12 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02]"
                 onClick={() => navigate(`/book-appointment/${doctor.id}`)}
                 disabled={!doctor.next_availability}
               >

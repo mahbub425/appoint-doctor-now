@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -27,6 +27,7 @@ interface DoctorSchedule {
   break_end: string;
   end_time: string;
   max_appointments: number;
+  location: string;
 }
 
 interface Appointment {
@@ -215,7 +216,16 @@ export default function BookAppointment() {
         description: `Appointment booked successfully! Your appointment is scheduled for ${appointmentTime} on ${new Date(schedule.availability_date).toLocaleDateString('en-GB')}`
       });
 
-      navigate("/user");
+      // Navigate to appointment details page with appointment data
+      navigate("/appointment-details", {
+        state: {
+          appointmentData: {
+            ...data,
+            doctor_name: doctor.name,
+            location: schedule.location
+          }
+        }
+      });
     } catch (error) {
       toast({
         title: "Error",
@@ -268,52 +278,58 @@ export default function BookAppointment() {
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Doctor Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Doctor Details</CardTitle>
+          <Card className="border-2 border-primary/20 bg-gradient-to-br from-card to-card/80">
+            <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 border-b">
+              <CardTitle className="text-xl text-primary">Doctor Details</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold">{doctor.name}</h3>
-                <p className="text-sm text-muted-foreground">{doctor.degree}</p>
-              </div>
-              
-              <div>
-                <p className="text-sm font-medium">Designation:</p>
-                <p className="text-sm text-muted-foreground">{doctor.designation}</p>
-              </div>
-              
-              <div>
-                <p className="text-sm font-medium">Experience:</p>
-                <p className="text-sm text-muted-foreground">{doctor.experience}</p>
-              </div>
-
-              {doctor.specialties && doctor.specialties.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium mb-2">Specialties:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {doctor.specialties.map((specialty, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {specialty}
-                      </Badge>
-                    ))}
-                  </div>
+            <CardContent className="space-y-6 p-6">
+              <div className="text-center space-y-2">
+                <h3 className="text-2xl font-bold text-primary">{doctor.name}</h3>
+                <p className="text-lg text-muted-foreground font-medium">{doctor.degree}</p>
+                <div className="space-y-1 text-sm text-muted-foreground">
+                  <p>{doctor.designation}</p>
+                  <p>{doctor.experience}</p>
                 </div>
-              )}
+              </div>
 
               {schedule && (
-                <div>
-                  <p className="text-sm font-medium">Next Availability:</p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatDate(schedule.availability_date)} 
-                    ({schedule.start_time} - {schedule.end_time})
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Break: {schedule.break_start} - {schedule.break_end}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Available slots: {schedule.max_appointments - appointments.length}/{schedule.max_appointments}
-                  </p>
+                <div className="space-y-4">
+                  {/* Next Availability */}
+                  <div className="bg-gradient-to-r from-green-100 to-green-50 dark:from-green-900/20 dark:to-green-800/10 p-4 rounded-lg border-l-4 border-green-500">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Calendar className="h-5 w-5 text-green-600" />
+                      <span className="font-bold text-lg text-green-700 dark:text-green-400">Next Availability</span>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-xl font-bold text-foreground">
+                        {formatDate(schedule.availability_date)}
+                      </p>
+                      <p className="text-lg font-semibold text-foreground">
+                        ({schedule.start_time} - {schedule.end_time})
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-orange-500" />
+                        <span className="text-sm font-medium text-orange-700 dark:text-orange-400">
+                          Break: {schedule.break_start} - {schedule.break_end}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-blue-500" />
+                        <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                          Available slots: {schedule.max_appointments - appointments.length}/{schedule.max_appointments}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Location */}
+                  <div className="bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/20 dark:to-blue-800/10 p-4 rounded-lg border-l-4 border-blue-500">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MapPin className="h-5 w-5 text-blue-600" />
+                      <span className="font-bold text-lg text-blue-700 dark:text-blue-400">Location</span>
+                    </div>
+                    <p className="text-xl font-bold text-foreground">{schedule.location}</p>
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -373,17 +389,20 @@ export default function BookAppointment() {
                     </Select>
                   </div>
 
-                  {selectedReason && schedule && (
-                    <div className="bg-muted p-4 rounded-lg">
-                      <h4 className="font-medium mb-2">Appointment Details:</h4>
-                      <p className="text-sm">Date: {formatDate(schedule.availability_date)}</p>
-                      <p className="text-sm">
-                        Expected Time: {calculateAppointmentTime(appointments.length + 1, selectedReason)}
-                      </p>
-                      <p className="text-sm">Serial Number: {appointments.length + 1}</p>
-                      <p className="text-sm">Doctor: {doctor.name}</p>
+                   {selectedReason && schedule && (
+                    <div className="bg-gradient-to-r from-green-100 to-green-50 dark:from-green-900/20 dark:to-green-800/10 p-4 rounded-lg border border-green-200 dark:border-green-800">
+                      <h4 className="font-bold text-lg text-green-700 dark:text-green-400 mb-3">Appointment Details:</h4>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium">Date: <span className="font-bold">{formatDate(schedule.availability_date)}</span></p>
+                        <p className="text-sm font-medium">
+                          Expected Time: <span className="font-bold">{calculateAppointmentTime(appointments.length + 1, selectedReason)}</span>
+                        </p>
+                        <p className="text-sm font-medium">Serial Number: <span className="font-bold">{appointments.length + 1}</span></p>
+                        <p className="text-sm font-medium">Doctor: <span className="font-bold">{doctor.name}</span></p>
+                        <p className="text-sm font-medium">Location: <span className="font-bold">{schedule.location}</span></p>
+                      </div>
                     </div>
-                  )}
+                   )}
 
                   <Button 
                     onClick={handleBookAppointment}
