@@ -72,8 +72,7 @@ export const UserAppointmentsList = () => {
         .from("appointments")
         .select(`
           *,
-          doctor:doctors(name),
-          doctor_schedules!inner(location)
+          doctor:doctors(name)
         `)
         .eq("user_id", userProfile.id)
         .order("appointment_date", { ascending: false })
@@ -83,14 +82,31 @@ export const UserAppointmentsList = () => {
         query = query.eq("doctor_id", selectedDoctorId);
       }
 
-      const { data, error } = await query;
+      const { data: appointmentsData, error } = await query;
 
       if (error) {
         console.error("Error fetching appointments:", error);
         return;
       }
 
-      setAppointments(data || []);
+      // Fetch locations for each appointment by matching doctor_id and appointment_date
+      const appointmentsWithLocation = await Promise.all(
+        (appointmentsData || []).map(async (appointment) => {
+          const { data: scheduleData } = await supabase
+            .from("doctor_schedules")
+            .select("location")
+            .eq("doctor_id", appointment.doctor_id)
+            .eq("availability_date", appointment.appointment_date)
+            .single();
+
+          return {
+            ...appointment,
+            location: scheduleData?.location || 'Not specified'
+          };
+        })
+      );
+
+      setAppointments(appointmentsWithLocation);
     } catch (error) {
       console.error("Error fetching appointments:", error);
     } finally {
