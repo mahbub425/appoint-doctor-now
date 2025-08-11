@@ -98,7 +98,7 @@ const Auth = () => {
         if (error) {
           toast({
             title: "Error",
-            description: "Invalid PIN",
+            description: error.message || "Invalid PIN",
             variant: "destructive"
           });
         } else {

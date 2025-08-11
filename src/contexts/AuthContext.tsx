@@ -223,6 +223,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const user = users[0];
       
+      // Check if user is blocked
+      if (user.is_blocked) {
+        return { error: { message: 'You are blocked by the admin you can\'t login your user pannel.' } };
+      }
+      
       console.log("PIN login successful, user data:", user);
       
       // Clear doctor profile and set user profile for PIN login
