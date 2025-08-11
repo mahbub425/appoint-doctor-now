@@ -122,20 +122,27 @@ export const UserAppointmentsList = () => {
     const now = new Date();
     const appointmentDateTime = new Date(`${appointment.appointment_date}T${appointment.appointment_time}`);
     
+    // Check database status first
     if (appointment.status === 'absent') {
       return <Badge variant="destructive">Absent</Badge>;
     }
     
-    if (appointmentDateTime < now) {
+    if (appointment.status === 'completed') {
       return <Badge variant="secondary">Completed</Badge>;
     }
     
+    // For upcoming status, check if appointment is current or future
     if (appointmentDateTime.toDateString() === now.toDateString() && 
         Math.abs(appointmentDateTime.getTime() - now.getTime()) < 30 * 60 * 1000) {
       return <Badge variant="default">Current</Badge>;
     }
     
-    return <Badge variant="outline">Upcoming</Badge>;
+    if (appointmentDateTime > now) {
+      return <Badge variant="outline">Upcoming</Badge>;
+    }
+    
+    // If appointment is in the past but not marked as completed, show as completed
+    return <Badge variant="secondary">Completed</Badge>;
   };
 
   if (loading) {
