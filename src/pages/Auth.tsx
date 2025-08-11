@@ -72,7 +72,7 @@ const Auth = () => {
     if (!user) {
       checkRememberedCredentials();
     }
-  }, [pinSignIn, navigate, user]);
+  }, []); // Remove dependencies to prevent infinite loop
 
   const handleSubmit = async () => {
     setWrongPasswordError(false);
