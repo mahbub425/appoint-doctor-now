@@ -119,7 +119,11 @@ export const DoctorList = () => {
 
               <Button 
                 className="w-full h-12 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02]"
-                onClick={() => navigate(`/book-appointment/${doctor.id}`)}
+                onClick={() => {
+                  // Store doctor ID in localStorage and navigate to clean URL
+                  localStorage.setItem('selectedDoctorId', doctor.id);
+                  navigate('/book-appointment');
+                }}
                 disabled={!doctor.next_availability}
               >
                 {doctor.next_availability ? "Book Appointment" : "Not Available"}

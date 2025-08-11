@@ -81,7 +81,9 @@ const DoctorListWithLoginCheck = () => {
       navigate("/auth");
       return;
     }
-    navigate(`/book-appointment/${doctorId}`);
+    // Store doctor ID in localStorage and navigate to clean URL
+    localStorage.setItem('selectedDoctorId', doctorId);
+    navigate('/book-appointment');
   };
 
   if (loading) {

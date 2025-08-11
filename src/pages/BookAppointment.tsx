@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -39,9 +39,11 @@ interface Appointment {
 }
 
 export default function BookAppointment() {
-  const { doctorId } = useParams<{ doctorId: string }>();
   const navigate = useNavigate();
   const { userProfile } = useAuth();
+  
+  // Get doctor ID from localStorage instead of URL params
+  const doctorId = localStorage.getItem('selectedDoctorId');
   
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [schedule, setSchedule] = useState<DoctorSchedule | null>(null);
@@ -51,10 +53,16 @@ export default function BookAppointment() {
   const [booking, setBooking] = useState(false);
 
   useEffect(() => {
+    if (!doctorId) {
+      // If no doctor ID in localStorage, redirect back to user dashboard
+      navigate("/user");
+      return;
+    }
+    
     if (doctorId && userProfile) {
       fetchDoctorData();
     }
-  }, [doctorId, userProfile]);
+  }, [doctorId, userProfile, navigate]);
 
   const fetchDoctorData = async () => {
     if (!doctorId) return;
