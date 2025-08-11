@@ -173,8 +173,8 @@ export const AnalyticsDashboardEnhanced = () => {
         schedulesQuery = schedulesQuery.eq("doctor_id", selectedDoctor);
       }
 
-      // Fetch users - when doctor is selected, only count users who have appointments with that doctor
-      let usersQuery = supabase.from("users").select("id, created_at");
+      // Fetch ALL users - this should NEVER be filtered for Total Patients count
+      const allUsersQuery = supabase.from("users").select("id", { count: "exact", head: true });
       
       // Fetch all active doctors for visits by doctor chart
       const doctorsQuery = supabase
@@ -182,30 +182,24 @@ export const AnalyticsDashboardEnhanced = () => {
         .select("id, name")
         .eq("is_active", true);
 
-      const [appointmentsResponse, schedulesResponse, usersResponse, doctorsResponse] = await Promise.all([
+      const [appointmentsResponse, schedulesResponse, allUsersResponse, doctorsResponse] = await Promise.all([
         appointmentsQuery,
         schedulesQuery,
-        usersQuery,
+        allUsersQuery,
         doctorsQuery
       ]);
 
-      if (appointmentsResponse.error || schedulesResponse.error || usersResponse.error || doctorsResponse.error) {
-        console.error("Error fetching analytics data:", appointmentsResponse.error || schedulesResponse.error || usersResponse.error || doctorsResponse.error);
+      if (appointmentsResponse.error || schedulesResponse.error || allUsersResponse.error || doctorsResponse.error) {
+        console.error("Error fetching analytics data:", appointmentsResponse.error || schedulesResponse.error || allUsersResponse.error || doctorsResponse.error);
         return;
       }
 
       const appointments = appointmentsResponse.data || [];
       const schedules = schedulesResponse.data || [];
-      const allUsers = usersResponse.data || [];
       const doctors = doctorsResponse.data || [];
 
-      // Calculate total patients based on filtering
-      let totalPatients = allUsers.length;
-      if (selectedDoctor !== "all") {
-        // Count unique users who have appointments with the selected doctor
-        const uniqueUserIds = new Set(appointments.map(apt => apt.user_id));
-        totalPatients = uniqueUserIds.size;
-      }
+      // Total Patients is ALWAYS the total count of all users, never filtered
+      const totalPatients = allUsersResponse.count || 0;
 
       // Process visits by doctor - show all doctors but with their actual appointment counts
       const visitsByDoctor = doctors.map(doctor => {
@@ -271,7 +265,7 @@ export const AnalyticsDashboardEnhanced = () => {
       const rating = 4.8; // Static rating for now - could be calculated from feedback in future
       
       setAnalytics({
-        totalPatients,
+        totalPatients, // This is always the total count, never filtered
         totalVisits,
         totalSchedules,
         rating,
