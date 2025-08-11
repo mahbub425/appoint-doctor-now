@@ -34,6 +34,7 @@ interface Appointment {
 interface AppointmentBookingFormProps {
   schedule: DoctorSchedule | null;
   appointments: Appointment[];
+  doctorId: string;
   calculateAppointmentTime: (serialNumber: number, reason: string) => string;
   onBookingSuccess: (newAppointment: Appointment) => void;
 }
@@ -41,6 +42,7 @@ interface AppointmentBookingFormProps {
 export const AppointmentBookingForm = ({ 
   schedule, 
   appointments, 
+  doctorId,
   calculateAppointmentTime,
   onBookingSuccess 
 }: AppointmentBookingFormProps) => {
@@ -126,6 +128,7 @@ export const AppointmentBookingForm = ({
           concern: formData.concern,
           phone: formData.phone,
           reason: formData.reason,
+          doctor_id: doctorId,
           appointment_date: schedule.availability_date,
           serial_number: serialNumber,
           appointment_time: appointmentTime,
