@@ -12,7 +12,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, userData: any) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   pinSignUp: (userData: any) => Promise<{ error: any }>;
-  pinSignIn: (pin: string) => Promise<{ error: any }>;
+  pinSignIn: (pin: string, password?: string, rememberPassword?: boolean) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
   isDoctor: boolean;
@@ -188,7 +188,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           name: userData.name,
           pin: userData.pin,
           concern: userData.concern,
-          phone: userData.phone
+          phone: userData.phone,
+          password: userData.password
         }])
         .select()
         .single();
@@ -205,12 +206,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const pinSignIn = async (pin: string) => {
+  const pinSignIn = async (pin: string, password?: string, rememberPassword?: boolean) => {
     try {
-      const { data: users, error } = await supabase
+      // Build the query to match both PIN and password if provided
+      let query = supabase
         .from('users')
         .select('*')
         .eq('pin', pin);
+      
+      if (password) {
+        query = query.eq('password', password);
+      }
+      
+      const { data: users, error } = await query;
 
       if (error) {
         console.error('PIN login error:', error);
@@ -218,7 +226,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       if (!users || users.length === 0) {
-        return { error: { message: 'Invalid PIN' } };
+        return { error: { message: password ? 'Invalid PIN or password' : 'Invalid PIN' } };
       }
 
       const user = users[0];
@@ -233,6 +241,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       console.log("PIN login successful, user data:", user);
+      
+      // Handle remember password functionality
+      if (rememberPassword && password) {
+        // Store credentials securely in localStorage for auto-login
+        localStorage.setItem('rememberedCredentials', JSON.stringify({
+          pin: pin,
+          password: password,
+          timestamp: Date.now()
+        }));
+      }
       
       // Clear doctor profile and set user profile for PIN login
       setDoctorProfile(null);

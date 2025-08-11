@@ -4,10 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -16,8 +18,15 @@ const Auth = () => {
     name: "",
     pin: "",
     concern: "",
-    phone: ""
+    phone: "",
+    password: "",
+    confirmPassword: ""
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [rememberPassword, setRememberPassword] = useState(false);
+  const [wrongPasswordError, setWrongPasswordError] = useState(false);
 
   const { pinSignUp, pinSignIn, user } = useAuth();
   const navigate = useNavigate();
@@ -28,9 +37,48 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
+  useEffect(() => {
+    // Check for remembered credentials on component mount
+    const checkRememberedCredentials = async () => {
+      const rememberedCredentials = localStorage.getItem('rememberedCredentials');
+      if (rememberedCredentials) {
+        try {
+          const credentials = JSON.parse(rememberedCredentials);
+          const { pin, password, timestamp } = credentials;
+          
+          // Check if credentials are not too old (30 days)
+          const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+          if (Date.now() - timestamp < thirtyDaysInMs) {
+            setLoading(true);
+            const { error } = await pinSignIn(pin, password, true);
+            if (!error) {
+              navigate("/");
+            } else {
+              // Clear invalid remembered credentials
+              localStorage.removeItem('rememberedCredentials');
+            }
+            setLoading(false);
+          } else {
+            // Clear expired credentials
+            localStorage.removeItem('rememberedCredentials');
+          }
+        } catch (error) {
+          console.error('Error with remembered credentials:', error);
+          localStorage.removeItem('rememberedCredentials');
+        }
+      }
+    };
+
+    if (!user) {
+      checkRememberedCredentials();
+    }
+  }, [pinSignIn, navigate, user]);
+
   const handleSubmit = async () => {
+    setWrongPasswordError(false);
+    
     if (isSignUp) {
-      if (!formData.name || !formData.pin || !formData.concern || !formData.phone) {
+      if (!formData.name || !formData.pin || !formData.concern || !formData.phone || !formData.password || !formData.confirmPassword) {
         toast({
           title: "Error",
           description: "All fields are required for registration",
@@ -49,11 +97,31 @@ const Auth = () => {
         });
         return;
       }
-    } else {
-      if (!formData.pin) {
+
+      // Validate password confirmation
+      if (formData.password !== formData.confirmPassword) {
         toast({
           title: "Error",
-          description: "PIN is required",
+          description: "Passwords do not match",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Validate password length
+      if (formData.password.length < 6) {
+        toast({
+          title: "Error",
+          description: "Password must be at least 6 characters long",
+          variant: "destructive"
+        });
+        return;
+      }
+    } else {
+      if (!formData.pin || !formData.password) {
+        toast({
+          title: "Error",
+          description: "PIN and Password are required",
           variant: "destructive"
         });
         return;
@@ -68,7 +136,8 @@ const Auth = () => {
           name: formData.name,
           pin: formData.pin,
           concern: formData.concern,
-          phone: formData.phone
+          phone: formData.phone,
+          password: formData.password
         });
 
         if (error) {
@@ -93,14 +162,18 @@ const Auth = () => {
           setIsSignUp(false);
         }
       } else {
-        const { error } = await pinSignIn(formData.pin);
+        const { error } = await pinSignIn(formData.pin, formData.password, rememberPassword);
 
         if (error) {
-          toast({
-            title: "Error",
-            description: error.message || "Invalid PIN",
-            variant: "destructive"
-          });
+          if (error.message.includes("Invalid PIN or password")) {
+            setWrongPasswordError(true);
+          } else {
+            toast({
+              title: "Error",
+              description: error.message || "Invalid PIN or password",
+              variant: "destructive"
+            });
+          }
         } else {
           toast({
             title: "Success",
@@ -183,19 +256,96 @@ const Auth = () => {
                   placeholder="Enter 11-digit phone number"
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                    placeholder="Enter password (min 6 characters)"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-auto p-1"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    placeholder="Confirm your password"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-auto p-1"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
             </>
           )}
 
           {!isSignUp && (
-            <div className="space-y-2">
-              <Label htmlFor="pin">PIN</Label>
-              <Input
-                id="pin"
-                value={formData.pin}
-                onChange={(e) => setFormData(prev => ({ ...prev, pin: e.target.value }))}
-                placeholder="Enter your PIN"
-              />
-            </div>
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="pin">PIN</Label>
+                <Input
+                  id="pin"
+                  value={formData.pin}
+                  onChange={(e) => setFormData(prev => ({ ...prev, pin: e.target.value }))}
+                  placeholder="Enter your PIN"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="loginPassword">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="loginPassword"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                    placeholder="Enter your password"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-auto p-1"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="rememberPassword"
+                  checked={rememberPassword}
+                  onCheckedChange={(checked) => setRememberPassword(checked as boolean)}
+                />
+                <Label htmlFor="rememberPassword" className="text-sm">Remember password</Label>
+              </div>
+            </>
           )}
 
           <Button 
@@ -205,6 +355,12 @@ const Auth = () => {
           >
             {loading ? "Loading..." : (isSignUp ? "Sign Up" : "Sign In")}
           </Button>
+
+          {wrongPasswordError && !isSignUp && (
+            <div className="text-center text-sm text-red-600 bg-red-50 p-2 rounded">
+              Forgot your password? please contact with Admin.
+            </div>
+          )}
 
           <div className="text-center">
             <Button

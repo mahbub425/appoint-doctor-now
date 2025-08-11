@@ -311,6 +311,7 @@ export type Database = {
           id: string
           is_blocked: boolean | null
           name: string
+          password: string | null
           phone: string
           pin: string
           updated_at: string
@@ -322,6 +323,7 @@ export type Database = {
           id?: string
           is_blocked?: boolean | null
           name: string
+          password?: string | null
           phone: string
           pin: string
           updated_at?: string
@@ -333,6 +335,7 @@ export type Database = {
           id?: string
           is_blocked?: boolean | null
           name?: string
+          password?: string | null
           phone?: string
           pin?: string
           updated_at?: string
