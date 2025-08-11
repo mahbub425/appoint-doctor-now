@@ -223,8 +223,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const user = users[0];
       
+      console.log("User data fetched:", user);
+      console.log("User is_blocked status:", user.is_blocked);
+      
       // Check if user is blocked
-      if (user.is_blocked) {
+      if (user.is_blocked === true) {
+        console.log("User is blocked, preventing login");
         return { error: { message: 'You are blocked by the admin you can\'t login your user pannel.' } };
       }
       
