@@ -109,12 +109,14 @@ export const AnalyticsDashboardEnhanced = () => {
 
   const getDateFilter = () => {
     const now = new Date();
-    const endDate = now.toISOString().split('T')[0];
+    // Include future appointments - extend end date to 1 year from now
+    const futureDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+    const endDate = futureDate.toISOString().split('T')[0];
     let startDate = '';
 
     switch (selectedDateRange) {
       case 'today':
-        startDate = endDate;
+        startDate = now.toISOString().split('T')[0];
         break;
       case 'last_7_days':
         const week = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -130,7 +132,7 @@ export const AnalyticsDashboardEnhanced = () => {
         break;
       case 'last_6_months':
       default:
-        // Show data from the beginning of time for last 6 months and beyond
+        // Show data from the beginning of time to capture all data including future
         startDate = '2020-01-01'; // Very old date to capture all data
         break;
     }
