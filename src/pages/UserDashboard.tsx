@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,6 +15,14 @@ type TabType = "doctors" | "appointments" | "profile" | "history";
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>("doctors");
   const { userProfile, signOut } = useAuth();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check if activeTab is passed from navigation state
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
 
   if (!userProfile) {
     return (

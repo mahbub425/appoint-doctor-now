@@ -158,7 +158,7 @@ export default function AppointmentDetails() {
               <div className="flex flex-col sm:flex-row gap-4 pt-6">
                 <Button 
                   variant="outline" 
-                  onClick={() => navigate("/user")}
+                  onClick={() => navigate("/user", { state: { activeTab: "appointments" } })}
                   className="flex-1 h-12 text-lg font-semibold"
                 >
                   View My Appointments
