@@ -3,12 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface Appointment {
   id: string;
   name: string;
+  pin: string | number;
   concern: string;
   reason: string;
   appointment_date: string;
@@ -32,6 +36,7 @@ export const UserAppointmentsList = () => {
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const { userProfile } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (userProfile) {
@@ -145,6 +150,22 @@ export const UserAppointmentsList = () => {
     return <Badge variant="secondary">Completed</Badge>;
   };
 
+  const handleViewAppointment = (appointment: Appointment) => {
+    const appointmentData = {
+      id: appointment.id,
+      name: appointment.name,
+      pin: appointment.pin,
+      appointment_date: appointment.appointment_date,
+      appointment_time: appointment.appointment_time,
+      serial_number: appointment.serial_number,
+      reason: appointment.reason,
+      doctor_name: appointment.doctor?.name || 'Unknown',
+      location: appointment.location || 'Not specified'
+    };
+
+    navigate("/appointment-details", { state: { appointmentData } });
+  };
+
   if (loading) {
     return <div className="text-center py-8">Loading appointments...</div>;
   }
@@ -193,9 +214,10 @@ export const UserAppointmentsList = () => {
                   <TableHead>Location</TableHead>
                   <TableHead>Serial</TableHead>
                   <TableHead>Doctor</TableHead>
-                  <TableHead>Concern</TableHead>
-                  <TableHead>Reason</TableHead>
-                  <TableHead>Status</TableHead>
+                   <TableHead>Concern</TableHead>
+                   <TableHead>Reason</TableHead>
+                   <TableHead>Status</TableHead>
+                   <TableHead>View</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -206,9 +228,19 @@ export const UserAppointmentsList = () => {
                     <TableCell>{appointment.location || 'Not specified'}</TableCell>
                     <TableCell>{appointment.serial_number}</TableCell>
                     <TableCell>{appointment.doctor?.name || 'Unknown'}</TableCell>
-                    <TableCell>{appointment.concern}</TableCell>
-                    <TableCell>{appointment.reason}</TableCell>
-                    <TableCell>{getStatusBadge(appointment)}</TableCell>
+                     <TableCell>{appointment.concern}</TableCell>
+                     <TableCell>{appointment.reason}</TableCell>
+                     <TableCell>{getStatusBadge(appointment)}</TableCell>
+                     <TableCell>
+                       <Button
+                         variant="ghost"
+                         size="sm"
+                         onClick={() => handleViewAppointment(appointment)}
+                         className="h-8 w-8 p-0"
+                       >
+                         <Eye className="h-4 w-4" />
+                       </Button>
+                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
