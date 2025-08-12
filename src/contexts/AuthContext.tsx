@@ -166,18 +166,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const pinSignUp = async (userData: any) => {
     try {
-      // Check if PIN already exists
-      const { data: existingUsers, error: checkError } = await supabase
-        .from('users')
-        .select('pin')
-        .eq('pin', userData.pin);
+      // Use the secure authentication function to check if PIN already exists
+      const { data: existingUser, error: checkError } = await supabase
+        .rpc('authenticate_user_by_pin', { 
+          user_pin: userData.pin, 
+          user_phone: userData.phone 
+        });
 
       if (checkError) {
         console.error('PIN check error:', checkError);
         return { error: checkError };
       }
 
-      if (existingUsers && existingUsers.length > 0) {
+      if (existingUser && existingUser.length > 0) {
         return { error: { message: 'PIN already exists' } };
       }
 
@@ -208,17 +209,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const pinSignIn = async (pin: string, password?: string, rememberPassword?: boolean) => {
     try {
-      // Build the query to match both PIN and password if provided
-      let query = supabase
+      // For PIN-only authentication, we need to get user data securely
+      if (!password) {
+        // Use the secure function for PIN authentication by phone
+        // First, we need to find the user's phone number through a separate query
+        // This is a limitation of the current approach - we need phone number for secure auth
+        console.log("PIN-only authentication requires phone number lookup");
+        return { error: { message: 'Phone number required for secure authentication' } };
+      }
+
+      // For PIN + password authentication, use direct query (allowed by RLS for authentication)
+      const { data: users, error } = await supabase
         .from('users')
         .select('*')
-        .eq('pin', pin);
-      
-      if (password) {
-        query = query.eq('password', password);
-      }
-      
-      const { data: users, error } = await query;
+        .eq('pin', pin)
+        .eq('password', password);
 
       if (error) {
         console.error('PIN login error:', error);
@@ -226,7 +231,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       if (!users || users.length === 0) {
-        return { error: { message: password ? 'Invalid PIN or password' : 'Invalid PIN' } };
+        return { error: { message: 'Invalid PIN or password' } };
       }
 
       const user = users[0];

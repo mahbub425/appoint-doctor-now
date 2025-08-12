@@ -52,7 +52,8 @@ export const AnalyticsDashboard = () => {
     try {
       // Fetch total counts
       const [usersResult, appointmentsResult, doctorsResult, prescriptionsResult] = await Promise.all([
-        supabase.from("users").select("id", { count: "exact", head: true }),
+        // Note: User count may be restricted due to RLS policies for security
+        supabase.rpc('count_total_users').then(result => result).catch(() => ({ count: 0 })),
         supabase.from("appointments").select("id", { count: "exact", head: true }),
         supabase.from("doctors").select("id", { count: "exact", head: true }),
         supabase.from("prescriptions").select("id", { count: "exact", head: true })

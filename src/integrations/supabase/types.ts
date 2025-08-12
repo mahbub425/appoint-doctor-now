@@ -347,9 +347,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      authenticate_user_by_pin: {
+        Args: { user_pin: string; user_phone: string }
+        Returns: {
+          user_id: string
+          user_name: string
+          user_concern: string
+        }[]
+      }
       cleanup_old_appointments: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      is_user_owner: {
+        Args: { record_user_id: string }
+        Returns: boolean
       }
       reschedule_appointments_for_doctor: {
         Args: {
