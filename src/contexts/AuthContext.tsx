@@ -166,23 +166,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const pinSignUp = async (userData: any) => {
     try {
-      // Use the secure authentication function to check if PIN already exists
-      const { data: existingUser, error: checkError } = await supabase
-        .rpc('authenticate_user_by_pin', { 
-          user_pin: userData.pin, 
-          user_phone: userData.phone 
-        });
-
-      if (checkError) {
-        console.error('PIN check error:', checkError);
-        return { error: checkError };
-      }
-
-      if (existingUser && existingUser.length > 0) {
-        return { error: { message: 'PIN already exists' } };
-      }
-
-      // Insert user without Supabase auth
+      // Insert user without checking existing PIN (let database handle constraints)
       const { data, error } = await supabase
         .from('users')
         .insert([{
@@ -196,6 +180,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .single();
 
       if (error) {
+        // Check if error is due to duplicate PIN
+        if (error.message.includes('duplicate') || error.code === '23505') {
+          return { error: { message: 'PIN already exists' } };
+        }
         console.error('User creation error:', error);
         return { error };
       }

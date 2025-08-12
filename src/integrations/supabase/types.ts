@@ -359,6 +359,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      count_total_users: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       is_user_owner: {
         Args: { record_user_id: string }
         Returns: boolean

@@ -50,14 +50,16 @@ export const AnalyticsDashboard = () => {
 
   const fetchAnalytics = async () => {
     try {
-      // Fetch total counts
-      const [usersResult, appointmentsResult, doctorsResult, prescriptionsResult] = await Promise.all([
-        // Note: User count may be restricted due to RLS policies for security
-        supabase.rpc('count_total_users').then(result => result).catch(() => ({ count: 0 })),
+      // Fetch total counts - use secure function for user count
+      const [usersCountResult, appointmentsResult, doctorsResult, prescriptionsResult] = await Promise.all([
+        supabase.rpc('count_total_users'),
         supabase.from("appointments").select("id", { count: "exact", head: true }),
         supabase.from("doctors").select("id", { count: "exact", head: true }),
         supabase.from("prescriptions").select("id", { count: "exact", head: true })
       ]);
+
+      // Extract counts safely
+      const usersCount = usersCountResult.data || 0;
 
       // Fetch appointments by doctor
       let appointmentsByDoctorQuery = supabase
@@ -157,7 +159,7 @@ export const AnalyticsDashboard = () => {
       }
 
       setAnalytics({
-        totalUsers: usersResult.count || 0,
+        totalUsers: usersCount,
         totalAppointments: appointmentsResult.count || 0,
         totalDoctors: doctorsResult.count || 0,
         totalPrescriptions: prescriptionsResult.count || 0,

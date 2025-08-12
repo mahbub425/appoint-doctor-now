@@ -173,8 +173,8 @@ export const AnalyticsDashboardEnhanced = () => {
         schedulesQuery = schedulesQuery.eq("doctor_id", selectedDoctor);
       }
 
-      // Fetch ALL users - this should NEVER be filtered for Total Patients count
-      const allUsersQuery = supabase.from("users").select("id", { count: "exact", head: true });
+      // Fetch ALL users - use secure function for total count
+      const allUsersQuery = supabase.rpc('count_total_users');
       
       // Fetch all active doctors for visits by doctor chart
       const doctorsQuery = supabase
@@ -199,7 +199,7 @@ export const AnalyticsDashboardEnhanced = () => {
       const doctors = doctorsResponse.data || [];
 
       // Total Patients is ALWAYS the total count of all users, never filtered
-      const totalPatients = allUsersResponse.count || 0;
+      const totalPatients = allUsersResponse.data || 0;
 
       // Process visits by doctor - show all doctors but with their actual appointment counts
       const visitsByDoctor = doctors.map(doctor => {
