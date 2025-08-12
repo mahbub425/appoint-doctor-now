@@ -313,14 +313,8 @@ export default function BookAppointment() {
                         {formatDate(schedule.availability_date)}
                       </p>
                       <p className="text-lg font-semibold text-foreground">
-                        ({schedule.start_time} - {schedule.end_time})
+                        Chamber Time: {schedule.start_time} - {schedule.end_time}
                       </p>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-orange-500" />
-                        <span className="text-sm font-medium text-orange-700 dark:text-orange-400">
-                          Break: {schedule.break_start} - {schedule.break_end}
-                        </span>
-                      </div>
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-blue-500" />
                         <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
@@ -397,20 +391,6 @@ export default function BookAppointment() {
                     </Select>
                   </div>
 
-                   {selectedReason && schedule && (
-                    <div className="bg-gradient-to-r from-green-100 to-green-50 dark:from-green-900/20 dark:to-green-800/10 p-4 rounded-lg border border-green-200 dark:border-green-800">
-                      <h4 className="font-bold text-lg text-green-700 dark:text-green-400 mb-3">Appointment Details:</h4>
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium">Date: <span className="font-bold">{formatDate(schedule.availability_date)}</span></p>
-                        <p className="text-sm font-medium">
-                          Expected Time: <span className="font-bold">{calculateAppointmentTime(appointments.length + 1, selectedReason)}</span>
-                        </p>
-                        <p className="text-sm font-medium">Serial Number: <span className="font-bold">{appointments.length + 1}</span></p>
-                        <p className="text-sm font-medium">Doctor: <span className="font-bold">{doctor.name}</span></p>
-                        <p className="text-sm font-medium">Location: <span className="font-bold">{schedule.location}</span></p>
-                      </div>
-                    </div>
-                   )}
 
                   <Button 
                     onClick={handleBookAppointment}
