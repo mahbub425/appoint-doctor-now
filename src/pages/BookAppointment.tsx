@@ -303,23 +303,52 @@ export default function BookAppointment() {
               {schedule && (
                 <div className="space-y-4">
                   {/* Next Availability */}
-                  <div className="bg-gradient-to-r from-green-100 to-green-50 dark:from-green-900/20 dark:to-green-800/10 p-4 rounded-lg border-l-4 border-green-500">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Calendar className="h-5 w-5 text-green-600" />
-                      <span className="font-bold text-lg text-green-700 dark:text-green-400">Next Availability</span>
+                  <div className="bg-gradient-to-br from-primary/5 via-primary/3 to-accent/5 p-6 rounded-xl border border-primary/20 shadow-lg">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Calendar className="h-6 w-6 text-primary" />
+                      </div>
+                      <span className="font-bold text-xl text-primary">Next Availability</span>
                     </div>
-                    <div className="space-y-2">
-                      <p className="text-xl font-bold text-foreground">
-                        {formatDate(schedule.availability_date)}
-                      </p>
-                      <p className="text-lg font-semibold text-foreground">
-                        Chamber Time: {schedule.start_time} - {schedule.end_time}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-blue-500" />
-                        <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
-                          Available slots: {schedule.max_appointments - appointments.length}/{schedule.max_appointments}
-                        </span>
+                    
+                    <div className="space-y-4">
+                      {/* Date Section */}
+                      <div className="flex items-center gap-4 p-4 bg-card/50 rounded-lg border border-border/50">
+                        <div className="p-3 bg-blue-500/10 rounded-full">
+                          <Calendar className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Date</p>
+                          <p className="text-xl font-bold text-foreground">
+                            {formatDate(schedule.availability_date)}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Chamber Time Section */}
+                      <div className="flex items-center gap-4 p-4 bg-card/50 rounded-lg border border-border/50">
+                        <div className="p-3 bg-emerald-500/10 rounded-full">
+                          <Clock className="h-5 w-5 text-emerald-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Chamber Time</p>
+                          <p className="text-xl font-bold text-foreground">
+                            {schedule.start_time} - {schedule.end_time}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Available Slots */}
+                      <div className="flex items-center gap-4 p-4 bg-card/50 rounded-lg border border-border/50">
+                        <div className="p-3 bg-purple-500/10 rounded-full">
+                          <Users className="h-5 w-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Available Slots</p>
+                          <p className="text-xl font-bold text-foreground">
+                            {schedule.max_appointments - appointments.length}/{schedule.max_appointments}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
