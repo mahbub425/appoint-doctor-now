@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast"; // Added this import
+import { useToast } from "@/hooks/use-toast"; // Import useToast
 import { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -34,13 +34,11 @@ export const DoctorLogin = ({ onLoginSuccess }: DoctorLoginProps) => {
     try {
       console.log("Attempting doctor login with username:", credentials.username);
       
-      // Call the new RPC function for doctor authentication
       const { data, error: rpcError } = await supabase.rpc('authenticate_doctor', {
         doctor_username: credentials.username,
         doctor_password: credentials.password
       });
 
-      // Explicitly cast data to the expected array type
       const doctors: AuthenticatedDoctor[] | null = data as AuthenticatedDoctor[] | null;
 
       if (rpcError) {
@@ -58,7 +56,7 @@ export const DoctorLogin = ({ onLoginSuccess }: DoctorLoginProps) => {
 
       const doctor = doctors[0];
       
-      // Store complete doctor information in localStorage
+      // Define doctorSessionData here
       const doctorSessionData = {
         id: doctor.id,
         username: doctor.username,
@@ -79,7 +77,6 @@ export const DoctorLogin = ({ onLoginSuccess }: DoctorLoginProps) => {
         description: `Welcome, Dr. ${doctor.name}`,
       });
       
-      // Call refreshAuth to update AuthContext state and trigger redirection
       await refreshAuth();
       onLoginSuccess(doctor);
     } catch (error: any) {

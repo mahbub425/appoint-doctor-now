@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
+import { Checkbox } from "@/components/ui/checkbox";
 import { Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AdminLoginProps {
   onLoginSuccess: (adminData: { id: string; name: string; role: string }) => void;
@@ -20,12 +20,11 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
   });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [rememberAdmin, setRememberAdmin] = useState(false); // New state for remember me
+  const [rememberAdmin, setRememberAdmin] = useState(false);
   const { toast } = useToast();
-  const { refreshAuth } = useAuth(); // Use refreshAuth from AuthContext
+  const { refreshAuth } = useAuth();
 
   useEffect(() => {
-    // Load remembered admin credentials on component mount
     const rememberedAdminCredentials = localStorage.getItem('adminRememberedCredentials');
     if (rememberedAdminCredentials) {
       try {
@@ -48,11 +47,9 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
     setError("");
 
     try {
-      // Trim whitespace from username and password
       const trimmedUsername = credentials.username.trim();
       const trimmedPassword = credentials.password.trim();
 
-      // Authenticate admin user against database using username and password
       const { data, error } = await supabase.rpc('authenticate_admin', {
         admin_username: trimmedUsername,
         admin_password: trimmedPassword
@@ -67,7 +64,6 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
 
       if (data && data.length > 0) {
         const adminUser = data[0];
-        // Store admin session
         localStorage.setItem('adminSession', JSON.stringify({
           authenticated: true,
           adminId: adminUser.user_id,
@@ -75,12 +71,11 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
           adminRole: adminUser.user_role
         }));
 
-        // Handle remember me for admin
         if (rememberAdmin) {
           localStorage.setItem('adminRememberedCredentials', JSON.stringify({
             username: trimmedUsername,
             password: trimmedPassword,
-            timestamp: Date.now() // Optional: add timestamp for future expiration
+            timestamp: Date.now()
           }));
         } else {
           localStorage.removeItem('adminRememberedCredentials');
@@ -91,13 +86,9 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
           description: `Welcome back, ${adminUser.user_name}!`,
         });
 
-        // Call refreshAuth to update AuthContext state and trigger redirection
+        // Call refreshAuth to update AuthContext state, which will then trigger redirection in Admin.tsx
         await refreshAuth();
-        onLoginSuccess({
-          id: adminUser.user_id,
-          name: adminUser.user_name,
-          role: adminUser.user_role
-        });
+        // No direct navigation here, let AuthContext and Admin.tsx handle it
       } else {
         setError("Invalid credentials or you don't have admin access. Please check your username, password, and ensure your account has the 'admin' role and is not blocked.");
       }
