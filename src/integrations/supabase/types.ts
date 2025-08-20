@@ -309,39 +309,42 @@ export type Database = {
           concern: string
           created_at: string
           id: string
-          is_admin: boolean | null
           is_blocked: boolean | null
           name: string
           password: string | null
           phone: string
           pin: string
           updated_at: string
+          username: string | null
+          user_role: string
         }
         Insert: {
           auth_user_id?: string | null
           concern: string
           created_at?: string
           id?: string
-          is_admin?: boolean | null
           is_blocked?: boolean | null
           name: string
           password?: string | null
           phone: string
           pin: string
           updated_at?: string
+          username?: string | null
+          user_role?: string
         }
         Update: {
           auth_user_id?: string | null
           concern?: string
           created_at?: string
           id?: string
-          is_admin?: boolean | null
           is_blocked?: boolean | null
           name?: string
           password?: string | null
           phone?: string
           pin?: string
           updated_at?: string
+          username?: string | null
+          user_role?: string
         }
         Relationships: []
       }
@@ -351,11 +354,11 @@ export type Database = {
     }
     Functions: {
       authenticate_admin: {
-        Args: { user_password: string; user_pin: string }
+        Args: { admin_username: string; admin_password: string }
         Returns: {
-          is_admin: boolean
           user_id: string
           user_name: string
+          user_role: string
         }[]
       }
       authenticate_user_by_pin: {
@@ -375,7 +378,7 @@ export type Database = {
         Returns: number
       }
       grant_admin_access: {
-        Args: { user_pin: string }
+        Args: { target_user_id: string }
         Returns: boolean
       }
       is_user_owner: {
@@ -393,7 +396,7 @@ export type Database = {
         Returns: undefined
       }
       revoke_admin_access: {
-        Args: { user_pin: string }
+        Args: { target_user_id: string }
         Returns: boolean
       }
     }
