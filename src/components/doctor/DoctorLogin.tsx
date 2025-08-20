@@ -5,18 +5,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast"; // Import useToast
+import { useToast } from "@/hooks/use-toast"; // Added this import
 import { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
 
-// Define the expected return type for the authenticate_doctor RPC function
 type AuthenticatedDoctor = Database['public']['Functions']['authenticate_doctor']['Returns'][number];
 
-interface DoctorLoginProps {
-  onLoginSuccess: (doctor: any) => void;
-}
-
-export const DoctorLogin = ({ onLoginSuccess }: DoctorLoginProps) => {
+export const DoctorLogin = () => {
   const [credentials, setCredentials] = useState({
     username: "",
     password: ""
@@ -56,8 +51,7 @@ export const DoctorLogin = ({ onLoginSuccess }: DoctorLoginProps) => {
 
       const doctor = doctors[0];
       
-      // Define doctorSessionData here
-      const doctorSessionData = {
+      localStorage.setItem('doctorSession', JSON.stringify({
         id: doctor.id,
         username: doctor.username,
         name: doctor.name,
@@ -68,9 +62,7 @@ export const DoctorLogin = ({ onLoginSuccess }: DoctorLoginProps) => {
         is_active: doctor.is_active,
         created_at: doctor.created_at,
         updated_at: doctor.updated_at
-      };
-      
-      localStorage.setItem('doctorSession', JSON.stringify(doctorSessionData));
+      }));
       
       toast({
         title: "Login Successful",
@@ -78,7 +70,6 @@ export const DoctorLogin = ({ onLoginSuccess }: DoctorLoginProps) => {
       });
       
       await refreshAuth();
-      onLoginSuccess(doctor);
     } catch (error: any) {
       console.error("Login error:", error);
       setError("Login failed. Please try again.");

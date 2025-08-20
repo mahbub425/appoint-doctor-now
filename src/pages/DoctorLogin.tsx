@@ -8,13 +8,11 @@ const DoctorLogin = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If loading is complete and doctorProfile exists, redirect to doctor dashboard
     if (!loading && doctorProfile) {
       navigate('/doctor');
     }
   }, [doctorProfile, loading, navigate]);
 
-  // If still loading or doctorProfile exists (and will redirect), show a loading state or null
   if (loading || doctorProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -23,8 +21,7 @@ const DoctorLogin = () => {
     );
   }
 
-  // If not loading and no doctorProfile, render the login component
-  return <DoctorLoginComponent onLoginSuccess={() => navigate('/doctor')} />;
+  return <DoctorLoginComponent />; // Removed onLoginSuccess prop
 };
 
 export default DoctorLogin;

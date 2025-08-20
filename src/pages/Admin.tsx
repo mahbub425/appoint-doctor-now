@@ -10,8 +10,7 @@ const Admin = () => {
 
   useEffect(() => {
     if (!loading && !adminProfile) {
-      // If not loading and no admin profile, redirect to admin login page
-      navigate("/admin-login"); // Assuming /admin-login is the correct path for admin login
+      navigate("/admin-login");
     }
   }, [loading, adminProfile, navigate]);
 
@@ -29,8 +28,7 @@ const Admin = () => {
   }
 
   if (!adminProfile) {
-    // If not loading and no admin profile, render AdminLogin (or let useEffect redirect)
-    return <AdminLogin onLoginSuccess={() => {}} />; // onLoginSuccess will be handled by AuthContext
+    return <AdminLogin />; // Removed onLoginSuccess prop
   }
 
   return (

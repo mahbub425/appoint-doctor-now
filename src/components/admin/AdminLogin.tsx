@@ -9,11 +9,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
-interface AdminLoginProps {
-  onLoginSuccess: (adminData: { id: string; name: string; role: string }) => void;
-}
+// Removed AdminLoginProps interface as onLoginSuccess is no longer passed
+// interface AdminLoginProps {
+//   onLoginSuccess: (adminData: { id: string; name: string; role: string }) => void;
+// }
 
-export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
+export const AdminLogin = () => { // Removed onLoginSuccess from props
   const [credentials, setCredentials] = useState({
     username: "",
     password: ""
@@ -86,9 +87,9 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
           description: `Welcome back, ${adminUser.user_name}!`,
         });
 
-        // Call refreshAuth to update AuthContext state, which will then trigger redirection in Admin.tsx
+        // Only call refreshAuth, let AuthContext and Index.tsx handle navigation
         await refreshAuth();
-        // No direct navigation here, let AuthContext and Admin.tsx handle it
+        // onLoginSuccess is removed
       } else {
         setError("Invalid credentials or you don't have admin access. Please check your username, password, and ensure your account has the 'admin' role and is not blocked.");
       }
