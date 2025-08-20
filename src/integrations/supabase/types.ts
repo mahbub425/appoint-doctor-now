@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -309,6 +309,7 @@ export type Database = {
           concern: string
           created_at: string
           id: string
+          is_admin: boolean | null
           is_blocked: boolean | null
           name: string
           password: string | null
@@ -321,6 +322,7 @@ export type Database = {
           concern: string
           created_at?: string
           id?: string
+          is_admin?: boolean | null
           is_blocked?: boolean | null
           name: string
           password?: string | null
@@ -333,6 +335,7 @@ export type Database = {
           concern?: string
           created_at?: string
           id?: string
+          is_admin?: boolean | null
           is_blocked?: boolean | null
           name?: string
           password?: string | null
@@ -348,11 +351,11 @@ export type Database = {
     }
     Functions: {
       authenticate_user_by_pin: {
-        Args: { user_pin: string; user_phone: string }
+        Args: { user_phone: string; user_pin: string }
         Returns: {
+          user_concern: string
           user_id: string
           user_name: string
-          user_concern: string
         }[]
       }
       cleanup_old_appointments: {
@@ -369,11 +372,11 @@ export type Database = {
       }
       reschedule_appointments_for_doctor: {
         Args: {
-          p_doctor_id: string
           p_availability_date: string
-          p_start_time: string
-          p_break_start: string
           p_break_end: string
+          p_break_start: string
+          p_doctor_id: string
+          p_start_time: string
         }
         Returns: undefined
       }
