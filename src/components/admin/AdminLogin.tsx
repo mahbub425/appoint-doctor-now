@@ -13,7 +13,7 @@ interface AdminLoginProps {
 
 export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
   const [credentials, setCredentials] = useState({
-    username: "", // Changed from pin
+    username: "",
     password: ""
   });
   const [error, setError] = useState("");
@@ -26,15 +26,19 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
     setError("");
 
     try {
+      // Trim whitespace from username and password
+      const trimmedUsername = credentials.username.trim();
+      const trimmedPassword = credentials.password.trim();
+
       // Authenticate admin user against database using username and password
       const { data, error } = await supabase.rpc('authenticate_admin', {
-        admin_username: credentials.username,
-        admin_password: credentials.password
+        admin_username: trimmedUsername,
+        admin_password: trimmedPassword
       });
 
       if (error) {
         console.error('Authentication error:', error);
-        setError("Authentication failed. Please try again.");
+        setError("Authentication failed. Please try again. Details: " + error.message);
         setIsSubmitting(false);
         return;
       }
@@ -46,7 +50,7 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
           authenticated: true,
           adminId: adminUser.user_id,
           adminName: adminUser.user_name,
-          adminRole: adminUser.user_role // Store the role
+          adminRole: adminUser.user_role
         }));
         
         toast({
@@ -60,11 +64,11 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
           role: adminUser.user_role
         });
       } else {
-        setError("Invalid credentials or you don't have admin access");
+        setError("Invalid credentials or you don't have admin access. Please check your username, password, and ensure your account has the 'admin' role and is not blocked.");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Login error:', err);
-      setError("Login failed. Please try again.");
+      setError("Login failed. An unexpected error occurred: " + err.message);
     }
 
     setIsSubmitting(false);
