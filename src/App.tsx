@@ -12,8 +12,8 @@ import AppointmentDetails from "./pages/AppointmentDetails";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import Admin from "./pages/Admin";
 import DoctorLogin from "./pages/DoctorLogin";
+import AdminLogin from "./pages/AdminLogin";
 import NotFound from "./pages/NotFound";
-import { AdminLogin } from "@/components/admin/AdminLogin";
 
 const queryClient = new QueryClient();
 
