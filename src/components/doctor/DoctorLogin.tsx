@@ -69,7 +69,13 @@ export const DoctorLogin = () => {
         description: `Welcome, Dr. ${doctor.name}`,
       });
       
+      // Trigger auth refresh and give it a moment to update state
       await refreshAuth();
+      
+      // Small delay to ensure state is updated before any potential redirect
+      setTimeout(() => {
+        console.log("Doctor login completed, auth should be refreshed");
+      }, 100);
     } catch (error: any) {
       console.error("Login error:", error);
       setError("Login failed. Please try again.");

@@ -8,7 +8,9 @@ const DoctorLogin = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("DoctorLogin: Auth state changed", { loading, doctorProfile: !!doctorProfile });
     if (!loading && doctorProfile) {
+      console.log("DoctorLogin: Redirecting to doctor dashboard");
       navigate('/doctor');
     }
   }, [doctorProfile, loading, navigate]);

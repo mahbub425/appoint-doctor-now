@@ -131,7 +131,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (doctorSession) {
         try {
           const doctorData = JSON.parse(doctorSession);
+          console.log("AuthContext: Found doctor session", doctorData);
           if (doctorData.id && doctorData.username && doctorData.name) {
+            console.log("AuthContext: Setting doctor profile");
             setDoctorProfile(doctorData);
             setUserProfile(null);
             setAdminProfile(null);
