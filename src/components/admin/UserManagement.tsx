@@ -161,11 +161,11 @@ export const UserManagement = () => {
       let rpcError;
       if (user.is_admin) {
         // Revoke admin access
-        const { error } = await supabase.rpc('revoke_admin_access', { user_pin: user.pin });
+        const { error } = await supabase.rpc('revoke_admin_access', { target_user_id: user.id }); // Corrected from user_pin
         rpcError = error;
       } else {
         // Grant admin access
-        const { error } = await supabase.rpc('grant_admin_access', { user_pin: user.pin });
+        const { error } = await supabase.rpc('grant_admin_access', { target_user_id: user.id }); // Corrected from user_pin
         rpcError = error;
       }
 
@@ -435,7 +435,7 @@ export const UserManagement = () => {
                                   Are you sure you want to delete {user.name}? This will also delete all their appointments, documents, and prescriptions. This action cannot be undone.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
-                              <AlertDialogFooter>
+                            <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() => handleDeleteUser(user.id)}

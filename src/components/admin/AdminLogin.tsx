@@ -28,8 +28,8 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
     try {
       // Authenticate admin user against database
       const { data, error } = await supabase.rpc('authenticate_admin', {
-        user_pin: credentials.pin,
-        user_password: credentials.password
+        admin_username: credentials.pin, // Corrected from user_pin
+        admin_password: credentials.password
       });
 
       if (error) {
