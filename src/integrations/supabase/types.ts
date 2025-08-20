@@ -350,6 +350,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      authenticate_admin: {
+        Args: { user_password: string; user_pin: string }
+        Returns: {
+          is_admin: boolean
+          user_id: string
+          user_name: string
+        }[]
+      }
       authenticate_user_by_pin: {
         Args: { user_phone: string; user_pin: string }
         Returns: {

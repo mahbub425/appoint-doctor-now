@@ -4,29 +4,65 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface AdminLoginProps {
-  onLoginSuccess: () => void;
+  onLoginSuccess: (adminData: { id: string; name: string }) => void;
 }
 
 export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
   const [credentials, setCredentials] = useState({
-    username: "",
+    pin: "",
     password: ""
   });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError("");
 
-    // Simple hardcoded authentication
-    if (credentials.username === "admin" && credentials.password === "123456") {
-      onLoginSuccess();
-    } else {
-      setError("Invalid username or password");
+    try {
+      // Authenticate admin user against database
+      const { data, error } = await supabase.rpc('authenticate_admin', {
+        user_pin: credentials.pin,
+        user_password: credentials.password
+      });
+
+      if (error) {
+        console.error('Authentication error:', error);
+        setError("Authentication failed. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        const adminUser = data[0];
+        // Store admin session
+        localStorage.setItem('adminSession', JSON.stringify({
+          authenticated: true,
+          adminId: adminUser.user_id,
+          adminName: adminUser.user_name
+        }));
+        
+        toast({
+          title: "Login Successful",
+          description: `Welcome back, ${adminUser.user_name}!`,
+        });
+
+        onLoginSuccess({
+          id: adminUser.user_id,
+          name: adminUser.user_name
+        });
+      } else {
+        setError("Invalid credentials or you don't have admin access");
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError("Login failed. Please try again.");
     }
 
     setIsSubmitting(false);
@@ -53,12 +89,13 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="pin">PIN</Label>
               <Input
-                id="username"
+                id="pin"
                 type="text"
-                value={credentials.username}
-                onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
+                value={credentials.pin}
+                onChange={(e) => setCredentials(prev => ({ ...prev, pin: e.target.value }))}
+                placeholder="Enter your PIN"
                 required
               />
             </div>
@@ -70,6 +107,7 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
                 type="password"
                 value={credentials.password}
                 onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
+                placeholder="Enter your password"
                 required
               />
             </div>
