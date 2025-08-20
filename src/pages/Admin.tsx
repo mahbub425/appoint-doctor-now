@@ -1,49 +1,41 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Admin = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [adminData, setAdminData] = useState<{ id: string; name: string } | null>(null);
+  const { adminProfile, loading, signOut } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already logged in
-    const adminSession = localStorage.getItem('adminSession');
-    if (adminSession) {
-      try {
-        const sessionData = JSON.parse(adminSession);
-        if (sessionData.authenticated && sessionData.adminId) {
-          setIsAuthenticated(true);
-          setAdminData({
-            id: sessionData.adminId,
-            name: sessionData.adminName
-          });
-        }
-      } catch (error) {
-        console.error('Error parsing admin session:', error);
-        localStorage.removeItem('adminSession');
-      }
+    if (!loading && !adminProfile) {
+      // If not loading and no admin profile, redirect to admin login page
+      navigate("/admin-login"); // Assuming /admin-login is the correct path for admin login
     }
-  }, []);
+  }, [loading, adminProfile, navigate]);
 
-  const handleLoginSuccess = (userData: { id: string; name: string }) => {
-    setIsAuthenticated(true);
-    setAdminData(userData);
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/admin-login');
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminSession');
-    setIsAuthenticated(false);
-    setAdminData(null);
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!adminProfile) {
+    // If not loading and no admin profile, render AdminLogin (or let useEffect redirect)
+    return <AdminLogin onLoginSuccess={() => {}} />; // onLoginSuccess will be handled by AuthContext
+  }
 
   return (
     <div className="min-h-screen bg-background">
-      {!isAuthenticated ? (
-        <AdminLogin onLoginSuccess={handleLoginSuccess} />
-      ) : (
-        <AdminDashboard onLogout={handleLogout} />
-      )}
+      <AdminDashboard onLogout={handleLogout} />
     </div>
   );
 };

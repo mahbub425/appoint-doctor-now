@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,37 +14,22 @@ type TabType = "profile" | "schedule" | "appointments" | "consultations";
 
 const DoctorDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>("appointments");
-  const [localDoctorProfile, setLocalDoctorProfile] = useState<any>(null);
   const { doctorProfile, signOut, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check localStorage for doctor session
-    const doctorSession = localStorage.getItem('doctorSession');
-    if (doctorSession) {
-      try {
-        const doctorData = JSON.parse(doctorSession);
-        setLocalDoctorProfile(doctorData);
-      } catch (error) {
-        console.error('Error parsing doctor session:', error);
-        localStorage.removeItem('doctorSession');
-        navigate('/doctor-login');
-      }
-    } else if (!loading && !doctorProfile) {
-      // If no doctor session and not loading, redirect to login
+    if (!loading && !doctorProfile) {
+      // If not loading and no doctor profile, redirect to doctor login
       navigate('/doctor-login');
     }
   }, [doctorProfile, loading, navigate]);
 
-  const currentDoctorProfile = localDoctorProfile || doctorProfile;
-
   const handleSignOut = async () => {
-    localStorage.removeItem('doctorSession');
     await signOut();
     navigate('/doctor-login');
   };
 
-  if (loading && !localDoctorProfile) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-lg">Loading...</div>
@@ -53,7 +37,7 @@ const DoctorDashboard = () => {
     );
   }
 
-  if (!currentDoctorProfile) {
+  if (!doctorProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-lg">No doctor profile found</div>
@@ -82,8 +66,8 @@ const DoctorDashboard = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold">Welcome, Dr. {currentDoctorProfile.name.split(' ').pop()}</h1>
-              <p className="text-sm text-muted-foreground">{currentDoctorProfile.designation}</p>
+              <h1 className="text-2xl font-bold">Welcome, Dr. {doctorProfile.name.split(' ').pop()}</h1>
+              <p className="text-sm text-muted-foreground">{doctorProfile.designation}</p>
             </div>
             <div className="flex items-center gap-4">
               <NotificationIcon userType="doctor" />
