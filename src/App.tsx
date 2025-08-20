@@ -13,6 +13,7 @@ import DoctorDashboard from "./pages/DoctorDashboard";
 import Admin from "./pages/Admin";
 import DoctorLogin from "./pages/DoctorLogin";
 import NotFound from "./pages/NotFound";
+import { AdminLogin } from "@/components/admin/AdminLogin"; // Import AdminLogin component
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/doctor" element={<DoctorDashboard />} />
             <Route path="/doctor-login" element={<DoctorLogin />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/admin-login" element={<AdminLogin onLoginSuccess={() => {}} />} /> {/* Added Admin Login Route */}
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

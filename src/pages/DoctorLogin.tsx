@@ -1,30 +1,30 @@
-import { useState, useEffect } from "react";
 import { DoctorLogin as DoctorLoginComponent } from "@/components/doctor/DoctorLogin";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const DoctorLogin = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { doctorProfile, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if doctor is already logged in
-    const doctorSession = localStorage.getItem('doctorSession');
-    if (doctorSession) {
-      setIsAuthenticated(true);
+    // If loading is complete and doctorProfile exists, redirect to doctor dashboard
+    if (!loading && doctorProfile) {
       navigate('/doctor');
     }
-  }, [navigate]);
+  }, [doctorProfile, loading, navigate]);
 
-  const handleLoginSuccess = (doctor: any) => {
-    setIsAuthenticated(true);
-    navigate('/doctor');
-  };
-
-  if (isAuthenticated) {
-    return null; // Will redirect to /doctor
+  // If still loading or doctorProfile exists (and will redirect), show a loading state or null
+  if (loading || doctorProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
   }
 
-  return <DoctorLoginComponent onLoginSuccess={handleLoginSuccess} />;
+  // If not loading and no doctorProfile, render the login component
+  return <DoctorLoginComponent onLoginSuccess={() => navigate('/doctor')} />;
 };
 
 export default DoctorLogin;
