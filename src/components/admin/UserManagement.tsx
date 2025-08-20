@@ -301,7 +301,7 @@ export const UserManagement = () => {
       (user.username && user.username.toLowerCase().includes(searchTerm.toLowerCase())) // Search by username too
     );
     setFilteredUsers(filtered);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to first page on search/filter change
   }, [users, searchTerm]);
 
   const formatDate = (dateString: string) => {
@@ -460,7 +460,7 @@ export const UserManagement = () => {
                 </TableBody>
               </Table>
               
-              <div className="flex justify-between items-center mt-6">
+              <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
                 <div className="flex items-center gap-2">
                   <span className="text-sm">Show:</span>
                   <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
