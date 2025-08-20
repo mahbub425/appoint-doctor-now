@@ -1,3 +1,4 @@
+
 import { DoctorLogin as DoctorLoginComponent } from "@/components/doctor/DoctorLogin";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +16,13 @@ const DoctorLogin = () => {
     }
   }, [doctorProfile, loading, navigate]);
 
-  if (loading || doctorProfile) {
+  // If already logged in as doctor, redirect
+  if (!loading && doctorProfile) {
+    navigate('/doctor');
+    return null;
+  }
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-lg">Loading...</div>
@@ -23,7 +30,7 @@ const DoctorLogin = () => {
     );
   }
 
-  return <DoctorLoginComponent />; // Removed onLoginSuccess prop
+  return <DoctorLoginComponent />;
 };
 
 export default DoctorLogin;

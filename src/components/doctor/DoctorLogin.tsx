@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,9 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast"; // Added this import
+import { useToast } from "@/hooks/use-toast";
 import { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 type AuthenticatedDoctor = Database['public']['Functions']['authenticate_doctor']['Returns'][number];
 
@@ -20,6 +22,7 @@ export const DoctorLogin = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { refreshAuth } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,13 +72,13 @@ export const DoctorLogin = () => {
         description: `Welcome, Dr. ${doctor.name}`,
       });
       
-      // Trigger auth refresh and give it a moment to update state
+      // Refresh auth context first
       await refreshAuth();
       
-      // Small delay to ensure state is updated before any potential redirect
-      setTimeout(() => {
-        console.log("Doctor login completed, auth should be refreshed");
-      }, 100);
+      // Direct navigation after successful login
+      console.log("Doctor login completed, navigating to doctor dashboard");
+      navigate('/doctor');
+      
     } catch (error: any) {
       console.error("Login error:", error);
       setError("Login failed. Please try again.");
