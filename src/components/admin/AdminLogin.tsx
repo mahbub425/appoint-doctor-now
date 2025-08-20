@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 import { Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -18,7 +19,26 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
   });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rememberAdmin, setRememberAdmin] = useState(false); // New state for remember me
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Load remembered admin credentials on component mount
+    const rememberedAdminCredentials = localStorage.getItem('adminRememberedCredentials');
+    if (rememberedAdminCredentials) {
+      try {
+        const adminCreds = JSON.parse(rememberedAdminCredentials);
+        setCredentials({
+          username: adminCreds.username || "",
+          password: adminCreds.password || ""
+        });
+        setRememberAdmin(true);
+      } catch (error) {
+        console.error("Error parsing remembered admin credentials:", error);
+        localStorage.removeItem('adminRememberedCredentials');
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +72,17 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
           adminName: adminUser.user_name,
           adminRole: adminUser.user_role
         }));
+
+        // Handle remember me for admin
+        if (rememberAdmin) {
+          localStorage.setItem('adminRememberedCredentials', JSON.stringify({
+            username: trimmedUsername,
+            password: trimmedPassword,
+            timestamp: Date.now() // Optional: add timestamp for future expiration
+          }));
+        } else {
+          localStorage.removeItem('adminRememberedCredentials');
+        }
         
         toast({
           title: "Login Successful",
@@ -116,6 +147,15 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
                 placeholder="Enter your password"
                 required
               />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="rememberAdmin"
+                checked={rememberAdmin}
+                onCheckedChange={(checked) => setRememberAdmin(checked as boolean)}
+              />
+              <Label htmlFor="rememberAdmin" className="text-sm">Remember me</Label>
             </div>
 
             <Button 

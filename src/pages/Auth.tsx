@@ -36,8 +36,24 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
-  // Removed the rememberedCredentials check from here as it's now handled globally in AuthContext.tsx
-  // useEffect(() => { ... }, []);
+  // Load remembered credentials on component mount
+  useEffect(() => {
+    const rememberedCredentials = localStorage.getItem('rememberedCredentials');
+    if (rememberedCredentials) {
+      try {
+        const credentials = JSON.parse(rememberedCredentials);
+        setFormData(prev => ({
+          ...prev,
+          pin: credentials.pin || "",
+          password: credentials.password || ""
+        }));
+        setRememberPassword(true);
+      } catch (error) {
+        console.error("Error parsing remembered credentials:", error);
+        localStorage.removeItem('rememberedCredentials');
+      }
+    }
+  }, []);
 
   const handleSubmit = async () => {
     setWrongPasswordError(false);
