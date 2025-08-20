@@ -292,7 +292,7 @@ export const UserManagement = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Registered Users</CardTitle>
+          <CardTitle>Registered Users ({filteredUsers.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {currentUsers.length === 0 ? (
@@ -409,17 +409,10 @@ export const UserManagement = () => {
                       <SelectItem value="100">100</SelectItem>
                     </SelectContent>
                   </Select>
-                  <div className="text-sm text-muted-foreground ml-4">
-                    Total: {filteredUsers.length} users
-                  </div>
                 </div>
                 
                 {totalPages > 1 && (
-                  <div className="flex flex-col sm:flex-row justify-between items-center w-full gap-4">
-                    <div className="text-sm text-muted-foreground">
-                      Showing {startIndex + 1} to {Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length} users
-                    </div>
-                    <Pagination>
+                  <Pagination>
                       <PaginationContent>
                         <PaginationItem>
                           <PaginationPrevious 
@@ -472,7 +465,6 @@ export const UserManagement = () => {
                         </PaginationItem>
                       </PaginationContent>
                     </Pagination>
-                  </div>
                 )}
               </div>
             </>

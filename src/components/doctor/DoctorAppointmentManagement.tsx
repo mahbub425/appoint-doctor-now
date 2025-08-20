@@ -401,9 +401,6 @@ const AppointmentTable = ({ appointments, onAcceptReject, onViewDetails, showAct
                 <SelectItem value="100">100</SelectItem>
               </SelectContent>
             </Select>
-            <div className="text-sm text-muted-foreground ml-4">
-              Total: {appointments.length} appointments
-            </div>
           </div>
           
           {totalPages > 1 && (

@@ -375,20 +375,6 @@ export const AppointmentManagementEnhanced = () => {
             </SelectContent>
           </Select>
 
-          <div className="flex gap-2 items-center">
-            <Label className="text-sm">Show:</Label>
-            <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
-              <SelectTrigger className="w-20">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
       </div>
 
@@ -473,11 +459,23 @@ export const AppointmentManagementEnhanced = () => {
               </TableBody>
             </Table>
             
-            {totalPages > 1 && (
-              <div className="flex justify-between items-center mt-4">
-                <div className="text-sm text-muted-foreground">
-                  Showing {startIndex + 1} to {Math.min(endIndex, filteredAppointments.length)} of {filteredAppointments.length} appointments
-                </div>
+            <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
+              <div className="flex gap-2 items-center">
+                <Label className="text-sm">Show:</Label>
+                <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {totalPages > 1 && (
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
@@ -531,8 +529,8 @@ export const AppointmentManagementEnhanced = () => {
                     </PaginationItem>
                   </PaginationContent>
                 </Pagination>
-              </div>
-            )}
+              )}
+            </div>
           </CardContent>
         </Card>
       )}

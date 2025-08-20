@@ -408,17 +408,10 @@ export const DoctorScheduleManagement = () => {
                       <SelectItem value="100">100</SelectItem>
                     </SelectContent>
                   </Select>
-                  <div className="text-sm text-muted-foreground ml-4">
-                    Total: {filteredSchedules.length} schedules
-                  </div>
                 </div>
                 
                 {totalPages > 1 && (
-                  <div className="flex flex-col sm:flex-row justify-between items-center w-full gap-4">
-                    <div className="text-sm text-muted-foreground">
-                      Showing {startIndex + 1} to {Math.min(endIndex, filteredSchedules.length)} of {filteredSchedules.length} schedules
-                    </div>
-                    <Pagination>
+                  <Pagination>
                       <PaginationContent>
                         <PaginationItem>
                           <PaginationPrevious 
@@ -471,7 +464,6 @@ export const DoctorScheduleManagement = () => {
                         </PaginationItem>
                       </PaginationContent>
                     </Pagination>
-                  </div>
                 )}
               </div>
             </>
