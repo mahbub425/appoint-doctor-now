@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -9,10 +9,10 @@ interface UserProfile {
   concern: string;
   phone: string;
   email?: string;
-  user_role: string; // Added user_role
+  user_role: string;
   is_blocked?: boolean;
   created_at: string;
-  username?: string; // Re-added username as optional for users
+  username?: string;
 }
 
 interface DoctorProfile {
@@ -49,6 +49,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isDoctor: boolean;
   isUser: boolean;
+  refreshAuth: () => Promise<void>; // Added refreshAuth function
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -68,132 +69,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [doctorProfile, setDoctorProfile] = useState<DoctorProfile | null>(null);
   const [adminProfile, setAdminProfile] = useState<AdminProfile | null>(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      setLoading(true);
-      
-      // 1. Check for admin session in localStorage
-      const adminSession = localStorage.getItem('adminSession');
-      if (adminSession) {
-        try {
-          const adminData = JSON.parse(adminSession);
-          if (adminData.authenticated && adminData.adminId && adminData.adminRole === 'admin') {
-            setAdminProfile({ id: adminData.adminId, name: adminData.adminName, role: adminData.adminRole });
-            setUserProfile(null);
-            setDoctorProfile(null);
-            setUser(null); // Clear Supabase auth user if admin session is active
-            setLoading(false);
-            return;
-          }
-        } catch (error) {
-          console.error('Error parsing admin session:', error);
-          localStorage.removeItem('adminSession');
-        }
-      }
-
-      // 2. Check for doctor session in localStorage
-      const doctorSession = localStorage.getItem('doctorSession');
-      if (doctorSession) {
-        try {
-          const doctorData = JSON.parse(doctorSession);
-          if (doctorData.id && doctorData.username && doctorData.name) {
-            setDoctorProfile(doctorData);
-            setUserProfile(null);
-            setAdminProfile(null);
-            setUser(null); // Clear Supabase auth user if doctor session is active
-            setLoading(false);
-            return;
-          }
-        } catch (error) {
-          console.error('Error parsing doctor session:', error);
-          localStorage.removeItem('doctorSession');
-        }
-      }
-
-      // 3. Check for remembered PIN-based user credentials in localStorage
-      const rememberedCredentials = localStorage.getItem('rememberedCredentials');
-      if (rememberedCredentials) {
-        try {
-          const credentials = JSON.parse(rememberedCredentials);
-          const { pin, password, timestamp } = credentials;
-          const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
-
-          if (Date.now() - timestamp < thirtyDaysInMs) {
-            const { data: users, error } = await supabase
-              .from('users')
-              .select('*')
-              .eq('pin', pin)
-              .eq('password', password);
-
-            if (!error && users && users.length > 0) {
-              const user = users[0];
-              if (user.is_blocked !== true) {
-                setUserProfile(user as UserProfile);
-                setDoctorProfile(null);
-                setAdminProfile(null);
-                setUser(null); // Keep Supabase auth user null for PIN-based logins
-                setLoading(false);
-                return;
-              } else {
-                // User is blocked, clear credentials
-                localStorage.removeItem('rememberedCredentials');
-              }
-            } else {
-              // Invalid credentials, clear them
-              localStorage.removeItem('rememberedCredentials');
-            }
-          } else {
-            // Expired credentials, clear them
-            localStorage.removeItem('rememberedCredentials');
-          }
-        } catch (error) {
-          console.error('Error with remembered credentials:', error);
-          localStorage.removeItem('rememberedCredentials');
-        }
-      }
-
-      // 4. Finally, check for Supabase auth session (if applicable)
-      const { data: { session: supabaseSession } } = await supabase.auth.getSession();
-      setSession(supabaseSession);
-      setUser(supabaseSession?.user ?? null);
-
-      if (supabaseSession?.user) {
-        await fetchUserProfile(supabaseSession.user.id);
-      } else {
-        setUserProfile(null);
-        setDoctorProfile(null);
-        setAdminProfile(null);
-      }
-      setLoading(false);
-    };
-
-    checkAuthStatus();
-
-    // Set up auth state listener for regular users (Supabase auth)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // If a Supabase user logs in, clear other local storage sessions
-          localStorage.removeItem('doctorSession');
-          localStorage.removeItem('adminSession');
-          localStorage.removeItem('rememberedCredentials'); // Clear PIN credentials too
-          setDoctorProfile(null);
-          setAdminProfile(null);
-          fetchUserProfile(session.user.id);
-        } else {
-          setUserProfile(null);
-          setDoctorProfile(null);
-          setAdminProfile(null);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   const fetchUserProfile = async (authUserId: string) => {
     try {
@@ -219,7 +94,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .single();
 
       if (userData) {
-        setUserProfile(userData as UserProfile); // Cast to UserProfile
+        setUserProfile(userData as UserProfile);
         setDoctorProfile(null);
         setAdminProfile(null);
       }
@@ -227,6 +102,132 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error("Error fetching user profile:", error);
     }
   };
+
+  const checkAuthStatus = useCallback(async () => {
+    setLoading(true);
+    
+    // 1. Check for admin session in localStorage
+    const adminSession = localStorage.getItem('adminSession');
+    if (adminSession) {
+      try {
+        const adminData = JSON.parse(adminSession);
+        if (adminData.authenticated && adminData.adminId && adminData.adminRole === 'admin') {
+          setAdminProfile({ id: adminData.adminId, name: adminData.adminName, role: adminData.adminRole });
+          setUserProfile(null);
+          setDoctorProfile(null);
+          setUser(null); // Clear Supabase auth user if admin session is active
+          setLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.error('Error parsing admin session:', error);
+        localStorage.removeItem('adminSession');
+      }
+    }
+
+    // 2. Check for doctor session in localStorage
+    const doctorSession = localStorage.getItem('doctorSession');
+    if (doctorSession) {
+      try {
+        const doctorData = JSON.parse(doctorSession);
+        if (doctorData.id && doctorData.username && doctorData.name) {
+          setDoctorProfile(doctorData);
+          setUserProfile(null);
+          setAdminProfile(null);
+          setUser(null); // Clear Supabase auth user if doctor session is active
+          setLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.error('Error parsing doctor session:', error);
+        localStorage.removeItem('doctorSession');
+      }
+    }
+
+    // 3. Check for remembered PIN-based user credentials in localStorage
+    const rememberedCredentials = localStorage.getItem('rememberedCredentials');
+    if (rememberedCredentials) {
+      try {
+        const credentials = JSON.parse(rememberedCredentials);
+        const { pin, password, timestamp } = credentials;
+        const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+
+        if (Date.now() - timestamp < thirtyDaysInMs) {
+          const { data: users, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('pin', pin)
+            .eq('password', password);
+
+          if (!error && users && users.length > 0) {
+            const user = users[0];
+            if (user.is_blocked !== true) {
+              setUserProfile(user as UserProfile);
+              setDoctorProfile(null);
+              setAdminProfile(null);
+              setUser(null); // Keep Supabase auth user null for PIN-based logins
+              setLoading(false);
+              return;
+            } else {
+              // User is blocked, clear credentials
+              localStorage.removeItem('rememberedCredentials');
+            }
+          } else {
+            // Invalid credentials, clear them
+            localStorage.removeItem('rememberedCredentials');
+          }
+        } else {
+          // Expired credentials, clear them
+          localStorage.removeItem('rememberedCredentials');
+        }
+      } catch (error) {
+        console.error('Error with remembered credentials:', error);
+        localStorage.removeItem('rememberedCredentials');
+      }
+    }
+
+    // 4. Finally, check for Supabase auth session (if applicable)
+    const { data: { session: supabaseSession } } = await supabase.auth.getSession();
+    setSession(supabaseSession);
+    setUser(supabaseSession?.user ?? null);
+
+    if (supabaseSession?.user) {
+      await fetchUserProfile(supabaseSession.user.id);
+    } else {
+      setUserProfile(null);
+      setDoctorProfile(null);
+      setAdminProfile(null);
+    }
+    setLoading(false);
+  }, []); // useCallback ensures this function is stable
+
+  useEffect(() => {
+    checkAuthStatus();
+
+    // Set up auth state listener for regular users (Supabase auth)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // If a Supabase user logs in, clear other local storage sessions
+          localStorage.removeItem('doctorSession');
+          localStorage.removeItem('adminSession');
+          localStorage.removeItem('rememberedCredentials'); // Clear PIN credentials too
+          setDoctorProfile(null);
+          setAdminProfile(null);
+          fetchUserProfile(session.user.id);
+        } else {
+          setUserProfile(null);
+          setDoctorProfile(null);
+          setAdminProfile(null);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [checkAuthStatus]); // Dependency on checkAuthStatus
 
   const signUp = async (email: string, password: string, userData: any) => {
     const redirectUrl = `${window.location.origin}/`;
@@ -251,7 +252,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           concern: userData.concern,
           phone: userData.phone,
           email: email,
-          user_role: 'user' // Default role for new sign-ups
+          user_role: 'user'
         });
 
       if (profileError) {
@@ -273,7 +274,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const pinSignUp = async (userData: any) => {
     try {
-      // Check for existing PIN to provide specific error messages
       const { data: existingUsers, error: checkError } = await supabase
         .from('users')
         .select('id, pin')
@@ -296,7 +296,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           concern: userData.concern,
           phone: userData.phone,
           password: userData.password,
-          user_role: 'user' // Default role for new PIN sign-ups
+          user_role: 'user'
         }])
         .select()
         .single();
@@ -315,7 +315,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const pinSignIn = async (pin: string, password?: string, rememberPassword?: boolean) => {
     try {
-      // Authenticate user by PIN and password
       const { data: users, error } = await supabase
         .from('users')
         .select('*')
@@ -333,12 +332,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const user = users[0];
       
-      // Check if user is blocked
       if (user.is_blocked === true) {
         return { error: { message: 'You are blocked by the admin you can\'t login your user pannel.' } };
       }
       
-      // Handle remember password functionality
       if (rememberPassword && password) {
         localStorage.setItem('rememberedCredentials', JSON.stringify({
           pin: pin,
@@ -346,14 +343,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           timestamp: Date.now()
         }));
       } else {
-        localStorage.removeItem('rememberedCredentials'); // Clear if not remembering
+        localStorage.removeItem('rememberedCredentials');
       }
       
-      // Clear other profiles and set user profile for PIN login
       setDoctorProfile(null);
       setAdminProfile(null);
-      setUserProfile(user as UserProfile); // Cast to UserProfile
-      setUser(null); // Keep Supabase auth user null for PIN-based logins
+      setUserProfile(user as UserProfile);
+      setUser(null);
 
       return { error: null };
     } catch (error) {
@@ -364,12 +360,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
-      // Clear all sessions from localStorage
       localStorage.removeItem('doctorSession');
       localStorage.removeItem('adminSession');
       localStorage.removeItem('rememberedCredentials');
       
-      // Sign out from Supabase auth
       await supabase.auth.signOut();
       
       setUserProfile(null);
@@ -381,7 +375,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Determine roles based on active profiles
   const isAdmin = !!adminProfile && adminProfile.role === 'admin';
   const isDoctor = !!doctorProfile && !userProfile && !adminProfile;
   const isUser = !!userProfile && userProfile.user_role === 'user' && !doctorProfile && !adminProfile;
@@ -400,7 +393,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signOut,
     isAdmin,
     isDoctor,
-    isUser
+    isUser,
+    refreshAuth: checkAuthStatus // Expose the refresh function
   };
 
   return (

@@ -5,8 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
-import { Database } from "@/integrations/supabase/types"; // Import Database type
+import { toast } from "@/hooks/use-toast"; // Added this import
+import { Database } from "@/integrations/supabase/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Define the expected return type for the authenticate_doctor RPC function
 type AuthenticatedDoctor = Database['public']['Functions']['authenticate_doctor']['Returns'][number];
@@ -22,6 +23,8 @@ export const DoctorLogin = ({ onLoginSuccess }: DoctorLoginProps) => {
   });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  const { refreshAuth } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,6 +79,8 @@ export const DoctorLogin = ({ onLoginSuccess }: DoctorLoginProps) => {
         description: `Welcome, Dr. ${doctor.name}`,
       });
       
+      // Call refreshAuth to update AuthContext state and trigger redirection
+      await refreshAuth();
       onLoginSuccess(doctor);
     } catch (error: any) {
       console.error("Login error:", error);

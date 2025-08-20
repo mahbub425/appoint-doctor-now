@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 import { Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 
 interface AdminLoginProps {
   onLoginSuccess: (adminData: { id: string; name: string; role: string }) => void;
@@ -21,6 +22,7 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rememberAdmin, setRememberAdmin] = useState(false); // New state for remember me
   const { toast } = useToast();
+  const { refreshAuth } = useAuth(); // Use refreshAuth from AuthContext
 
   useEffect(() => {
     // Load remembered admin credentials on component mount
@@ -89,6 +91,8 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
           description: `Welcome back, ${adminUser.user_name}!`,
         });
 
+        // Call refreshAuth to update AuthContext state and trigger redirection
+        await refreshAuth();
         onLoginSuccess({
           id: adminUser.user_id,
           name: adminUser.user_name,
