@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,14 +71,8 @@ export const DoctorLogin = () => {
         description: `Welcome, Dr. ${doctor.name}`,
       });
       
-      // Refresh auth context and wait for it to complete
+      // Refresh auth context and let AuthContext/DoctorLogin.tsx's useEffect handle navigation
       await refreshAuth();
-      
-      // Add a small delay to ensure state is updated
-      setTimeout(() => {
-        console.log("Doctor login completed, navigating to doctor dashboard");
-        navigate('/doctor');
-      }, 100);
       
     } catch (error: any) {
       console.error("Login error:", error);
