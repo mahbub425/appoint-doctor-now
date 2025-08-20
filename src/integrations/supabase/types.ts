@@ -361,6 +361,21 @@ export type Database = {
           user_role: string
         }[]
       }
+      authenticate_doctor: {
+        Args: { doctor_username: string; doctor_password: string }
+        Returns: {
+          id: string;
+          username: string;
+          name: string;
+          degree: string;
+          experience: string;
+          designation: string | null;
+          specialties: string[] | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        }[];
+      }
       authenticate_user_by_pin: {
         Args: { user_phone: string; user_pin: string }
         Returns: {

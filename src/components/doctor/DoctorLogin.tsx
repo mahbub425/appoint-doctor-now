@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { UserCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Database } from "@/integrations/supabase/types"; // Import Database type
+
+// Define the expected return type for the authenticate_doctor RPC function
+type AuthenticatedDoctor = Database['public']['Functions']['authenticate_doctor']['Returns'][number];
 
 interface DoctorLoginProps {
   onLoginSuccess: (doctor: any) => void;
@@ -26,63 +29,54 @@ export const DoctorLogin = ({ onLoginSuccess }: DoctorLoginProps) => {
     setError("");
 
     try {
-      console.log("Attempting login with username:", credentials.username);
+      console.log("Attempting doctor login with username:", credentials.username);
       
-      // Query doctors table for username and password match
-      const { data: doctors, error } = await supabase
-        .from("doctors")
-        .select("*")
-        .eq("username", credentials.username)
-        .eq("is_active", true);
+      // Call the new RPC function for doctor authentication
+      const { data, error: rpcError } = await supabase.rpc('authenticate_doctor', {
+        doctor_username: credentials.username,
+        doctor_password: credentials.password
+      });
 
-      if (error) {
-        console.error("Database error:", error);
-        throw error;
+      // Explicitly cast data to the expected array type
+      const doctors: AuthenticatedDoctor[] | null = data as AuthenticatedDoctor[] | null;
+
+      if (rpcError) {
+        console.error("RPC authentication error:", rpcError);
+        throw rpcError;
       }
 
-      console.log("Found doctors:", doctors);
+      console.log("Authenticated doctor data from RPC:", doctors);
 
       if (!doctors || doctors.length === 0) {
-        console.log("No doctor found with username:", credentials.username);
-        setError("Invalid username or password");
+        setError("Invalid username or password, or your account is inactive.");
         setIsSubmitting(false);
         return;
       }
 
       const doctor = doctors[0];
-      console.log("Doctor found:", doctor);
-      console.log("Comparing password:", credentials.password, "with stored:", doctor.password_hash);
       
-      // Direct password comparison as requested
-      if (doctor.password_hash === credentials.password) {
-        console.log("Password match successful");
-        
-        // Store complete doctor information in localStorage
-        const doctorSessionData = {
-          id: doctor.id,
-          username: doctor.username,
-          name: doctor.name,
-          degree: doctor.degree,
-          experience: doctor.experience,
-          designation: doctor.designation,
-          specialties: doctor.specialties,
-          is_active: doctor.is_active,
-          created_at: doctor.created_at,
-          updated_at: doctor.updated_at
-        };
-        
-        localStorage.setItem('doctorSession', JSON.stringify(doctorSessionData));
-        
-        toast({
-          title: "Login Successful",
-          description: `Welcome, Dr. ${doctor.name}`,
-        });
-        
-        onLoginSuccess(doctor);
-      } else {
-        console.log("Password mismatch");
-        setError("Invalid username or password");
-      }
+      // Store complete doctor information in localStorage
+      const doctorSessionData = {
+        id: doctor.id,
+        username: doctor.username,
+        name: doctor.name,
+        degree: doctor.degree,
+        experience: doctor.experience,
+        designation: doctor.designation,
+        specialties: doctor.specialties,
+        is_active: doctor.is_active,
+        created_at: doctor.created_at,
+        updated_at: doctor.updated_at
+      };
+      
+      localStorage.setItem('doctorSession', JSON.stringify(doctorSessionData));
+      
+      toast({
+        title: "Login Successful",
+        description: `Welcome, Dr. ${doctor.name}`,
+      });
+      
+      onLoginSuccess(doctor);
     } catch (error: any) {
       console.error("Login error:", error);
       setError("Login failed. Please try again.");
