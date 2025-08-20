@@ -23,6 +23,7 @@ interface User {
   created_at: string;
   is_blocked?: boolean;
   user_role: string;
+  username?: string; // Re-added username as optional
 }
 
 export const UserManagement = () => {
@@ -33,7 +34,8 @@ export const UserManagement = () => {
   const [editForm, setEditForm] = useState({
     name: "",
     phone: "",
-    concern: ""
+    concern: "",
+    username: "" // Added username to edit form
   });
   const [passwordResetUser, setPasswordResetUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState("");
@@ -71,7 +73,8 @@ export const UserManagement = () => {
     setEditForm({
       name: user.name,
       phone: user.phone,
-      concern: user.concern
+      concern: user.concern,
+      username: user.username || "" // Populate username if exists
     });
   };
 
@@ -95,7 +98,8 @@ export const UserManagement = () => {
         .update({
           name: editForm.name,
           phone: editForm.phone,
-          concern: editForm.concern
+          concern: editForm.concern,
+          username: editForm.username // Update username
         })
         .eq("id", editingUser.id);
 
@@ -293,7 +297,8 @@ export const UserManagement = () => {
   useEffect(() => {
     const filtered = users.filter(user => 
       user.pin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.name.toLowerCase().includes(searchTerm.toLowerCase())
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.username && user.username.toLowerCase().includes(searchTerm.toLowerCase())) // Search by username too
     );
     setFilteredUsers(filtered);
     setCurrentPage(1);
@@ -319,7 +324,7 @@ export const UserManagement = () => {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by PIN or Name..."
+            placeholder="Search by PIN, Name, or Username..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 w-64"
@@ -343,6 +348,7 @@ export const UserManagement = () => {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>PIN</TableHead>
+                    <TableHead>Username</TableHead> {/* Added Username column */}
                     <TableHead>Phone</TableHead>
                     <TableHead>Concern</TableHead>
                     <TableHead>Status</TableHead>
@@ -356,6 +362,7 @@ export const UserManagement = () => {
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell>{user.pin}</TableCell>
+                    <TableCell>{user.username || 'N/A'}</TableCell> {/* Display username or N/A */}
                     <TableCell>{user.phone}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{user.concern}</Badge>
@@ -543,6 +550,16 @@ export const UserManagement = () => {
                 id="edit-name"
                 value={editForm.name}
                 onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="edit-username">Username (for Admin role)</Label>
+              <Input
+                id="edit-username"
+                value={editForm.username}
+                onChange={(e) => setEditForm(prev => ({ ...prev, username: e.target.value }))}
+                placeholder="Enter username (optional)"
               />
             </div>
 

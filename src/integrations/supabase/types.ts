@@ -315,7 +315,7 @@ export type Database = {
           phone: string
           pin: string
           updated_at: string
-          username: string | null
+          username: string | null // Made nullable
           user_role: string
         }
         Insert: {
@@ -329,7 +329,7 @@ export type Database = {
           phone: string
           pin: string
           updated_at?: string
-          username?: string | null
+          username?: string | null // Made nullable
           user_role?: string
         }
         Update: {
@@ -343,7 +343,7 @@ export type Database = {
           phone?: string
           pin?: string
           updated_at?: string
-          username?: string | null
+          username?: string | null // Made nullable
           user_role?: string
         }
         Relationships: []

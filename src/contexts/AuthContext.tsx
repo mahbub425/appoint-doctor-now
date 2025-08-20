@@ -12,6 +12,7 @@ interface UserProfile {
   user_role: string; // Added user_role
   is_blocked?: boolean;
   created_at: string;
+  username?: string; // Re-added username as optional for users
 }
 
 interface DoctorProfile {
