@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MoreHorizontal, Trash2, Edit, UserMinus } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit, UserMinus, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -35,6 +36,7 @@ interface Doctor {
 
 export const AppointmentManagementEnhanced = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [filteredAppointments, setFilteredAppointments] = useState<Appointment[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
   const [selectedDateRange, setSelectedDateRange] = useState<string>("last_6_months");
@@ -48,6 +50,9 @@ export const AppointmentManagementEnhanced = () => {
     appointment_date: "",
     appointment_time: ""
   });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     fetchDoctors();
@@ -79,6 +84,15 @@ export const AppointmentManagementEnhanced = () => {
   useEffect(() => {
     fetchAppointments();
   }, [selectedDoctor, selectedDateRange]);
+
+  useEffect(() => {
+    const filtered = appointments.filter(appointment => 
+      appointment.pin.toString().includes(searchTerm) ||
+      appointment.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredAppointments(filtered);
+    setCurrentPage(1);
+  }, [appointments, searchTerm]);
 
   const fetchDoctors = async () => {
     try {
@@ -159,6 +173,7 @@ export const AppointmentManagementEnhanced = () => {
       }
 
       setAppointments(data || []);
+      setFilteredAppointments(data || []);
     } catch (error) {
       console.error("Error fetching appointments:", error);
     } finally {
@@ -308,6 +323,11 @@ export const AppointmentManagementEnhanced = () => {
     return appointmentDateTime >= now && appointment.status !== 'absent' && appointment.status !== 'completed';
   };
 
+  const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentAppointments = filteredAppointments.slice(startIndex, endIndex);
+
   if (loading) {
     return <div className="text-center py-8">Loading appointments...</div>;
   }
@@ -318,6 +338,16 @@ export const AppointmentManagementEnhanced = () => {
         <h2 className="text-2xl font-bold">Appointment Management</h2>
         
         <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by PIN or Name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-64"
+            />
+          </div>
+          
           <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Filter by doctor" />
@@ -344,21 +374,36 @@ export const AppointmentManagementEnhanced = () => {
               <SelectItem value="last_6_months">Last 6 Months</SelectItem>
             </SelectContent>
           </Select>
+
+          <div className="flex gap-2 items-center">
+            <Label className="text-sm">Show:</Label>
+            <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
+              <SelectTrigger className="w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
-      {appointments.length === 0 ? (
+      {currentAppointments.length === 0 ? (
         <Card>
           <CardContent className="py-8">
             <div className="text-center text-muted-foreground">
-              No appointments found for the selected filters.
+              {searchTerm ? "No appointments found matching your search." : "No appointments found for the selected filters."}
             </div>
           </CardContent>
         </Card>
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Appointments ({appointments.length})</CardTitle>
+            <CardTitle>Appointments ({filteredAppointments.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -367,6 +412,7 @@ export const AppointmentManagementEnhanced = () => {
                   <TableHead>Date</TableHead>
                   <TableHead>Time</TableHead>
                   <TableHead>Serial</TableHead>
+                  <TableHead>PIN</TableHead>
                   <TableHead>Patient</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Doctor</TableHead>
@@ -377,11 +423,12 @@ export const AppointmentManagementEnhanced = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {appointments.map((appointment) => (
+                {currentAppointments.map((appointment) => (
                   <TableRow key={appointment.id}>
                     <TableCell>{formatDate(appointment.appointment_date)}</TableCell>
                     <TableCell>{appointment.appointment_time}</TableCell>
                     <TableCell>{appointment.serial_number}</TableCell>
+                    <TableCell>{appointment.pin}</TableCell>
                     <TableCell>{appointment.name}</TableCell>
                     <TableCell>{appointment.phone}</TableCell>
                     <TableCell>{appointment.doctor?.name || 'Unknown'}</TableCell>
@@ -425,6 +472,67 @@ export const AppointmentManagementEnhanced = () => {
                 ))}
               </TableBody>
             </Table>
+            
+            {totalPages > 1 && (
+              <div className="flex justify-between items-center mt-4">
+                <div className="text-sm text-muted-foreground">
+                  Showing {startIndex + 1} to {Math.min(endIndex, filteredAppointments.length)} of {filteredAppointments.length} appointments
+                </div>
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage > 1) setCurrentPage(currentPage - 1);
+                        }}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <PaginationItem key={pageNum}>
+                          <PaginationLink
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setCurrentPage(pageNum);
+                            }}
+                            isActive={currentPage === pageNum}
+                          >
+                            {pageNum}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    })}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                        }}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

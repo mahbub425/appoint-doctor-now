@@ -7,6 +7,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
@@ -34,6 +37,9 @@ export const DoctorAppointmentManagementEnhanced = () => {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [activeTab, setActiveTab] = useState("upcoming");
   const [dateFilter, setDateFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const { doctorProfile } = useAuth();
 
   useEffect(() => {
@@ -179,9 +185,17 @@ export const DoctorAppointmentManagementEnhanced = () => {
     const now = new Date();
     let filteredAppointments = appointments;
 
+    // Apply search filter
+    if (searchTerm) {
+      filteredAppointments = appointments.filter(apt => 
+        apt.pin.toString().includes(searchTerm) ||
+        apt.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
     // Apply date filter if set
     if (dateFilter) {
-      filteredAppointments = appointments.filter(apt => 
+      filteredAppointments = filteredAppointments.filter(apt => 
         apt.appointment_date === dateFilter
       );
     }
@@ -227,8 +241,17 @@ export const DoctorAppointmentManagementEnhanced = () => {
         </div>
       </div>
 
-      {/* Date Filter */}
-      <div className="flex gap-4 items-end">
+      {/* Search and Filter Controls */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by PIN or Name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 w-64"
+          />
+        </div>
         <div className="space-y-2">
           <Label htmlFor="date-filter">Filter by Date</Label>
           <Input
@@ -239,13 +262,30 @@ export const DoctorAppointmentManagementEnhanced = () => {
             className="w-48"
           />
         </div>
-        {dateFilter && (
+        <div className="flex gap-2 items-center">
+          <Label className="text-sm">Show:</Label>
+          <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
+            <SelectTrigger className="w-20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {(dateFilter || searchTerm) && (
           <Button 
             variant="outline" 
-            onClick={() => setDateFilter("")}
+            onClick={() => {
+              setDateFilter("");
+              setSearchTerm("");
+            }}
             className="mb-0"
           >
-            Clear Filter
+            Clear Filters
           </Button>
         )}
       </div>
@@ -269,6 +309,9 @@ export const DoctorAppointmentManagementEnhanced = () => {
             showAbsentAction={true}
             showCompleteAction={true}
             getReasonBadge={getReasonBadge}
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            setCurrentPage={setCurrentPage}
           />
         </TabsContent>
 
@@ -281,6 +324,9 @@ export const DoctorAppointmentManagementEnhanced = () => {
             showAbsentAction={false}
             showCompleteAction={false}
             getReasonBadge={getReasonBadge}
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            setCurrentPage={setCurrentPage}
           />
         </TabsContent>
       </Tabs>
@@ -342,6 +388,9 @@ interface AppointmentTableProps {
   showAbsentAction: boolean;
   showCompleteAction: boolean;
   getReasonBadge: (reason: string) => JSX.Element;
+  currentPage: number;
+  itemsPerPage: number;
+  setCurrentPage: (page: number) => void;
 }
 
 const AppointmentTable = ({ 
@@ -351,7 +400,10 @@ const AppointmentTable = ({
   onViewDetails, 
   showAbsentAction,
   showCompleteAction,
-  getReasonBadge 
+  getReasonBadge,
+  currentPage,
+  itemsPerPage,
+  setCurrentPage
 }: AppointmentTableProps) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-GB');
@@ -374,6 +426,11 @@ const AppointmentTable = ({
     }
   };
 
+  const totalPages = Math.ceil(appointments.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentAppointments = appointments.slice(startIndex, endIndex);
+
   if (appointments.length === 0) {
     return (
       <Card>
@@ -395,6 +452,7 @@ const AppointmentTable = ({
               <TableHead>Date</TableHead>
               <TableHead>Time</TableHead>
               <TableHead>Serial</TableHead>
+              <TableHead>PIN</TableHead>
               <TableHead>Patient</TableHead>
               <TableHead>Concern</TableHead>
               <TableHead>Reason</TableHead>
@@ -403,11 +461,12 @@ const AppointmentTable = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {appointments.map((appointment) => (
+            {currentAppointments.map((appointment) => (
               <TableRow key={appointment.id}>
                 <TableCell>{formatDate(appointment.appointment_date)}</TableCell>
                 <TableCell>{appointment.appointment_time}</TableCell>
                 <TableCell>{appointment.serial_number}</TableCell>
+                <TableCell>{appointment.pin}</TableCell>
                 <TableCell>{appointment.name}</TableCell>
                 <TableCell>{appointment.concern}</TableCell>
                 <TableCell>{getReasonBadge(appointment.reason)}</TableCell>
@@ -445,6 +504,67 @@ const AppointmentTable = ({
             ))}
           </TableBody>
         </Table>
+        
+        {totalPages > 1 && (
+          <div className="flex justify-between items-center mt-4">
+            <div className="text-sm text-muted-foreground">
+              Showing {startIndex + 1} to {Math.min(endIndex, appointments.length)} of {appointments.length} appointments
+            </div>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage > 1) setCurrentPage(currentPage - 1);
+                    }}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <PaginationItem key={pageNum}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(pageNum);
+                        }}
+                        isActive={currentPage === pageNum}
+                      >
+                        {pageNum}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                    }}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

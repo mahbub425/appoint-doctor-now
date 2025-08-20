@@ -5,6 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
@@ -30,6 +35,9 @@ export const DoctorAppointmentManagement = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const { doctorProfile } = useAuth();
 
   useEffect(() => {
@@ -123,22 +131,31 @@ export const DoctorAppointmentManagement = () => {
 
   const filterAppointments = (status: string) => {
     const now = new Date();
+    let filteredAppointments = appointments;
+
+    // Apply search filter
+    if (searchTerm) {
+      filteredAppointments = appointments.filter(apt => 
+        apt.pin.toString().includes(searchTerm) ||
+        apt.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
     
     switch (status) {
       case 'upcoming':
-        return appointments.filter(apt => {
+        return filteredAppointments.filter(apt => {
           const appointmentDateTime = new Date(`${apt.appointment_date}T${apt.appointment_time}`);
           return appointmentDateTime >= now && apt.status !== 'rejected' && apt.status !== 'completed';
         });
       case 'past':
-        return appointments.filter(apt => {
+        return filteredAppointments.filter(apt => {
           const appointmentDateTime = new Date(`${apt.appointment_date}T${apt.appointment_time}`);
           return appointmentDateTime < now || apt.status === 'completed';
         });
       case 'pending':
-        return appointments.filter(apt => apt.status === 'upcoming' || apt.status === 'pending');
+        return filteredAppointments.filter(apt => apt.status === 'upcoming' || apt.status === 'pending');
       default:
-        return appointments;
+        return filteredAppointments;
     }
   };
 
@@ -152,10 +169,35 @@ export const DoctorAppointmentManagement = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold">Appointment Management</h2>
-        <div className="text-sm text-muted-foreground">
-          Total: {appointments.length} appointments
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by PIN or Name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-64"
+            />
+          </div>
+          <div className="flex gap-2 items-center">
+            <Label className="text-sm">Show:</Label>
+            <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
+              <SelectTrigger className="w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            Total: {appointments.length} appointments
+          </div>
         </div>
       </div>
 
@@ -172,6 +214,9 @@ export const DoctorAppointmentManagement = () => {
             onAcceptReject={handleAcceptReject}
             onViewDetails={setSelectedAppointment}
             showActions={true}
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            setCurrentPage={setCurrentPage}
           />
         </TabsContent>
 
@@ -181,6 +226,9 @@ export const DoctorAppointmentManagement = () => {
             onAcceptReject={handleAcceptReject}
             onViewDetails={setSelectedAppointment}
             showActions={false}
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            setCurrentPage={setCurrentPage}
           />
         </TabsContent>
 
@@ -190,6 +238,9 @@ export const DoctorAppointmentManagement = () => {
             onAcceptReject={handleAcceptReject}
             onViewDetails={setSelectedAppointment}
             showActions={true}
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            setCurrentPage={setCurrentPage}
           />
         </TabsContent>
       </Tabs>
@@ -248,9 +299,12 @@ interface AppointmentTableProps {
   onAcceptReject: (id: string, status: string) => void;
   onViewDetails: (appointment: Appointment) => void;
   showActions: boolean;
+  currentPage: number;
+  itemsPerPage: number;
+  setCurrentPage: (page: number) => void;
 }
 
-const AppointmentTable = ({ appointments, onAcceptReject, onViewDetails, showActions }: AppointmentTableProps) => {
+const AppointmentTable = ({ appointments, onAcceptReject, onViewDetails, showActions, currentPage, itemsPerPage, setCurrentPage }: AppointmentTableProps) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-GB');
   };
@@ -276,6 +330,11 @@ const AppointmentTable = ({ appointments, onAcceptReject, onViewDetails, showAct
     }
   };
 
+  const totalPages = Math.ceil(appointments.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentAppointments = appointments.slice(startIndex, endIndex);
+
   if (appointments.length === 0) {
     return (
       <Card>
@@ -297,6 +356,7 @@ const AppointmentTable = ({ appointments, onAcceptReject, onViewDetails, showAct
               <TableHead>Date</TableHead>
               <TableHead>Time</TableHead>
               <TableHead>Serial</TableHead>
+              <TableHead>PIN</TableHead>
               <TableHead>Patient</TableHead>
               <TableHead>Concern</TableHead>
               <TableHead>Reason</TableHead>
@@ -305,11 +365,12 @@ const AppointmentTable = ({ appointments, onAcceptReject, onViewDetails, showAct
             </TableRow>
           </TableHeader>
           <TableBody>
-            {appointments.map((appointment) => (
+            {currentAppointments.map((appointment) => (
               <TableRow key={appointment.id}>
                 <TableCell>{formatDate(appointment.appointment_date)}</TableCell>
                 <TableCell>{appointment.appointment_time}</TableCell>
                 <TableCell>{appointment.serial_number}</TableCell>
+                <TableCell>{appointment.pin}</TableCell>
                 <TableCell>{appointment.name}</TableCell>
                 <TableCell>{appointment.concern}</TableCell>
                 <TableCell>{appointment.reason}</TableCell>
@@ -338,6 +399,67 @@ const AppointmentTable = ({ appointments, onAcceptReject, onViewDetails, showAct
             ))}
           </TableBody>
         </Table>
+        
+        {totalPages > 1 && (
+          <div className="flex justify-between items-center mt-4">
+            <div className="text-sm text-muted-foreground">
+              Showing {startIndex + 1} to {Math.min(endIndex, appointments.length)} of {appointments.length} appointments
+            </div>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage > 1) setCurrentPage(currentPage - 1);
+                    }}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <PaginationItem key={pageNum}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(pageNum);
+                        }}
+                        isActive={currentPage === pageNum}
+                      >
+                        {pageNum}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                    }}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
