@@ -1,4 +1,3 @@
-
 import { DoctorLogin as DoctorLoginComponent } from "@/components/doctor/DoctorLogin";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -16,11 +15,8 @@ const DoctorLogin = () => {
     }
   }, [doctorProfile, loading, navigate]);
 
-  // If already logged in as doctor, redirect
-  if (!loading && doctorProfile) {
-    navigate('/doctor');
-    return null;
-  }
+  // Removed the problematic if (!loading && doctorProfile) { navigate('/doctor'); return null; }
+  // This logic is now handled solely by the useEffect above for better consistency.
 
   if (loading) {
     return (
