@@ -8,12 +8,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
 interface AdminLoginProps {
-  onLoginSuccess: (adminData: { id: string; name: string }) => void;
+  onLoginSuccess: (adminData: { id: string; name: string; role: string }) => void;
 }
 
 export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
   const [credentials, setCredentials] = useState({
-    pin: "",
+    username: "", // Changed from pin
     password: ""
   });
   const [error, setError] = useState("");
@@ -26,9 +26,9 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
     setError("");
 
     try {
-      // Authenticate admin user against database
+      // Authenticate admin user against database using username and password
       const { data, error } = await supabase.rpc('authenticate_admin', {
-        admin_username: credentials.pin, // Corrected from user_pin
+        admin_username: credentials.username,
         admin_password: credentials.password
       });
 
@@ -45,7 +45,8 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
         localStorage.setItem('adminSession', JSON.stringify({
           authenticated: true,
           adminId: adminUser.user_id,
-          adminName: adminUser.user_name
+          adminName: adminUser.user_name,
+          adminRole: adminUser.user_role // Store the role
         }));
         
         toast({
@@ -55,7 +56,8 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
 
         onLoginSuccess({
           id: adminUser.user_id,
-          name: adminUser.user_name
+          name: adminUser.user_name,
+          role: adminUser.user_role
         });
       } else {
         setError("Invalid credentials or you don't have admin access");
@@ -89,13 +91,13 @@ export const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="pin">PIN</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="pin"
+                id="username"
                 type="text"
-                value={credentials.pin}
-                onChange={(e) => setCredentials(prev => ({ ...prev, pin: e.target.value }))}
-                placeholder="Enter your PIN"
+                value={credentials.username}
+                onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
+                placeholder="Enter your username"
                 required
               />
             </div>

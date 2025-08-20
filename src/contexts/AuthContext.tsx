@@ -2,12 +2,44 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+interface UserProfile {
+  id: string;
+  name: string;
+  pin: string;
+  concern: string;
+  phone: string;
+  email?: string;
+  username: string | null; // Added username
+  user_role: string; // Added user_role
+  is_blocked?: boolean;
+  created_at: string;
+}
+
+interface DoctorProfile {
+  id: string;
+  username: string;
+  name: string;
+  degree: string;
+  experience: string;
+  designation: string;
+  specialties: string[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface AdminProfile {
+  id: string;
+  name: string;
+  role: string;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  userProfile: any | null;
-  doctorProfile: any | null;
-  adminProfile: any | null; // Added adminProfile
+  userProfile: UserProfile | null;
+  doctorProfile: DoctorProfile | null;
+  adminProfile: AdminProfile | null;
   loading: boolean;
   signUp: (email: string, password: string, userData: any) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -32,9 +64,9 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [userProfile, setUserProfile] = useState<any | null>(null);
-  const [doctorProfile, setDoctorProfile] = useState<any | null>(null);
-  const [adminProfile, setAdminProfile] = useState<any | null>(null); // State for admin profile
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [doctorProfile, setDoctorProfile] = useState<DoctorProfile | null>(null);
+  const [adminProfile, setAdminProfile] = useState<AdminProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -45,8 +77,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (adminSession) {
         try {
           const adminData = JSON.parse(adminSession);
-          if (adminData.authenticated && adminData.adminId) {
-            setAdminProfile(adminData);
+          if (adminData.authenticated && adminData.adminId && adminData.adminRole === 'admin') {
+            setAdminProfile({ id: adminData.adminId, name: adminData.adminName, role: adminData.adminRole });
             setUserProfile(null);
             setDoctorProfile(null);
             setUser(null); // Clear Supabase auth user if admin session is active
@@ -64,19 +96,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (doctorSession) {
         try {
           const doctorData = JSON.parse(doctorSession);
-          setDoctorProfile(doctorData);
-          setUserProfile(null);
-          setAdminProfile(null);
-          setUser(null); // Clear Supabase auth user if doctor session is active
-          setLoading(false);
-          return;
+          // Ensure it's a doctor profile, not just any session
+          if (doctorData.id && doctorData.username && doctorData.name) {
+            setDoctorProfile(doctorData);
+            setUserProfile(null);
+            setAdminProfile(null);
+            setUser(null); // Clear Supabase auth user if doctor session is active
+            setLoading(false);
+            return;
+          }
         } catch (error) {
           console.error('Error parsing doctor session:', error);
           localStorage.removeItem('doctorSession');
         }
       }
 
-      // Finally, check for Supabase auth session
+      // Finally, check for Supabase auth session (if applicable, though current app uses custom auth)
       const { data: { session: supabaseSession } } = await supabase.auth.getSession();
       setSession(supabaseSession);
       setUser(supabaseSession?.user ?? null);
@@ -119,7 +154,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchUserProfile = async (authUserId: string) => {
     try {
-      // Check if user is a doctor
+      // Check if user is a doctor (using auth_user_id)
       const { data: doctorData } = await supabase
         .from("doctors")
         .select("*")
@@ -133,7 +168,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      // Check if user is a patient
+      // Check if user is a patient (using auth_user_id)
       const { data: userData } = await supabase
         .from("users")
         .select("*")
@@ -141,7 +176,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .single();
 
       if (userData) {
-        setUserProfile(userData);
+        setUserProfile(userData as UserProfile); // Cast to UserProfile
         setDoctorProfile(null);
         setAdminProfile(null);
       }
@@ -172,7 +207,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           pin: userData.pin,
           concern: userData.concern,
           phone: userData.phone,
-          email: email
+          email: email,
+          username: userData.username, // Insert username
+          user_role: 'user' // Default role for new sign-ups
         });
 
       if (profileError) {
@@ -194,7 +231,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const pinSignUp = async (userData: any) => {
     try {
-      // Insert user without checking existing PIN (let database handle constraints)
+      // Check for existing username or PIN to provide specific error messages
+      const { data: existingUsers, error: checkError } = await supabase
+        .from('users')
+        .select('id, pin, username')
+        .or(`pin.eq.${userData.pin},username.eq.${userData.username}`);
+
+      if (checkError) {
+        console.error('Error checking existing users:', checkError);
+        return { error: checkError };
+      }
+
+      if (existingUsers && existingUsers.length > 0) {
+        if (existingUsers.some(u => u.pin === userData.pin)) {
+          return { error: { message: 'PIN already exists' } };
+        }
+        if (existingUsers.some(u => u.username === userData.username)) {
+          return { error: { message: 'username already exists' } };
+        }
+      }
+
       const { data, error } = await supabase
         .from('users')
         .insert([{
@@ -202,16 +258,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           pin: userData.pin,
           concern: userData.concern,
           phone: userData.phone,
-          password: userData.password
+          username: userData.username, // Insert username
+          password: userData.password,
+          user_role: 'user' // Default role for new PIN sign-ups
         }])
         .select()
         .single();
 
       if (error) {
-        // Check if error is due to duplicate PIN
-        if (error.message.includes('duplicate') || error.code === '23505') {
-          return { error: { message: 'PIN already exists' } };
-        }
         console.error('User creation error:', error);
         return { error };
       }
@@ -225,7 +279,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const pinSignIn = async (pin: string, password?: string, rememberPassword?: boolean) => {
     try {
-      // For PIN + password authentication, use direct query (allowed by RLS for authentication)
+      // Authenticate user by PIN and password
       const { data: users, error } = await supabase
         .from('users')
         .select('*')
@@ -243,20 +297,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const user = users[0];
       
-      console.log("User data fetched for PIN login:", user);
-      console.log("User is_blocked status:", user.is_blocked);
-      
       // Check if user is blocked
       if (user.is_blocked === true) {
-        console.log("User is blocked, preventing login");
         return { error: { message: 'You are blocked by the admin you can\'t login your user pannel.' } };
       }
       
-      console.log("PIN login successful, user data:", user);
-      
       // Handle remember password functionality
       if (rememberPassword && password) {
-        // Store credentials securely in localStorage for auto-login
         localStorage.setItem('rememberedCredentials', JSON.stringify({
           pin: pin,
           password: password,
@@ -267,11 +314,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Clear other profiles and set user profile for PIN login
       setDoctorProfile(null);
       setAdminProfile(null);
-      setUserProfile(user);
-      
-      // Create a mock user object for compatibility if needed, otherwise rely on userProfile
-      // For now, we'll keep user as null for PIN-based logins to clearly distinguish
-      setUser(null); 
+      setUserProfile(user as UserProfile); // Cast to UserProfile
+      setUser(null); // Keep Supabase auth user null for PIN-based logins
 
       return { error: null };
     } catch (error) {
@@ -300,18 +344,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Determine roles based on active profiles
-  const isAdmin = !!adminProfile;
-  const isDoctor = !!doctorProfile && !userProfile && !adminProfile; // Only doctor if no user/admin profile
-  const isUser = !!userProfile && !doctorProfile && !adminProfile; // Only user if no doctor/admin profile
+  const isAdmin = !!adminProfile && adminProfile.role === 'admin';
+  const isDoctor = !!doctorProfile && !userProfile && !adminProfile;
+  const isUser = !!userProfile && userProfile.user_role === 'user' && !doctorProfile && !adminProfile;
   
-  console.log("Auth state - user:", !!user, "userProfile:", !!userProfile, "doctorProfile:", !!doctorProfile, "adminProfile:", !!adminProfile, "isUser:", isUser, "isDoctor:", isDoctor, "isAdmin:", isAdmin);
-
   const value = {
     user,
     session,
     userProfile,
     doctorProfile,
-    adminProfile, // Added adminProfile to context value
+    adminProfile,
     loading,
     signUp,
     signIn,

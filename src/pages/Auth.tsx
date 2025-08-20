@@ -19,6 +19,7 @@ const Auth = () => {
     pin: "",
     concern: "",
     phone: "",
+    username: "", // Added username
     password: "",
     confirmPassword: ""
   });
@@ -78,7 +79,7 @@ const Auth = () => {
     setWrongPasswordError(false);
     
     if (isSignUp) {
-      if (!formData.name || !formData.pin || !formData.concern || !formData.phone || !formData.password || !formData.confirmPassword) {
+      if (!formData.name || !formData.pin || !formData.concern || !formData.phone || !formData.username || !formData.password || !formData.confirmPassword) { // Added username
         toast({
           title: "Error",
           description: "All fields are required for registration",
@@ -137,6 +138,7 @@ const Auth = () => {
           pin: formData.pin,
           concern: formData.concern,
           phone: formData.phone,
+          username: formData.username, // Pass username
           password: formData.password
         });
 
@@ -145,6 +147,12 @@ const Auth = () => {
             toast({
               title: "Error",
               description: "PIN already exists. Please choose a different PIN.",
+              variant: "destructive"
+            });
+          } else if (error.message.includes("username already exists")) { // Handle username uniqueness
+            toast({
+              title: "Error",
+              description: "Username already exists. Please choose a different username.",
               variant: "destructive"
             });
           } else {
@@ -225,6 +233,16 @@ const Auth = () => {
                   value={formData.pin}
                   onChange={(e) => setFormData(prev => ({ ...prev, pin: e.target.value }))}
                   placeholder="Enter a unique PIN"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label> {/* Added username input */}
+                <Input
+                  id="username"
+                  value={formData.username}
+                  onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                  placeholder="Choose a username"
                 />
               </div>
 

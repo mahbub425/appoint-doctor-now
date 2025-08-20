@@ -21,9 +21,9 @@ interface User {
   concern: string;
   phone: string;
   created_at: string;
-  is_active?: boolean;
   is_blocked?: boolean;
-  is_admin?: boolean; // Added is_admin property
+  username: string | null; // Added username
+  user_role: string; // Changed from is_admin
 }
 
 export const UserManagement = () => {
@@ -34,7 +34,8 @@ export const UserManagement = () => {
   const [editForm, setEditForm] = useState({
     name: "",
     phone: "",
-    concern: ""
+    concern: "",
+    username: "" // Added username to edit form
   });
   const [passwordResetUser, setPasswordResetUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState("");
@@ -72,7 +73,8 @@ export const UserManagement = () => {
     setEditForm({
       name: user.name,
       phone: user.phone,
-      concern: user.concern
+      concern: user.concern,
+      username: user.username || "" // Set username for editing
     });
   };
 
@@ -96,7 +98,8 @@ export const UserManagement = () => {
         .update({
           name: editForm.name,
           phone: editForm.phone,
-          concern: editForm.concern
+          concern: editForm.concern,
+          username: editForm.username // Update username
         })
         .eq("id", editingUser.id);
 
@@ -159,13 +162,13 @@ export const UserManagement = () => {
   const handleToggleAdmin = async (user: User) => {
     try {
       let rpcError;
-      if (user.is_admin) {
+      if (user.user_role === 'admin') { // Check user_role
         // Revoke admin access
-        const { error } = await supabase.rpc('revoke_admin_access', { target_user_id: user.id }); // Corrected from user_pin
+        const { error } = await supabase.rpc('revoke_admin_access', { target_user_id: user.id });
         rpcError = error;
       } else {
         // Grant admin access
-        const { error } = await supabase.rpc('grant_admin_access', { target_user_id: user.id }); // Corrected from user_pin
+        const { error } = await supabase.rpc('grant_admin_access', { target_user_id: user.id });
         rpcError = error;
       }
 
@@ -180,7 +183,7 @@ export const UserManagement = () => {
 
       toast({
         title: "Success",
-        description: `User admin status updated successfully`
+        description: `User role updated successfully`
       });
 
       fetchUsers(); // Re-fetch users to reflect the change
@@ -294,7 +297,8 @@ export const UserManagement = () => {
   useEffect(() => {
     const filtered = users.filter(user => 
       user.pin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.name.toLowerCase().includes(searchTerm.toLowerCase())
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.username && user.username.toLowerCase().includes(searchTerm.toLowerCase())) // Search by username
     );
     setFilteredUsers(filtered);
     setCurrentPage(1);
@@ -320,7 +324,7 @@ export const UserManagement = () => {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by PIN or Name..."
+            placeholder="Search by PIN, Name or Username..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 w-64"
@@ -343,11 +347,12 @@ export const UserManagement = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
+                    <TableHead>Username</TableHead> {/* Added Username column */}
                     <TableHead>PIN</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Concern</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Role</TableHead> {/* Added Role column */}
+                    <TableHead>Role</TableHead>
                     <TableHead>Joined</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -356,6 +361,7 @@ export const UserManagement = () => {
                   {currentUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableCell>{user.username}</TableCell> {/* Display username */}
                     <TableCell>{user.pin}</TableCell>
                     <TableCell>{user.phone}</TableCell>
                     <TableCell>
@@ -367,10 +373,10 @@ export const UserManagement = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.is_admin ? "default" : "secondary"}>
-                        {user.is_admin ? "Admin" : "User"}
+                      <Badge variant={user.user_role === 'admin' ? "default" : "secondary"}>
+                        {user.user_role === 'admin' ? "Admin" : "User"}
                       </Badge>
-                    </TableCell> {/* Display admin status */}
+                    </TableCell>
                     <TableCell>{formatDate(user.created_at)}</TableCell>
                     <TableCell>
                       <DropdownMenu>
@@ -406,7 +412,7 @@ export const UserManagement = () => {
                           <DropdownMenuItem 
                             onClick={() => handleToggleAdmin(user)}
                           >
-                            {user.is_admin ? (
+                            {user.user_role === 'admin' ? ( // Check user_role
                               <>
                                 <UserX className="h-4 w-4 mr-2" />
                                 Revoke Admin
@@ -544,6 +550,16 @@ export const UserManagement = () => {
                 id="edit-name"
                 value={editForm.name}
                 onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="edit-username">Username</Label>
+              <Input
+                id="edit-username"
+                value={editForm.username}
+                onChange={(e) => setEditForm(prev => ({ ...prev, username: e.target.value }))}
+                placeholder="Enter username"
               />
             </div>
 
