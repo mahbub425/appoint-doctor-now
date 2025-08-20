@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -22,8 +22,7 @@ interface User {
   phone: string;
   created_at: string;
   is_blocked?: boolean;
-  username: string | null; // Added username
-  user_role: string; // Changed from is_admin
+  user_role: string;
 }
 
 export const UserManagement = () => {
@@ -34,8 +33,7 @@ export const UserManagement = () => {
   const [editForm, setEditForm] = useState({
     name: "",
     phone: "",
-    concern: "",
-    username: "" // Added username to edit form
+    concern: ""
   });
   const [passwordResetUser, setPasswordResetUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState("");
@@ -73,8 +71,7 @@ export const UserManagement = () => {
     setEditForm({
       name: user.name,
       phone: user.phone,
-      concern: user.concern,
-      username: user.username || "" // Set username for editing
+      concern: user.concern
     });
   };
 
@@ -98,8 +95,7 @@ export const UserManagement = () => {
         .update({
           name: editForm.name,
           phone: editForm.phone,
-          concern: editForm.concern,
-          username: editForm.username // Update username
+          concern: editForm.concern
         })
         .eq("id", editingUser.id);
 
@@ -297,8 +293,7 @@ export const UserManagement = () => {
   useEffect(() => {
     const filtered = users.filter(user => 
       user.pin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.username && user.username.toLowerCase().includes(searchTerm.toLowerCase())) // Search by username
+      user.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredUsers(filtered);
     setCurrentPage(1);
@@ -324,7 +319,7 @@ export const UserManagement = () => {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by PIN, Name or Username..."
+            placeholder="Search by PIN or Name..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 w-64"
@@ -347,7 +342,6 @@ export const UserManagement = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Username</TableHead> {/* Added Username column */}
                     <TableHead>PIN</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Concern</TableHead>
@@ -361,7 +355,6 @@ export const UserManagement = () => {
                   {currentUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell>{user.username}</TableCell> {/* Display username */}
                     <TableCell>{user.pin}</TableCell>
                     <TableCell>{user.phone}</TableCell>
                     <TableCell>
@@ -550,16 +543,6 @@ export const UserManagement = () => {
                 id="edit-name"
                 value={editForm.name}
                 onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="edit-username">Username</Label>
-              <Input
-                id="edit-username"
-                value={editForm.username}
-                onChange={(e) => setEditForm(prev => ({ ...prev, username: e.target.value }))}
-                placeholder="Enter username"
               />
             </div>
 

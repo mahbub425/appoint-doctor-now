@@ -9,7 +9,6 @@ interface UserProfile {
   concern: string;
   phone: string;
   email?: string;
-  username: string | null; // Added username
   user_role: string; // Added user_role
   is_blocked?: boolean;
   created_at: string;
@@ -208,7 +207,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           concern: userData.concern,
           phone: userData.phone,
           email: email,
-          username: userData.username, // Insert username
           user_role: 'user' // Default role for new sign-ups
         });
 
@@ -231,11 +229,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const pinSignUp = async (userData: any) => {
     try {
-      // Check for existing username or PIN to provide specific error messages
+      // Check for existing PIN to provide specific error messages
       const { data: existingUsers, error: checkError } = await supabase
         .from('users')
-        .select('id, pin, username')
-        .or(`pin.eq.${userData.pin},username.eq.${userData.username}`);
+        .select('id, pin')
+        .eq('pin', userData.pin);
 
       if (checkError) {
         console.error('Error checking existing users:', checkError);
@@ -243,12 +241,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       if (existingUsers && existingUsers.length > 0) {
-        if (existingUsers.some(u => u.pin === userData.pin)) {
-          return { error: { message: 'PIN already exists' } };
-        }
-        if (existingUsers.some(u => u.username === userData.username)) {
-          return { error: { message: 'username already exists' } };
-        }
+        return { error: { message: 'PIN already exists' } };
       }
 
       const { data, error } = await supabase
@@ -258,7 +251,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           pin: userData.pin,
           concern: userData.concern,
           phone: userData.phone,
-          username: userData.username, // Insert username
           password: userData.password,
           user_role: 'user' // Default role for new PIN sign-ups
         }])
