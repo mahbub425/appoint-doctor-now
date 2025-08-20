@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,8 +14,9 @@ type TabType = "doctors" | "appointments" | "profile" | "history";
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>("doctors");
-  const { userProfile, signOut } = useAuth();
+  const { userProfile, signOut, loading } = useAuth(); // Get loading state from useAuth
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check if activeTab is passed from navigation state
@@ -24,13 +25,24 @@ const UserDashboard = () => {
     }
   }, [location.state]);
 
-  if (!userProfile) {
+  // Effect to handle redirection based on loading and userProfile status
+  useEffect(() => {
+    if (!loading && !userProfile) {
+      // If not loading and no user profile, redirect to auth page
+      navigate("/auth");
+    }
+  }, [loading, userProfile, navigate]);
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-lg">Loading...</div>
       </div>
     );
   }
+
+  // If we reach here, it means loading is false and userProfile is available (due to the useEffect above)
+  // So, userProfile will not be null here.
 
   const renderContent = () => {
     switch (activeTab) {
@@ -52,7 +64,7 @@ const UserDashboard = () => {
       <header className="bg-background border-b border-border">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Welcome, {userProfile.name}</h1>
+            <h1 className="text-2xl font-bold">Welcome, {userProfile?.name}</h1> {/* userProfile is guaranteed here, but optional chaining for safety */}
             <div className="flex items-center gap-4">
               <NotificationIcon userType="user" />
               <Button onClick={signOut} variant="outline">

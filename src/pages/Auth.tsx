@@ -36,42 +36,8 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
-  useEffect(() => {
-    // Check for remembered credentials on component mount
-    const checkRememberedCredentials = async () => {
-      const rememberedCredentials = localStorage.getItem('rememberedCredentials');
-      if (rememberedCredentials) {
-        try {
-          const credentials = JSON.parse(rememberedCredentials);
-          const { pin, password, timestamp } = credentials;
-          
-          // Check if credentials are not too old (30 days)
-          const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
-          if (Date.now() - timestamp < thirtyDaysInMs) {
-            setLoading(true);
-            const { error } = await pinSignIn(pin, password, true);
-            if (!error) {
-              navigate("/user"); // Redirect directly to user dashboard
-            } else {
-              // Clear invalid remembered credentials
-              localStorage.removeItem('rememberedCredentials');
-            }
-            setLoading(false);
-          } else {
-            // Clear expired credentials
-            localStorage.removeItem('rememberedCredentials');
-          }
-        } catch (error) {
-          console.error('Error with remembered credentials:', error);
-          localStorage.removeItem('rememberedCredentials');
-        }
-      }
-    };
-
-    if (!user) {
-      checkRememberedCredentials();
-    }
-  }, []); // Remove dependencies to prevent infinite loop
+  // Removed the rememberedCredentials check from here as it's now handled globally in AuthContext.tsx
+  // useEffect(() => { ... }, []);
 
   const handleSubmit = async () => {
     setWrongPasswordError(false);
