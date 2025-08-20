@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +7,7 @@ interface AuthContextType {
   session: Session | null;
   userProfile: any | null;
   doctorProfile: any | null;
+  adminProfile: any | null; // Added adminProfile
   loading: boolean;
   signUp: (email: string, password: string, userData: any) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -34,59 +34,85 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [userProfile, setUserProfile] = useState<any | null>(null);
   const [doctorProfile, setDoctorProfile] = useState<any | null>(null);
+  const [adminProfile, setAdminProfile] = useState<any | null>(null); // State for admin profile
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for doctor session in localStorage
-    const checkDoctorSession = () => {
+    const checkAuthStatus = async () => {
+      setLoading(true);
+      // Check for admin session in localStorage first
+      const adminSession = localStorage.getItem('adminSession');
+      if (adminSession) {
+        try {
+          const adminData = JSON.parse(adminSession);
+          if (adminData.authenticated && adminData.adminId) {
+            setAdminProfile(adminData);
+            setUserProfile(null);
+            setDoctorProfile(null);
+            setUser(null); // Clear Supabase auth user if admin session is active
+            setLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.error('Error parsing admin session:', error);
+          localStorage.removeItem('adminSession');
+        }
+      }
+
+      // Then check for doctor session
       const doctorSession = localStorage.getItem('doctorSession');
       if (doctorSession) {
         try {
           const doctorData = JSON.parse(doctorSession);
           setDoctorProfile(doctorData);
+          setUserProfile(null);
+          setAdminProfile(null);
+          setUser(null); // Clear Supabase auth user if doctor session is active
           setLoading(false);
-          return true;
+          return;
         } catch (error) {
           console.error('Error parsing doctor session:', error);
           localStorage.removeItem('doctorSession');
         }
       }
-      return false;
+
+      // Finally, check for Supabase auth session
+      const { data: { session: supabaseSession } } = await supabase.auth.getSession();
+      setSession(supabaseSession);
+      setUser(supabaseSession?.user ?? null);
+
+      if (supabaseSession?.user) {
+        await fetchUserProfile(supabaseSession.user.id);
+      } else {
+        setUserProfile(null);
+        setDoctorProfile(null);
+        setAdminProfile(null);
+      }
+      setLoading(false);
     };
 
-    // First check for doctor session
-    if (checkDoctorSession()) {
-      return;
-    }
+    checkAuthStatus();
 
-    // Set up auth state listener for regular users
+    // Set up auth state listener for regular users (Supabase auth)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Clear doctor profile when regular user signs in
         if (session?.user) {
+          // If a Supabase user logs in, clear other local storage sessions
+          localStorage.removeItem('doctorSession');
+          localStorage.removeItem('adminSession');
           setDoctorProfile(null);
-          setTimeout(() => {
-            fetchUserProfile(session.user.id);
-          }, 0);
+          setAdminProfile(null);
+          fetchUserProfile(session.user.id);
         } else {
           setUserProfile(null);
           setDoctorProfile(null);
+          setAdminProfile(null);
         }
       }
     );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
-      }
-      setLoading(false);
-    });
 
     return () => subscription.unsubscribe();
   }, []);
@@ -103,6 +129,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (doctorData) {
         setDoctorProfile(doctorData);
         setUserProfile(null);
+        setAdminProfile(null);
         return;
       }
 
@@ -116,6 +143,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (userData) {
         setUserProfile(userData);
         setDoctorProfile(null);
+        setAdminProfile(null);
       }
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -197,15 +225,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const pinSignIn = async (pin: string, password?: string, rememberPassword?: boolean) => {
     try {
-      // For PIN-only authentication, we need to get user data securely
-      if (!password) {
-        // Use the secure function for PIN authentication by phone
-        // First, we need to find the user's phone number through a separate query
-        // This is a limitation of the current approach - we need phone number for secure auth
-        console.log("PIN-only authentication requires phone number lookup");
-        return { error: { message: 'Phone number required for secure authentication' } };
-      }
-
       // For PIN + password authentication, use direct query (allowed by RLS for authentication)
       const { data: users, error } = await supabase
         .from('users')
@@ -224,7 +243,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const user = users[0];
       
-      console.log("User data fetched:", user);
+      console.log("User data fetched for PIN login:", user);
       console.log("User is_blocked status:", user.is_blocked);
       
       // Check if user is blocked
@@ -245,19 +264,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }));
       }
       
-      // Clear doctor profile and set user profile for PIN login
+      // Clear other profiles and set user profile for PIN login
       setDoctorProfile(null);
+      setAdminProfile(null);
       setUserProfile(user);
       
-      // Create a mock user object for compatibility
-      const mockUser = {
-        id: user.id,
-        email: user.pin + '@mock.local', // Mock email for compatibility
-        user_metadata: { name: user.name }
-      };
-      
-      console.log("Setting mock user:", mockUser);
-      setUser(mockUser as any);
+      // Create a mock user object for compatibility if needed, otherwise rely on userProfile
+      // For now, we'll keep user as null for PIN-based logins to clearly distinguish
+      setUser(null); 
 
       return { error: null };
     } catch (error) {
@@ -268,32 +282,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
-      // Clear doctor session from localStorage
+      // Clear all sessions from localStorage
       localStorage.removeItem('doctorSession');
+      localStorage.removeItem('adminSession');
+      localStorage.removeItem('rememberedCredentials');
       
       // Sign out from Supabase auth
       await supabase.auth.signOut();
       
       setUserProfile(null);
       setDoctorProfile(null);
+      setAdminProfile(null);
       setUser(null);
     } catch (error) {
       console.error('Sign out error:', error);
     }
   };
 
-  // Check user roles
-  const isAdmin = user?.email === "admin@admin.com" || false;
-  const isDoctor = !!doctorProfile && !userProfile; // Only doctor if no user profile
-  const isUser = !!userProfile && !doctorProfile; // Only user if no doctor profile
+  // Determine roles based on active profiles
+  const isAdmin = !!adminProfile;
+  const isDoctor = !!doctorProfile && !userProfile && !adminProfile; // Only doctor if no user/admin profile
+  const isUser = !!userProfile && !doctorProfile && !adminProfile; // Only user if no doctor/admin profile
   
-  console.log("Auth state - user:", !!user, "userProfile:", !!userProfile, "doctorProfile:", !!doctorProfile, "isUser:", isUser, "isDoctor:", isDoctor, "isAdmin:", isAdmin);
+  console.log("Auth state - user:", !!user, "userProfile:", !!userProfile, "doctorProfile:", !!doctorProfile, "adminProfile:", !!adminProfile, "isUser:", isUser, "isDoctor:", isDoctor, "isAdmin:", isAdmin);
 
   const value = {
     user,
     session,
     userProfile,
     doctorProfile,
+    adminProfile, // Added adminProfile to context value
     loading,
     signUp,
     signIn,

@@ -23,6 +23,7 @@ interface User {
   created_at: string;
   is_active?: boolean;
   is_blocked?: boolean;
+  is_admin?: boolean; // Added is_admin property
 }
 
 export const UserManagement = () => {
@@ -146,6 +147,43 @@ export const UserManagement = () => {
       });
 
       fetchUsers();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleToggleAdmin = async (user: User) => {
+    try {
+      let rpcError;
+      if (user.is_admin) {
+        // Revoke admin access
+        const { error } = await supabase.rpc('revoke_admin_access', { user_pin: user.pin });
+        rpcError = error;
+      } else {
+        // Grant admin access
+        const { error } = await supabase.rpc('grant_admin_access', { user_pin: user.pin });
+        rpcError = error;
+      }
+
+      if (rpcError) {
+        toast({
+          title: "Error",
+          description: rpcError.message || "Failed to update admin status",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: `User admin status updated successfully`
+      });
+
+      fetchUsers(); // Re-fetch users to reflect the change
     } catch (error) {
       toast({
         title: "Error",
@@ -309,6 +347,7 @@ export const UserManagement = () => {
                     <TableHead>Phone</TableHead>
                     <TableHead>Concern</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Role</TableHead> {/* Added Role column */}
                     <TableHead>Joined</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -327,6 +366,11 @@ export const UserManagement = () => {
                         {user.is_blocked ? "Blocked" : "Active"}
                       </Badge>
                     </TableCell>
+                    <TableCell>
+                      <Badge variant={user.is_admin ? "default" : "secondary"}>
+                        {user.is_admin ? "Admin" : "User"}
+                      </Badge>
+                    </TableCell> {/* Display admin status */}
                     <TableCell>{formatDate(user.created_at)}</TableCell>
                     <TableCell>
                       <DropdownMenu>
@@ -356,6 +400,21 @@ export const UserManagement = () => {
                               <>
                                 <Ban className="h-4 w-4 mr-2" />
                                 Block User
+                              </>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleToggleAdmin(user)}
+                          >
+                            {user.is_admin ? (
+                              <>
+                                <UserX className="h-4 w-4 mr-2" />
+                                Revoke Admin
+                              </>
+                            ) : (
+                              <>
+                                <UserCheck className="h-4 w-4 mr-2" />
+                                Grant Admin
                               </>
                             )}
                           </DropdownMenuItem>

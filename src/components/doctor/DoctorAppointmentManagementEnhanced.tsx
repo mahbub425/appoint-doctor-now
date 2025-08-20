@@ -31,6 +31,11 @@ interface Appointment {
   };
 }
 
+interface Doctor {
+  id: string;
+  name: string;
+}
+
 export const DoctorAppointmentManagementEnhanced = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
