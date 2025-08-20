@@ -72,12 +72,14 @@ export const DoctorLogin = () => {
         description: `Welcome, Dr. ${doctor.name}`,
       });
       
-      // Refresh auth context first
+      // Refresh auth context and wait for it to complete
       await refreshAuth();
       
-      // Direct navigation after successful login
-      console.log("Doctor login completed, navigating to doctor dashboard");
-      navigate('/doctor');
+      // Add a small delay to ensure state is updated
+      setTimeout(() => {
+        console.log("Doctor login completed, navigating to doctor dashboard");
+        navigate('/doctor');
+      }, 100);
       
     } catch (error: any) {
       console.error("Login error:", error);
