@@ -374,6 +374,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      grant_admin_access: {
+        Args: { user_pin: string }
+        Returns: boolean
+      }
       is_user_owner: {
         Args: { record_user_id: string }
         Returns: boolean
@@ -387,6 +391,10 @@ export type Database = {
           p_start_time: string
         }
         Returns: undefined
+      }
+      revoke_admin_access: {
+        Args: { user_pin: string }
+        Returns: boolean
       }
     }
     Enums: {
