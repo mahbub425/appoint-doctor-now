@@ -53,7 +53,7 @@ const Auth = () => {
             setLoading(true);
             const { error } = await pinSignIn(pin, password, true);
             if (!error) {
-              navigate("/");
+              navigate("/user"); // Redirect directly to user dashboard
             } else {
               // Clear invalid remembered credentials
               localStorage.removeItem('rememberedCredentials');
@@ -187,7 +187,7 @@ const Auth = () => {
             title: "Success",
             description: "Signed in successfully!"
           });
-          navigate("/");
+          navigate("/user"); // Redirect directly to user dashboard
         }
       }
     } catch (error) {
