@@ -106,99 +106,107 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const checkAuthStatus = useCallback(async () => {
     setLoading(true);
     
-    // 1. Check for admin session in localStorage
-    const adminSession = localStorage.getItem('adminSession');
-    if (adminSession) {
-      try {
-        const adminData = JSON.parse(adminSession);
-        if (adminData.authenticated && adminData.adminId && adminData.adminRole === 'admin') {
-          setAdminProfile({ id: adminData.adminId, name: adminData.adminName, role: adminData.adminRole });
-          setUserProfile(null);
-          setDoctorProfile(null);
-          setUser(null); // Clear Supabase auth user if admin session is active
-          setLoading(false);
-          return;
+    try {
+      // 1. Check for admin session in localStorage
+      const adminSession = localStorage.getItem('adminSession');
+      if (adminSession) {
+        try {
+          const adminData = JSON.parse(adminSession);
+          if (adminData.authenticated && adminData.adminId && adminData.adminRole === 'admin') {
+            setAdminProfile({ id: adminData.adminId, name: adminData.adminName, role: adminData.adminRole });
+            setUserProfile(null);
+            setDoctorProfile(null);
+            setUser(null); // Clear Supabase auth user if admin session is active
+            setLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.error('Error parsing admin session:', error);
+          localStorage.removeItem('adminSession');
         }
-      } catch (error) {
-        console.error('Error parsing admin session:', error);
-        localStorage.removeItem('adminSession');
       }
-    }
 
-    // 2. Check for doctor session in localStorage
-    const doctorSession = localStorage.getItem('doctorSession');
-    if (doctorSession) {
-      try {
-        const doctorData = JSON.parse(doctorSession);
-        if (doctorData.id && doctorData.username && doctorData.name) {
-          setDoctorProfile(doctorData);
-          setUserProfile(null);
-          setAdminProfile(null);
-          setUser(null); // Clear Supabase auth user if doctor session is active
-          setLoading(false);
-          return;
+      // 2. Check for doctor session in localStorage
+      const doctorSession = localStorage.getItem('doctorSession');
+      if (doctorSession) {
+        try {
+          const doctorData = JSON.parse(doctorSession);
+          if (doctorData.id && doctorData.username && doctorData.name) {
+            setDoctorProfile(doctorData);
+            setUserProfile(null);
+            setAdminProfile(null);
+            setUser(null); // Clear Supabase auth user if doctor session is active
+            setLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.error('Error parsing doctor session:', error);
+          localStorage.removeItem('doctorSession');
         }
-      } catch (error) {
-        console.error('Error parsing doctor session:', error);
-        localStorage.removeItem('doctorSession');
       }
-    }
 
-    // 3. Check for remembered PIN-based user credentials in localStorage
-    const rememberedCredentials = localStorage.getItem('rememberedCredentials');
-    if (rememberedCredentials) {
-      try {
-        const credentials = JSON.parse(rememberedCredentials);
-        const { pin, password, timestamp } = credentials;
-        const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+      // 3. Check for remembered PIN-based user credentials in localStorage
+      const rememberedCredentials = localStorage.getItem('rememberedCredentials');
+      if (rememberedCredentials) {
+        try {
+          const credentials = JSON.parse(rememberedCredentials);
+          const { pin, password, timestamp } = credentials;
+          const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
 
-        if (Date.now() - timestamp < thirtyDaysInMs) {
-          const { data: users, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('pin', pin)
-            .eq('password', password);
+          if (Date.now() - timestamp < thirtyDaysInMs) {
+            const { data: users, error } = await supabase
+              .from('users')
+              .select('*')
+              .eq('pin', pin)
+              .eq('password', password);
 
-          if (!error && users && users.length > 0) {
-            const user = users[0];
-            if (user.is_blocked !== true) {
-              setUserProfile(user as UserProfile);
-              setDoctorProfile(null);
-              setAdminProfile(null);
-              setUser(null); // Keep Supabase auth user null for PIN-based logins
-              setLoading(false);
-              return;
+            if (!error && users && users.length > 0) {
+              const user = users[0];
+              if (user.is_blocked !== true) {
+                setUserProfile(user as UserProfile);
+                setDoctorProfile(null);
+                setAdminProfile(null);
+                setUser(null); // Keep Supabase auth user null for PIN-based logins
+                setLoading(false);
+                return;
+              } else {
+                // User is blocked, clear credentials
+                localStorage.removeItem('rememberedCredentials');
+              }
             } else {
-              // User is blocked, clear credentials
+              // Invalid credentials, clear them
               localStorage.removeItem('rememberedCredentials');
             }
           } else {
-            // Invalid credentials, clear them
+            // Expired credentials, clear them
             localStorage.removeItem('rememberedCredentials');
           }
-        } else {
-          // Expired credentials, clear them
+        } catch (error) {
+          console.error('Error with remembered credentials:', error);
           localStorage.removeItem('rememberedCredentials');
         }
-      } catch (error) {
-        console.error('Error with remembered credentials:', error);
-        localStorage.removeItem('rememberedCredentials');
       }
-    }
 
-    // 4. Finally, check for Supabase auth session (if applicable)
-    const { data: { session: supabaseSession } } = await supabase.auth.getSession();
-    setSession(supabaseSession);
-    setUser(supabaseSession?.user ?? null);
+      // 4. Finally, check for Supabase auth session (if applicable)
+      const { data: { session: supabaseSession } } = await supabase.auth.getSession();
+      setSession(supabaseSession);
+      setUser(supabaseSession?.user ?? null);
 
-    if (supabaseSession?.user) {
-      await fetchUserProfile(supabaseSession.user.id);
-    } else {
+      if (supabaseSession?.user) {
+        await fetchUserProfile(supabaseSession.user.id);
+      } else {
+        setUserProfile(null);
+        setDoctorProfile(null);
+        setAdminProfile(null);
+      }
+    } catch (error) {
+      console.error('Error in checkAuthStatus:', error);
       setUserProfile(null);
       setDoctorProfile(null);
       setAdminProfile(null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []); // useCallback ensures this function is stable
 
   useEffect(() => {
