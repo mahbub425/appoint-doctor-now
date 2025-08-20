@@ -155,12 +155,12 @@ const DoctorListWithLoginCheck = () => {
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, isAdmin, isDoctor, isUser, loading } = useAuth();
+  const { isAdmin, isDoctor, isUser, loading } = useAuth(); // Removed 'user' from destructuring as it's not the primary check for custom auth
 
   useEffect(() => {
-    console.log("Index.tsx redirect check - loading:", loading, "user:", !!user, "isAdmin:", isAdmin, "isDoctor:", isDoctor, "isUser:", isUser);
+    console.log("Index.tsx redirect check - loading:", loading, "isAdmin:", isAdmin, "isDoctor:", isDoctor, "isUser:", isUser);
     
-    if (!loading && user) {
+    if (!loading) { // Only proceed if loading is false
       if (isAdmin) {
         console.log("Redirecting to admin");
         navigate("/admin");
@@ -172,7 +172,7 @@ const Index = () => {
         navigate("/user");
       }
     }
-  }, [user, isAdmin, isDoctor, isUser, loading, navigate]);
+  }, [isAdmin, isDoctor, isUser, loading, navigate]); // Updated dependencies
 
   if (loading) {
     return (
