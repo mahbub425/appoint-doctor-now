@@ -366,10 +366,6 @@ export type Database = {
           user_name: string
         }[]
       }
-      cleanup_old_appointments: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
       count_total_users: {
         Args: Record<PropertyKey, never>
         Returns: number
