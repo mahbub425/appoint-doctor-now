@@ -3,7 +3,11 @@
 ## Project info
 
 **URL**: https://onnorokomhealing.vercel.app/
-
+user login: pin-6384 pass-123456
+Doctor Login: **URL**: https://onnorokomhealing.vercel.app/doctor 
+              user name: shojib | pass: 123456
+admin Login: **URL**: https://onnorokomhealing.vercel.app/admin
+              user name: admin | pass: 123456
 ## How can I edit this code?
 
 There are several ways of editing your application.
@@ -71,4 +75,5 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
 
