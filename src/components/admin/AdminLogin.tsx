@@ -124,9 +124,7 @@ export const AdminLogin = () => {
 		<AuthWrapper>
 			<Card className="w-full max-w-md mx-auto lg:px-1 rounded-[16px]">
 				<CardHeader className="text-center">
-					<CardTitle className="flex items-center justify-center gap-2">
-						Admin Portal
-					</CardTitle>
+					<CardTitle className="md:text-xl font-bold">Admin Portal</CardTitle>
 					<CardDescription>Sign in to manage the system</CardDescription>
 				</CardHeader>
 				<CardContent>
