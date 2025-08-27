@@ -13,22 +13,22 @@ All colors MUST be HSL.
 		--foreground: 215 25% 27%; /* Deep medical blue-gray */
 
 		--card: 0 0% 100%; /* Pure white for cards */
-		--card-foreground: 215 25% 27%;
+		--card-foreground: 215 21% 39%;
 
-		--title: 215, 21%, 39%;
-		--title-foreground: 215 25% 27%;
+		/* --title: 215, 21%, 39%;
+		--title-foreground: 215 25% 27%; */
 
 		--popover: 0 0% 100%;
 		--popover-foreground: 215 25% 27%;
 
-		--primary: 210 82% 51%; /* Medical blue */
+		--primary: 210 59% 46%; /* Medical blue */
 		--primary-foreground: 0 0% 100%;
 
 		--secondary: 140 40% 55%; /* Medical green */
 		--secondary-foreground: 0 0% 100%;
 
 		--muted: 210 17% 95%; /* Light blue-gray */
-		--muted-foreground: 215 16% 47%;
+		--muted-foreground: 0 0% 48%;
 
 		--accent: 195 100% 85%; /* Light medical cyan */
 		--accent-foreground: 215 25% 27%;
