@@ -21,8 +21,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
-import LoginLeftImage from '../../public/images/login-left.png';
-import Logo from '../../public/images/logo.png';
+import { AuthWrapper } from '@/components/AuthWrapper';
 
 const Auth = () => {
 	const [isSignUp, setIsSignUp] = useState(false);
@@ -200,271 +199,260 @@ const Auth = () => {
 	};
 
 	return (
-		<>
-			<div className="lg:hidden p-3 sticky top-0 bg-background z-10">
-				<img src={Logo} alt="Logo" className="" />
-			</div>
+		<AuthWrapper>
+			<Card className="w-full max-w-md mx-auto lg:px-1 rounded-[16px]">
+				<CardHeader className="text-center">
+					<CardTitle className="md:text-xl">
+						{isSignUp ? 'Sign Up' : 'Sign In'}
+					</CardTitle>
+					<CardDescription>
+						{isSignUp
+							? 'Create a new account to book appointments'
+							: 'Sign in to your account'}
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					{isSignUp && (
+						<>
+							<div className="space-y-2">
+								<Label htmlFor="name">Name</Label>
+								<Input
+									id="name"
+									value={formData.name}
+									onChange={(e) =>
+										setFormData((prev) => ({ ...prev, name: e.target.value }))
+									}
+									placeholder="Enter your full name"
+									className="min-h-11 rounded-sm"
+								/>
+							</div>
 
-			<div className="lg:min-h-screen flex items-center justify-center bg-background px-3 py-6 lg:p-0 lg:bg-[#252D39] lg:grid grid-cols-2">
-				<img
-					src={LoginLeftImage}
-					alt="Login left image"
-					className="h-full w-full object-cover hidden lg:block"
-				/>
+							<div className="space-y-2">
+								<Label htmlFor="pin">PIN</Label>
+								<Input
+									id="pin"
+									value={formData.pin}
+									onChange={(e) =>
+										setFormData((prev) => ({ ...prev, pin: e.target.value }))
+									}
+									placeholder="Enter a unique PIN"
+									className="min-h-11 rounded-sm"
+								/>
+							</div>
 
-				<Card className="w-full max-w-md mx-auto lg:px-1 rounded-[16px]">
-					<CardHeader className="text-center">
-						<CardTitle>{isSignUp ? 'Sign Up' : 'Sign In'}</CardTitle>
-						<CardDescription>
-							{isSignUp
-								? 'Create a new account to book appointments'
-								: 'Sign in to your account'}
-						</CardDescription>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						{isSignUp && (
-							<>
-								<div className="space-y-2">
-									<Label htmlFor="name">Name</Label>
+							<div className="space-y-2">
+								<Label htmlFor="concern">Concern</Label>
+								<Select
+									onValueChange={(value) =>
+										setFormData((prev) => ({ ...prev, concern: value }))
+									}
+								>
+									<SelectTrigger className="min-h-11 rounded-sm">
+										<SelectValue placeholder="Select your concern" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="OnnoRokom Group">
+											OnnoRokom Group
+										</SelectItem>
+										<SelectItem value="OnnoRokom Projukti Limited">
+											OnnoRokom Projukti Limited
+										</SelectItem>
+										<SelectItem value="Udvash-Unmesh-Uttoron">
+											Udvash-Unmesh-Uttoron
+										</SelectItem>
+										<SelectItem value="OnnoRorkom Electronics Co. Ltd.">
+											OnnoRorkom Electronics Co. Ltd.
+										</SelectItem>
+										<SelectItem value="OnnoRokom Solutions Ltd.">
+											OnnoRokom Solutions Ltd.
+										</SelectItem>
+										<SelectItem value="Pi Labs Bangladesh Ltd.">
+											Pi Labs Bangladesh Ltd.
+										</SelectItem>
+										<SelectItem value="OnnoRokom EdTech Ltd.">
+											OnnoRokom EdTech Ltd.
+										</SelectItem>
+										<SelectItem value="Techshop Bangladesh">
+											Techshop Bangladesh
+										</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="phone">Phone Number</Label>
+								<Input
+									id="phone"
+									value={formData.phone}
+									onChange={(e) =>
+										setFormData((prev) => ({
+											...prev,
+											phone: e.target.value,
+										}))
+									}
+									placeholder="Enter 11-digit phone number"
+									className="min-h-11 rounded-sm"
+								/>
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="password">Password</Label>
+								<div className="relative">
 									<Input
-										id="name"
-										value={formData.name}
-										onChange={(e) =>
-											setFormData((prev) => ({ ...prev, name: e.target.value }))
-										}
-										placeholder="Enter your full name"
-										className="min-h-11 rounded-sm"
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="pin">PIN</Label>
-									<Input
-										id="pin"
-										value={formData.pin}
-										onChange={(e) =>
-											setFormData((prev) => ({ ...prev, pin: e.target.value }))
-										}
-										placeholder="Enter a unique PIN"
-										className="min-h-11 rounded-sm"
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="concern">Concern</Label>
-									<Select
-										onValueChange={(value) =>
-											setFormData((prev) => ({ ...prev, concern: value }))
-										}
-									>
-										<SelectTrigger className="min-h-11 rounded-sm">
-											<SelectValue placeholder="Select your concern" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="OnnoRokom Group">
-												OnnoRokom Group
-											</SelectItem>
-											<SelectItem value="OnnoRokom Projukti Limited">
-												OnnoRokom Projukti Limited
-											</SelectItem>
-											<SelectItem value="Udvash-Unmesh-Uttoron">
-												Udvash-Unmesh-Uttoron
-											</SelectItem>
-											<SelectItem value="OnnoRorkom Electronics Co. Ltd.">
-												OnnoRorkom Electronics Co. Ltd.
-											</SelectItem>
-											<SelectItem value="OnnoRokom Solutions Ltd.">
-												OnnoRokom Solutions Ltd.
-											</SelectItem>
-											<SelectItem value="Pi Labs Bangladesh Ltd.">
-												Pi Labs Bangladesh Ltd.
-											</SelectItem>
-											<SelectItem value="OnnoRokom EdTech Ltd.">
-												OnnoRokom EdTech Ltd.
-											</SelectItem>
-											<SelectItem value="Techshop Bangladesh">
-												Techshop Bangladesh
-											</SelectItem>
-										</SelectContent>
-									</Select>
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="phone">Phone Number</Label>
-									<Input
-										id="phone"
-										value={formData.phone}
+										id="password"
+										type={showPassword ? 'text' : 'password'}
+										value={formData.password}
 										onChange={(e) =>
 											setFormData((prev) => ({
 												...prev,
-												phone: e.target.value,
+												password: e.target.value,
 											}))
 										}
-										placeholder="Enter 11-digit phone number"
+										placeholder="Enter password (min 6 characters)"
 										className="min-h-11 rounded-sm"
 									/>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										className="absolute right-2 top-1/2 -translate-y-1/2 h-auto p-1"
+										onClick={() => setShowPassword(!showPassword)}
+									>
+										{showPassword ? (
+											<EyeOff className="h-4 w-4" />
+										) : (
+											<Eye className="h-4 w-4" />
+										)}
+									</Button>
 								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="password">Password</Label>
-									<div className="relative">
-										<Input
-											id="password"
-											type={showPassword ? 'text' : 'password'}
-											value={formData.password}
-											onChange={(e) =>
-												setFormData((prev) => ({
-													...prev,
-													password: e.target.value,
-												}))
-											}
-											placeholder="Enter password (min 6 characters)"
-											className="min-h-11 rounded-sm"
-										/>
-										<Button
-											type="button"
-											variant="ghost"
-											size="sm"
-											className="absolute right-2 top-1/2 -translate-y-1/2 h-auto p-1"
-											onClick={() => setShowPassword(!showPassword)}
-										>
-											{showPassword ? (
-												<EyeOff className="h-4 w-4" />
-											) : (
-												<Eye className="h-4 w-4" />
-											)}
-										</Button>
-									</div>
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="confirmPassword">Confirm Password</Label>
-									<div className="relative">
-										<Input
-											id="confirmPassword"
-											type={showConfirmPassword ? 'text' : 'password'}
-											value={formData.confirmPassword}
-											onChange={(e) =>
-												setFormData((prev) => ({
-													...prev,
-													confirmPassword: e.target.value,
-												}))
-											}
-											placeholder="Confirm your password"
-											className="min-h-11 rounded-sm"
-										/>
-										<Button
-											type="button"
-											variant="ghost"
-											size="sm"
-											className="absolute right-2 top-1/2 -translate-y-1/2 h-auto p-1"
-											onClick={() =>
-												setShowConfirmPassword(!showConfirmPassword)
-											}
-										>
-											{showConfirmPassword ? (
-												<EyeOff className="h-4 w-4" />
-											) : (
-												<Eye className="h-4 w-4" />
-											)}
-										</Button>
-									</div>
-								</div>
-							</>
-						)}
-
-						{!isSignUp && (
-							<>
-								<div className="space-y-2">
-									<Label htmlFor="pin">PIN</Label>
-									<Input
-										id="pin"
-										value={formData.pin}
-										onChange={(e) =>
-											setFormData((prev) => ({ ...prev, pin: e.target.value }))
-										}
-										placeholder="Enter your PIN"
-										className="min-h-11 rounded-sm"
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="loginPassword">Password</Label>
-									<div className="relative">
-										<Input
-											id="loginPassword"
-											type={showPassword ? 'text' : 'password'}
-											value={formData.password}
-											onChange={(e) =>
-												setFormData((prev) => ({
-													...prev,
-													password: e.target.value,
-												}))
-											}
-											placeholder="Enter your password"
-											className="min-h-11 rounded-sm"
-										/>
-										<Button
-											type="button"
-											variant="ghost"
-											size="sm"
-											className="absolute right-2 top-1/2 -translate-y-1/2 h-auto p-1"
-											onClick={() => setShowPassword(!showPassword)}
-										>
-											{showPassword ? (
-												<EyeOff className="h-4 w-4" />
-											) : (
-												<Eye className="h-4 w-4" />
-											)}
-										</Button>
-									</div>
-								</div>
-
-								<div className="flex items-center space-x-2">
-									<Checkbox
-										id="rememberPassword"
-										checked={rememberPassword}
-										onCheckedChange={(checked) =>
-											setRememberPassword(checked as boolean)
-										}
-									/>
-									<Label htmlFor="rememberPassword" className="text-sm">
-										Remember password
-									</Label>
-								</div>
-							</>
-						)}
-
-						<Button
-							onClick={handleSubmit}
-							disabled={loading}
-							className="w-full min-h-11 rounded-sm"
-						>
-							{loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
-						</Button>
-
-						{wrongPasswordError && !isSignUp && (
-							<div className="text-center text-sm text-red-600 bg-red-50 p-2 rounded">
-								Forgot your password? please contact with Admin.
 							</div>
-						)}
 
-						<div className="text-center font-semibold text-sm">
-							{isSignUp
-								? 'Already have an account? '
-								: "Don't have an account? "}
-							<Button
-								variant="link"
-								onClick={() => setIsSignUp(!isSignUp)}
-								className="text-sm p-0"
-							>
-								{isSignUp ? 'Sign in' : 'Sign up'}
-							</Button>
+							<div className="space-y-2">
+								<Label htmlFor="confirmPassword">Confirm Password</Label>
+								<div className="relative">
+									<Input
+										id="confirmPassword"
+										type={showConfirmPassword ? 'text' : 'password'}
+										value={formData.confirmPassword}
+										onChange={(e) =>
+											setFormData((prev) => ({
+												...prev,
+												confirmPassword: e.target.value,
+											}))
+										}
+										placeholder="Confirm your password"
+										className="min-h-11 rounded-sm"
+									/>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										className="absolute right-2 top-1/2 -translate-y-1/2 h-auto p-1"
+										onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+									>
+										{showConfirmPassword ? (
+											<EyeOff className="h-4 w-4" />
+										) : (
+											<Eye className="h-4 w-4" />
+										)}
+									</Button>
+								</div>
+							</div>
+						</>
+					)}
+
+					{!isSignUp && (
+						<>
+							<div className="space-y-2">
+								<Label htmlFor="pin">PIN</Label>
+								<Input
+									id="pin"
+									value={formData.pin}
+									onChange={(e) =>
+										setFormData((prev) => ({ ...prev, pin: e.target.value }))
+									}
+									placeholder="Enter your PIN"
+									className="min-h-11 rounded-sm"
+								/>
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="loginPassword">Password</Label>
+								<div className="relative">
+									<Input
+										id="loginPassword"
+										type={showPassword ? 'text' : 'password'}
+										value={formData.password}
+										onChange={(e) =>
+											setFormData((prev) => ({
+												...prev,
+												password: e.target.value,
+											}))
+										}
+										placeholder="Enter your password"
+										className="min-h-11 rounded-sm"
+									/>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										className="absolute right-2 top-1/2 -translate-y-1/2 h-auto p-1"
+										onClick={() => setShowPassword(!showPassword)}
+									>
+										{showPassword ? (
+											<EyeOff className="h-4 w-4" />
+										) : (
+											<Eye className="h-4 w-4" />
+										)}
+									</Button>
+								</div>
+							</div>
+
+							<div className="flex items-center space-x-2">
+								<Checkbox
+									id="rememberPassword"
+									checked={rememberPassword}
+									onCheckedChange={(checked) =>
+										setRememberPassword(checked as boolean)
+									}
+								/>
+								<Label
+									htmlFor="rememberPassword"
+									className="text-sm cursor-pointer font-normal"
+								>
+									Remember password
+								</Label>
+							</div>
+						</>
+					)}
+
+					<Button
+						onClick={handleSubmit}
+						disabled={loading}
+						className="w-full min-h-11 rounded-md"
+					>
+						{loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
+					</Button>
+
+					{wrongPasswordError && !isSignUp && (
+						<div className="text-center text-sm text-red-600 bg-red-50 p-2 rounded">
+							Forgot your password? please contact with Admin.
 						</div>
-					</CardContent>
-				</Card>
-			</div>
-		</>
+					)}
+
+					<div className="text-center font-semibold text-sm">
+						{isSignUp ? 'Already have an account? ' : "Don't have an account? "}
+						<Button
+							variant="link"
+							onClick={() => setIsSignUp(!isSignUp)}
+							className="text-sm p-0"
+						>
+							{isSignUp ? 'Sign in' : 'Sign up'}
+						</Button>
+					</div>
+				</CardContent>
+			</Card>
+		</AuthWrapper>
 	);
 };
 
