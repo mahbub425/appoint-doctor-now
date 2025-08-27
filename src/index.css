@@ -7,97 +7,100 @@ All colors MUST be HSL.
 */
 
 @layer base {
-  :root {
-    /* Medical theme colors - light mode */
-    --background: 210 17% 98%; /* Light medical blue-white */
-    --foreground: 215 25% 27%; /* Deep medical blue-gray */
+	:root {
+		/* Medical theme colors - light mode */
+		--background: 210 17% 98%; /* Light medical blue-white */
+		--foreground: 215 25% 27%; /* Deep medical blue-gray */
 
-    --card: 0 0% 100%; /* Pure white for cards */
-    --card-foreground: 215 25% 27%;
+		--card: 0 0% 100%; /* Pure white for cards */
+		--card-foreground: 215 25% 27%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 27%;
+		--title: 215, 21%, 39%;
+		--title-foreground: 215 25% 27%;
 
-    --primary: 210 82% 51%; /* Medical blue */
-    --primary-foreground: 0 0% 100%;
+		--popover: 0 0% 100%;
+		--popover-foreground: 215 25% 27%;
 
-    --secondary: 140 40% 55%; /* Medical green */
-    --secondary-foreground: 0 0% 100%;
+		--primary: 210 82% 51%; /* Medical blue */
+		--primary-foreground: 0 0% 100%;
 
-    --muted: 210 17% 95%; /* Light blue-gray */
-    --muted-foreground: 215 16% 47%;
+		--secondary: 140 40% 55%; /* Medical green */
+		--secondary-foreground: 0 0% 100%;
 
-    --accent: 195 100% 85%; /* Light medical cyan */
-    --accent-foreground: 215 25% 27%;
+		--muted: 210 17% 95%; /* Light blue-gray */
+		--muted-foreground: 215 16% 47%;
 
-    --destructive: 0 84% 60%; /* Medical red */
-    --destructive-foreground: 0 0% 100%;
+		--accent: 195 100% 85%; /* Light medical cyan */
+		--accent-foreground: 215 25% 27%;
 
-    --border: 210 20% 90%; /* Soft medical border */
-    --input: 210 20% 95%; /* Light input background */
-    --ring: 210 82% 51%; /* Primary blue for focus rings */
+		--destructive: 0 84% 60%; /* Medical red */
+		--destructive-foreground: 0 0% 100%;
 
-    --radius: 0.5rem;
+		--border: 210 20% 90%; /* Soft medical border */
+		--input: 210 20% 95%; /* Light input background */
+		--ring: 210 82% 51%; /* Primary blue for focus rings */
 
-    /* Medical sidebar colors */
-    --sidebar-background: 210 25% 95%;
-    --sidebar-foreground: 215 25% 27%;
-    --sidebar-primary: 210 82% 51%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 17% 90%;
-    --sidebar-accent-foreground: 215 25% 27%;
-    --sidebar-border: 210 20% 85%;
-    --sidebar-ring: 210 82% 51%;
-  }
+		--radius: 0.5rem;
 
-  .dark {
-    /* Medical theme colors - dark mode */
-    --background: 215 30% 8%; /* Dark medical blue */
-    --foreground: 210 17% 95%;
+		/* Medical sidebar colors */
+		--sidebar-background: 210 25% 95%;
+		--sidebar-foreground: 215 25% 27%;
+		--sidebar-primary: 210 82% 51%;
+		--sidebar-primary-foreground: 0 0% 100%;
+		--sidebar-accent: 210 17% 90%;
+		--sidebar-accent-foreground: 215 25% 27%;
+		--sidebar-border: 210 20% 85%;
+		--sidebar-ring: 210 82% 51%;
+	}
 
-    --card: 215 25% 12%; /* Dark medical card */
-    --card-foreground: 210 17% 95%;
+	.dark {
+		/* Medical theme colors - dark mode */
+		--background: 215 30% 8%; /* Dark medical blue */
+		--foreground: 210 17% 95%;
 
-    --popover: 215 25% 12%;
-    --popover-foreground: 210 17% 95%;
+		--card: 215 25% 12%; /* Dark medical card */
+		--card-foreground: 210 17% 95%;
 
-    --primary: 195 100% 75%; /* Light medical cyan for dark mode */
-    --primary-foreground: 215 30% 8%;
+		--popover: 215 25% 12%;
+		--popover-foreground: 210 17% 95%;
 
-    --secondary: 140 35% 45%; /* Darker medical green */
-    --secondary-foreground: 210 17% 95%;
+		--primary: 195 100% 75%; /* Light medical cyan for dark mode */
+		--primary-foreground: 215 30% 8%;
 
-    --muted: 215 25% 15%; /* Dark muted blue */
-    --muted-foreground: 215 10% 60%;
+		--secondary: 140 35% 45%; /* Darker medical green */
+		--secondary-foreground: 210 17% 95%;
 
-    --accent: 210 50% 25%; /* Dark accent blue */
-    --accent-foreground: 210 17% 95%;
+		--muted: 215 25% 15%; /* Dark muted blue */
+		--muted-foreground: 215 10% 60%;
 
-    --destructive: 0 75% 55%; /* Medical red for dark mode */
-    --destructive-foreground: 210 17% 95%;
+		--accent: 210 50% 25%; /* Dark accent blue */
+		--accent-foreground: 210 17% 95%;
 
-    --border: 215 25% 20%; /* Dark medical border */
-    --input: 215 25% 15%; /* Dark input background */
-    --ring: 195 100% 75%; /* Light cyan for focus rings */
+		--destructive: 0 75% 55%; /* Medical red for dark mode */
+		--destructive-foreground: 210 17% 95%;
 
-    /* Dark medical sidebar */
-    --sidebar-background: 215 30% 10%;
-    --sidebar-foreground: 210 17% 90%;
-    --sidebar-primary: 195 100% 75%;
-    --sidebar-primary-foreground: 215 30% 8%;
-    --sidebar-accent: 215 25% 18%;
-    --sidebar-accent-foreground: 210 17% 90%;
-    --sidebar-border: 215 25% 20%;
-    --sidebar-ring: 195 100% 75%;
-  }
+		--border: 215 25% 20%; /* Dark medical border */
+		--input: 215 25% 15%; /* Dark input background */
+		--ring: 195 100% 75%; /* Light cyan for focus rings */
+
+		/* Dark medical sidebar */
+		--sidebar-background: 215 30% 10%;
+		--sidebar-foreground: 210 17% 90%;
+		--sidebar-primary: 195 100% 75%;
+		--sidebar-primary-foreground: 215 30% 8%;
+		--sidebar-accent: 215 25% 18%;
+		--sidebar-accent-foreground: 210 17% 90%;
+		--sidebar-border: 215 25% 20%;
+		--sidebar-ring: 195 100% 75%;
+	}
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+	* {
+		@apply border-border;
+	}
 
-  body {
-    @apply bg-background text-foreground;
-  }
+	body {
+		@apply bg-background text-foreground;
+	}
 }
