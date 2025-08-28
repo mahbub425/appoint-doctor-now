@@ -1,11 +1,18 @@
+import { useNavigate } from 'react-router-dom';
 import AuthLeftImage from '../../public/images/auth-left.png';
-import Logo from '../../public/images/logo.png';
 
 export const AuthWrapper = ({ children, ...props }) => {
+	const navigate = useNavigate();
+
 	return (
 		<div {...props}>
-			<div className="lg:hidden p-3 sticky top-0 bg-background z-10">
-				<img src={Logo} alt="Logo" className="" />
+			<div className="p-3 sticky lg:fixed top-0 lg:m-14 bg-background lg:bg-transparent z-10">
+				<img
+					src="/images/logo.png"
+					alt="Logo"
+					onClick={() => navigate('/')}
+					className="cursor-pointer h-8 lg:h-11"
+				/>
 			</div>
 
 			<div className="lg:min-h-screen flex items-center justify-center bg-background px-3 py-6 lg:p-0 lg:bg-[#252D39] lg:grid grid-cols-2">
