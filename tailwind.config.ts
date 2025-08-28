@@ -18,6 +18,10 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'sans': ['Segoe UI', 'Noto Sans Bengali', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+				'noto-bengali': ['Noto Sans Bengali', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
