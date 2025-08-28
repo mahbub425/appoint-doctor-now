@@ -6,7 +6,7 @@ export const Header = () => {
 
 	return (
 		<header className="bg-background border-b border-border shadow-sm">
-			<div className="container mx-auto px-4 py-4 sm:py-6">
+			<div className="container mx-auto px-4 py-3 md:py-4 sm:py-4">
 				<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6">
 					{/* Left Section */}
 					<img

@@ -15,6 +15,7 @@ import DoctorLogin from "./pages/DoctorLogin";
 import AdminLogin from "./pages/AdminLogin";
 import NotFound from "./pages/NotFound";
 
+
 const queryClient = new QueryClient();
 
 const App = () => (
