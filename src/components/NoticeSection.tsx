@@ -1,6 +1,6 @@
 export const NoticeSection = () => {
 	return (
-		<div className="bg-[#EFF6FF] text-center py-6">
+		<div className="bg-[#EFF6FF] text-justify md:text-center py-3 md:py-6">
 			<div className="container mx-auto">
 				<p className="text-base text-card-foreground leading-relaxed">
 					ডাক্তারের চেম্বারে আসার পূর্বে অনুগ্রহ করে ওয়েবসাইটটি রিফ্রেশ করে
