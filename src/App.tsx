@@ -27,16 +27,19 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Auth routes without Header */}
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/doctor-login" element={<DoctorLogin />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
+            
+            {/* Main routes with Header */}
             <Route path="/" element={<Layout />}>
               <Route index element={<Index />} />
-              <Route path="auth" element={<Auth />} />
               <Route path="user" element={<UserDashboard />} />
               <Route path="book-appointment" element={<BookAppointment />} />
               <Route path="appointment-details" element={<AppointmentDetails />} />
               <Route path="doctor" element={<DoctorDashboard />} />
-              <Route path="doctor-login" element={<DoctorLogin />} />
               <Route path="admin" element={<Admin />} />
-              <Route path="admin-login" element={<AdminLogin />} /> {/* Removed onLoginSuccess prop */}
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Route>
