@@ -114,25 +114,23 @@ export const DoctorList = () => {
 									<p className="text-xl font-bold text-foreground">
 										{doctor.next_availability
 											? formatDate(doctor.next_availability)
-											: 'No upcoming availability'}
+											: 'N/A'}
 									</p>
 								</div>
 							</div>
 
 							{/* Location - Prominent Display */}
-							{doctor.location && (
-								<div className="bg-gradient-to-r from-success/20 to-success/10 p-4 rounded-lg border-l-4 border-success flex items-center gap-3">
-									<MapPin className="size-8 text-success" />
-									<div>
-										<p className="font-semibold text-success text-base mb-1">
-											Location
-										</p>
-										<p className="text-lg font-bold text-foreground">
-											{doctor.location}
-										</p>
-									</div>
+							<div className="bg-gradient-to-r from-success/20 to-success/10 p-4 rounded-lg border-l-4 border-success flex items-center gap-3">
+								<MapPin className="size-8 text-success" />
+								<div>
+									<p className="font-semibold text-success text-base mb-1">
+										Location
+									</p>
+									<p className="text-lg font-bold text-foreground">
+										{doctor.location ? doctor.location : 'N/A'}
+									</p>
 								</div>
-							)}
+							</div>
 
 							<Button
 								className="w-full h-12 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02]"
