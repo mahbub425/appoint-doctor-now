@@ -1,8 +1,31 @@
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
 
 export const Header = () => {
 	const navigate = useNavigate();
+	const { userProfile, doctorProfile, adminProfile, signOut } = useAuth();
+
+	// Check if any user type is logged in
+	const isLoggedIn = !!(userProfile || doctorProfile || adminProfile);
+
+	const handleLogout = async () => {
+		try {
+			await signOut();
+			toast({
+				title: 'Success',
+				description: 'You have been logged out successfully',
+			});
+			navigate('/');
+		} catch (error) {
+			toast({
+				title: 'Error',
+				description: 'Failed to logout',
+				variant: 'destructive',
+			});
+		}
+	};
 
 	return (
 		<header className="bg-background border-b border-border shadow-sm">
@@ -18,13 +41,19 @@ export const Header = () => {
 
 					{/* Right Section */}
 					<div className="flex w-max sm:w-auto">
-						<Button
-							onClick={() => navigate('/auth')}
-							className="px-4 pt-2 pb-3 sm:px-6 w-full sm:w-auto text-sm sm:text-base"
-							size="sm"
-						>
-							Login
-						</Button>
+						{isLoggedIn ? (
+							<Button
+								onClick={handleLogout}
+								className="min-w-20 h-10 px-3 bg-primary/10 text-primary hover:text-white"
+								size="sm"
+							>
+								Logout
+							</Button>
+						) : (
+							<Button onClick={() => navigate('/auth')} className="min-w-20 h-10 px-3 " size="sm">
+								Login
+							</Button>
+						)}
 					</div>
 				</div>
 			</div>

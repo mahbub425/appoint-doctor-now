@@ -2,12 +2,9 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { Header } from '@/components/Header';
 import { NoticeSection } from '@/components/NoticeSection';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { MapPin, Calendar } from 'lucide-react';
 
 interface Doctor {
@@ -215,7 +212,6 @@ const Index = () => {
 
 	return (
 		<div className="min-h-screen bg-background">
-			<Header />
 			<NoticeSection />
 
 			<div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
