@@ -18,6 +18,10 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'sans': ['Segoe UI', 'Noto Sans Bengali', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+				'noto-bengali': ['Noto Sans Bengali', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -51,6 +55,10 @@ export default {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
+				},
+				title: {
+					DEFAULT: 'hsl(var(--title))',
+					foreground: 'hsl(var(--title-foreground))'
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
