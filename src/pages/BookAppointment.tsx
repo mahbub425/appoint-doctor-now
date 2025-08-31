@@ -473,6 +473,18 @@ export default function BookAppointment({
 							>
 								{booking ? 'Booking...' : 'Book Appointment'}
 							</Button>
+
+							{/* Cancel Button */}
+							{isInline && (
+								<Button
+									variant="outline"
+									onClick={onBack}
+									className="w-full"
+									disabled={booking}
+								>
+									Cancel
+								</Button>
+							)}
 						</>
 					)}
 				</CardContent>
