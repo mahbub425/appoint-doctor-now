@@ -38,7 +38,7 @@ export const Header = () => {
 	};
 
 	return (
-		<header className="bg-background border-b border-border">
+		<header className="bg-background border-b border-border sticky top-0">
 			<div className="container mx-auto px-4 py-3 md:py-4 sm:py-4">
 				<div className="flex justify-between items-start sm:items-center gap-4 sm:gap-6">
 					{/* Left Section */}
