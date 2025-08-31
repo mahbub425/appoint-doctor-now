@@ -2,7 +2,7 @@ export const NoticeSection = () => {
 	return (
 		<div className="bg-[#EFF6FF] text-justify md:text-center py-3 md:py-6">
 			<div className="container mx-auto">
-				<p className="text-base leading-relaxed text-red-500">
+				<p className="text-base leading-relaxed text-card-foreground">
 					ডাক্তারের চেম্বারে আসার পূর্বে অনুগ্রহ করে ওয়েবসাইটটি রিফ্রেশ করে
 					আপনার সিরিয়াল এবং অ্যাপয়েন্টমেন্টের সময় পুনরায় যাচাই করে নিন।{' '}
 					<br />
