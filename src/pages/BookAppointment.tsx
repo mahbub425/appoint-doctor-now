@@ -285,7 +285,7 @@ export default function BookAppointment({
 
 	if (loading) {
 		return (
-			<div className="min-h-screen flex items-center justify-center">
+			<div className={`${isInline ? '' : 'min-h-screen'} flex items-center justify-center py-8`}>
 				<div className="text-lg">Loading...</div>
 			</div>
 		);
@@ -293,20 +293,20 @@ export default function BookAppointment({
 
 	if (!doctor) {
 		return (
-			<div className="min-h-screen flex items-center justify-center">
+			<div className={`${isInline ? '' : 'min-h-screen'} flex items-center justify-center py-8`}>
 				<div className="text-lg">Doctor not found</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+		<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 			{/* Doctor Details */}
-			<Card className="border bg-gradient-to-br from-card to-card/80">
+			<Card className="border bg-gradient-to-br from-card to-card/80 h-fit">
 				<CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 border-b sr-only">
 					<CardTitle className="text-xl text-primary">Doctor Details</CardTitle>
 				</CardHeader>
-				<CardContent className="space-y-6 p-6">
+				<CardContent className={`${isInline ? 'space-y-4 p-4' : 'space-y-6 p-6'}`}>
 					<div className="space-y-2">
 						<h3 className="text-xl md:text-2xl font-bold">{doctor.name}</h3>
 						<div className="space-y-1 text-sm">
@@ -333,9 +333,9 @@ export default function BookAppointment({
 							</h2>
 							<div className="space-y-4">
 								{/* Date Section */}
-								<div className="flex items-center gap-4 p-4 bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]">
-									<div className="p-3 bg-blue-500/10 rounded-full">
-										<Calendar className="h-5 w-5 text-blue-600" />
+								<div className={`flex items-center gap-4 ${isInline ? 'p-3' : 'p-4'} bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]`}>
+									<div className={`${isInline ? 'p-2' : 'p-3'} bg-blue-500/10 rounded-full`}>
+										<Calendar className={`${isInline ? 'h-4 w-4' : 'h-5 w-5'} text-blue-600`} />
 									</div>
 									<div>
 										<p className="text-sm font-normal text-muted-foreground uppercase tracking-wide">
@@ -348,9 +348,9 @@ export default function BookAppointment({
 								</div>
 
 								{/* Chamber Time Section */}
-								<div className="flex items-center gap-4 p-4 bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]">
-									<div className="p-3 bg-teal-500/10 rounded-full">
-										<Clock className="h-5 w-5 text-teal-400" />
+								<div className={`flex items-center gap-4 ${isInline ? 'p-3' : 'p-4'} bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]`}>
+									<div className={`${isInline ? 'p-2' : 'p-3'} bg-teal-500/10 rounded-full`}>
+										<Clock className={`${isInline ? 'h-4 w-4' : 'h-5 w-5'} text-teal-400`} />
 									</div>
 									<div>
 										<p className="text-sm font-normal text-muted-foreground uppercase tracking-wide">
@@ -363,9 +363,9 @@ export default function BookAppointment({
 								</div>
 
 								{/* Available Slots */}
-								<div className="flex items-center gap-4 p-4 bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]">
-									<div className="p-3 bg-purple-500/10 rounded-full">
-										<Users className="h-5 w-5 text-purple-600" />
+								<div className={`flex items-center gap-4 ${isInline ? 'p-3' : 'p-4'} bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]`}>
+									<div className={`${isInline ? 'p-2' : 'p-3'} bg-purple-500/10 rounded-full`}>
+										<Users className={`${isInline ? 'h-4 w-4' : 'h-5 w-5'} text-purple-600`} />
 									</div>
 									<div>
 										<p className="text-sm font-normal text-muted-foreground uppercase tracking-wide">
@@ -379,9 +379,9 @@ export default function BookAppointment({
 								</div>
 
 								{/* Location */}
-								<div className="flex items-center gap-4 p-4 bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]">
-									<div className="p-3 bg-emerald-500/10 rounded-full">
-										<MapPin className="h-5 w-5 text-emerald-500" />
+								<div className={`flex items-center gap-4 ${isInline ? 'p-3' : 'p-4'} bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]`}>
+									<div className={`${isInline ? 'p-2' : 'p-3'} bg-emerald-500/10 rounded-full`}>
+										<MapPin className={`${isInline ? 'h-4 w-4' : 'h-5 w-5'} text-emerald-500`} />
 									</div>
 									<div>
 										<p className="text-sm font-normal text-muted-foreground uppercase tracking-wide">
@@ -399,13 +399,13 @@ export default function BookAppointment({
 			</Card>
 
 			{/* Booking Form */}
-			<Card>
-				<CardHeader>
-					<CardTitle className="text-primary font-bold text-xl md:text-2xl">
+			<Card className="h-fit">
+				<CardHeader className={isInline ? 'pb-4' : ''}>
+					<CardTitle className={`text-primary font-bold ${isInline ? 'text-lg' : 'text-xl md:text-2xl'}`}>
 						Book Your Appointment
 					</CardTitle>
 				</CardHeader>
-				<CardContent className="space-y-4">
+				<CardContent className={`${isInline ? 'space-y-3' : 'space-y-4'}`}>
 					{!schedule ? (
 						<div className="text-center py-8">
 							<p className="text-muted-foreground">
