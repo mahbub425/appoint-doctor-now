@@ -9,11 +9,13 @@ import { UserAppointmentsList } from '@/components/user/UserAppointmentsList';
 import { ProfileManagement } from '@/components/user/ProfileManagement';
 import { MedicalHistory } from '@/components/user/MedicalHistory';
 import { NotificationIcon } from '@/components/NotificationIcon';
+import BookAppointment from '@/pages/BookAppointment';
 
-type TabType = 'doctors' | 'appointments' | 'profile' | 'history';
+type TabType = 'doctors' | 'appointments' | 'profile' | 'history' | 'book-appointment';
 
 const UserDashboard = () => {
 	const [activeTab, setActiveTab] = useState<TabType>('doctors');
+	const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null);
 	const { userProfile, signOut, loading } = useAuth(); // Get loading state from useAuth
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -44,18 +46,39 @@ const UserDashboard = () => {
 	// If we reach here, it means loading is false and userProfile is available (due to the useEffect above)
 	// So, userProfile will not be null here.
 
+	const handleDoctorSelect = (doctorId: string) => {
+		localStorage.setItem('selectedDoctorId', doctorId);
+		setSelectedDoctorId(doctorId);
+		setActiveTab('book-appointment');
+	};
+
+	const handleBackToDoctors = () => {
+		setSelectedDoctorId(null);
+		localStorage.removeItem('selectedDoctorId');
+		setActiveTab('doctors');
+	};
+
 	const renderContent = () => {
 		switch (activeTab) {
 			case 'doctors':
-				return <DoctorList />;
+				return <DoctorList onDoctorSelect={handleDoctorSelect} />;
 			case 'appointments':
 				return <UserAppointmentsList />;
 			case 'profile':
 				return <ProfileManagement />;
 			case 'history':
 				return <MedicalHistory />;
+			case 'book-appointment':
+				return selectedDoctorId ? (
+					<BookAppointment 
+						isInline={true} 
+						onBack={handleBackToDoctors} 
+					/>
+				) : (
+					<DoctorList onDoctorSelect={handleDoctorSelect} />
+				);
 			default:
-				return <DoctorList />;
+				return <DoctorList onDoctorSelect={handleDoctorSelect} />;
 		}
 	};
 

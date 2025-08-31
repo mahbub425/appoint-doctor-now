@@ -44,7 +44,15 @@ interface Appointment {
 	user_id: string;
 }
 
-export default function BookAppointment() {
+interface BookAppointmentProps {
+	isInline?: boolean;
+	onBack?: () => void;
+}
+
+export default function BookAppointment({
+	isInline = false,
+	onBack,
+}: BookAppointmentProps = {}) {
 	const navigate = useNavigate();
 	const { userProfile } = useAuth();
 
@@ -60,15 +68,17 @@ export default function BookAppointment() {
 
 	useEffect(() => {
 		if (!doctorId) {
-			// If no doctor ID in localStorage, redirect back to user dashboard
-			navigate('/user');
+			// If no doctor ID in localStorage, handle based on mode
+			if (!isInline) {
+				navigate('/user');
+			}
 			return;
 		}
 
 		if (doctorId && userProfile) {
 			fetchDoctorData();
 		}
-	}, [doctorId, userProfile, navigate]);
+	}, [doctorId, userProfile, navigate, isInline]);
 
 	const fetchDoctorData = async () => {
 		if (!doctorId) return;
@@ -87,7 +97,11 @@ export default function BookAppointment() {
 					description: 'Doctor not found',
 					variant: 'destructive',
 				});
-				navigate('/user');
+				if (!isInline) {
+					navigate('/user');
+				} else if (onBack) {
+					onBack();
+				}
 				return;
 			}
 
@@ -238,16 +252,22 @@ export default function BookAppointment() {
 				).toLocaleDateString('en-GB')}`,
 			});
 
-			// Navigate to appointment details page with appointment data
-			navigate('/appointment-details', {
-				state: {
-					appointmentData: {
-						...data,
-						doctor_name: doctor.name,
-						location: schedule.location,
+			// Handle navigation based on mode
+			if (!isInline) {
+				// Navigate to appointment details page with appointment data
+				navigate('/appointment-details', {
+					state: {
+						appointmentData: {
+							...data,
+							doctor_name: doctor.name,
+							location: schedule.location,
+						},
 					},
-				},
-			});
+				});
+			} else {
+				// In inline mode, navigate to appointments tab
+				navigate('/user', { state: { activeTab: 'appointments' } });
+			}
 		} catch (error) {
 			toast({
 				title: 'Error',
@@ -280,187 +300,183 @@ export default function BookAppointment() {
 	}
 
 	return (
-		<div className="container mx-auto px-4 py-8">
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-				{/* Doctor Details */}
-				<Card className="border bg-gradient-to-br from-card to-card/80">
-					<CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 border-b sr-only">
-						<CardTitle className="text-xl text-primary">
-							Doctor Details
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-6 p-6">
-						<div className="space-y-2">
-							<h3 className="text-xl md:text-2xl font-bold">{doctor.name}</h3>
-							<div className="space-y-1 text-sm">
-								<p>
-									<strong>Degree: </strong> {doctor.degree}
-								</p>
-								<p>
-									<strong>Designation: </strong> {doctor.designation}
-								</p>
-								<p>
-									<strong>Specialties: </strong> {doctor.specialties}
-								</p>
-								<p>
-									<strong>Experience: </strong> {doctor.experience}
-								</p>
+		<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+			{/* Doctor Details */}
+			<Card className="border bg-gradient-to-br from-card to-card/80">
+				<CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 border-b sr-only">
+					<CardTitle className="text-xl text-primary">Doctor Details</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-6 p-6">
+					<div className="space-y-2">
+						<h3 className="text-xl md:text-2xl font-bold">{doctor.name}</h3>
+						<div className="space-y-1 text-sm">
+							<p>
+								<strong>Degree: </strong> {doctor.degree}
+							</p>
+							<p>
+								<strong>Designation: </strong> {doctor.designation}
+							</p>
+							<p>
+								<strong>Specialties: </strong> {doctor.specialties}
+							</p>
+							<p>
+								<strong>Experience: </strong> {doctor.experience}
+							</p>
+						</div>
+					</div>
+
+					{schedule && (
+						<div className="space-y-4">
+							{/* Next Availability */}
+							<h2 className="text-base font-semibold text-primary">
+								Next Availability
+							</h2>
+							<div className="space-y-4">
+								{/* Date Section */}
+								<div className="flex items-center gap-4 p-4 bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]">
+									<div className="p-3 bg-blue-500/10 rounded-full">
+										<Calendar className="h-5 w-5 text-blue-600" />
+									</div>
+									<div>
+										<p className="text-sm font-normal text-muted-foreground uppercase tracking-wide">
+											Date
+										</p>
+										<p className="text-lg font-bold card-foreground">
+											{formatDate(schedule.availability_date)}
+										</p>
+									</div>
+								</div>
+
+								{/* Chamber Time Section */}
+								<div className="flex items-center gap-4 p-4 bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]">
+									<div className="p-3 bg-teal-500/10 rounded-full">
+										<Clock className="h-5 w-5 text-teal-400" />
+									</div>
+									<div>
+										<p className="text-sm font-normal text-muted-foreground uppercase tracking-wide">
+											Chamber Time
+										</p>
+										<p className="text-lg font-bold card-foreground">
+											{schedule.start_time} - {schedule.end_time}
+										</p>
+									</div>
+								</div>
+
+								{/* Available Slots */}
+								<div className="flex items-center gap-4 p-4 bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]">
+									<div className="p-3 bg-purple-500/10 rounded-full">
+										<Users className="h-5 w-5 text-purple-600" />
+									</div>
+									<div>
+										<p className="text-sm font-normal text-muted-foreground uppercase tracking-wide">
+											Available Slots
+										</p>
+										<p className="text-lg font-bold card-foreground">
+											{schedule.max_appointments - appointments.length}/
+											{schedule.max_appointments}
+										</p>
+									</div>
+								</div>
+
+								{/* Location */}
+								<div className="flex items-center gap-4 p-4 bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]">
+									<div className="p-3 bg-emerald-500/10 rounded-full">
+										<MapPin className="h-5 w-5 text-emerald-500" />
+									</div>
+									<div>
+										<p className="text-sm font-normal text-muted-foreground uppercase tracking-wide">
+											Location
+										</p>
+										<p className="text-lg font-bold card-foreground">
+											{schedule.location}
+										</p>
+									</div>
+								</div>
 							</div>
 						</div>
+					)}
+				</CardContent>
+			</Card>
 
-						{schedule && (
-							<div className="space-y-4">
-								{/* Next Availability */}
-								<h2 className="text-base font-semibold text-primary">
-									Next Availability
-								</h2>
-								<div className="space-y-4">
-									{/* Date Section */}
-									<div className="flex items-center gap-4 p-4 bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]">
-										<div className="p-3 bg-blue-500/10 rounded-full">
-											<Calendar className="h-5 w-5 text-blue-600" />
-										</div>
-										<div>
-											<p className="text-sm font-normal text-muted-foreground uppercase tracking-wide">
-												Date
-											</p>
-											<p className="text-lg font-bold card-foreground">
-												{formatDate(schedule.availability_date)}
-											</p>
-										</div>
-									</div>
-
-									{/* Chamber Time Section */}
-									<div className="flex items-center gap-4 p-4 bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]">
-										<div className="p-3 bg-teal-500/10 rounded-full">
-											<Clock className="h-5 w-5 text-teal-400" />
-										</div>
-										<div>
-											<p className="text-sm font-normal text-muted-foreground uppercase tracking-wide">
-												Chamber Time
-											</p>
-											<p className="text-lg font-bold card-foreground">
-												{schedule.start_time} - {schedule.end_time}
-											</p>
-										</div>
-									</div>
-
-									{/* Available Slots */}
-									<div className="flex items-center gap-4 p-4 bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]">
-										<div className="p-3 bg-purple-500/10 rounded-full">
-											<Users className="h-5 w-5 text-purple-600" />
-										</div>
-										<div>
-											<p className="text-sm font-normal text-muted-foreground uppercase tracking-wide">
-												Available Slots
-											</p>
-											<p className="text-lg font-bold card-foreground">
-												{schedule.max_appointments - appointments.length}/
-												{schedule.max_appointments}
-											</p>
-										</div>
-									</div>
-
-									{/* Location */}
-									<div className="flex items-center gap-4 p-4 bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]">
-										<div className="p-3 bg-emerald-500/10 rounded-full">
-											<MapPin className="h-5 w-5 text-emerald-500" />
-										</div>
-										<div>
-											<p className="text-sm font-normal text-muted-foreground uppercase tracking-wide">
-												Location
-											</p>
-											<p className="text-lg font-bold card-foreground">
-												{schedule.location}
-											</p>
-										</div>
-									</div>
-								</div>
-							</div>
-						)}
-					</CardContent>
-				</Card>
-
-				{/* Booking Form */}
-				<Card>
-					<CardHeader>
-						<CardTitle className="text-primary font-bold text-xl md:text-2xl">
-							Book Your Appointment
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						{!schedule ? (
-							<div className="text-center py-8">
-								<p className="text-muted-foreground">
-									এই সপ্তাহের জন্য এখনো ডাক্তারের আসার তারিখ নির্ধারণ করা হয়নি।
-									অনুগ্রহ করে পরবর্তীতে চেষ্টা করুন।
+			{/* Booking Form */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="text-primary font-bold text-xl md:text-2xl">
+						Book Your Appointment
+					</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					{!schedule ? (
+						<div className="text-center py-8">
+							<p className="text-muted-foreground">
+								এই সপ্তাহের জন্য এখনো ডাক্তারের আসার তারিখ নির্ধারণ করা হয়নি।
+								অনুগ্রহ করে পরবর্তীতে চেষ্টা করুন।
+							</p>
+						</div>
+					) : appointments.length >= schedule.max_appointments ? (
+						<div className="text-center py-8">
+							<p className="text-muted-foreground">
+								Maximum appointments for this date have been reached.
+							</p>
+						</div>
+					) : (
+						<>
+							<div>
+								<Label className="text-sm font-medium">Name</Label>
+								<p className="text-sm text-muted-foreground mt-1">
+									{userProfile?.name}
 								</p>
 							</div>
-						) : appointments.length >= schedule.max_appointments ? (
-							<div className="text-center py-8">
-								<p className="text-muted-foreground">
-									Maximum appointments for this date have been reached.
+
+							<div>
+								<Label className="text-sm font-medium">PIN</Label>
+								<p className="text-sm text-muted-foreground mt-1">
+									{userProfile?.pin}
 								</p>
 							</div>
-						) : (
-							<>
-								<div>
-									<Label className="text-sm font-medium">Name</Label>
-									<p className="text-sm text-muted-foreground mt-1">
-										{userProfile?.name}
-									</p>
-								</div>
 
-								<div>
-									<Label className="text-sm font-medium">PIN</Label>
-									<p className="text-sm text-muted-foreground mt-1">
-										{userProfile?.pin}
-									</p>
-								</div>
+							<div>
+								<Label className="text-sm font-medium">Concern</Label>
+								<p className="text-sm text-muted-foreground mt-1">
+									{userProfile?.concern}
+								</p>
+							</div>
 
-								<div>
-									<Label className="text-sm font-medium">Concern</Label>
-									<p className="text-sm text-muted-foreground mt-1">
-										{userProfile?.concern}
-									</p>
-								</div>
+							<div>
+								<Label className="text-sm font-medium">Phone Number</Label>
+								<p className="text-sm text-muted-foreground mt-1">
+									{userProfile?.phone}
+								</p>
+							</div>
 
-								<div>
-									<Label className="text-sm font-medium">Phone Number</Label>
-									<p className="text-sm text-muted-foreground mt-1">
-										{userProfile?.phone}
-									</p>
-								</div>
-
-								<div>
-									<Label htmlFor="reason">Reason for Visit</Label>
-									<Select
-										value={selectedReason}
-										onValueChange={setSelectedReason}
-									>
-										<SelectTrigger>
-											<SelectValue placeholder="Select reason" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="New Patient">New Patient</SelectItem>
-											<SelectItem value="Follow Up">Follow Up</SelectItem>
-											<SelectItem value="Report Show">Report Show</SelectItem>
-										</SelectContent>
-									</Select>
-								</div>
-
-								<Button
-									onClick={handleBookAppointment}
-									disabled={booking || !selectedReason}
-									className="w-full"
+							<div>
+								<Label htmlFor="reason">Reason for Visit</Label>
+								<Select
+									value={selectedReason}
+									onValueChange={setSelectedReason}
 								>
-									{booking ? 'Booking...' : 'Book Appointment'}
-								</Button>
-							</>
-						)}
-					</CardContent>
-				</Card>
-			</div>
+									<SelectTrigger>
+										<SelectValue placeholder="Select reason" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="New Patient">New Patient</SelectItem>
+										<SelectItem value="Follow Up">Follow Up</SelectItem>
+										<SelectItem value="Report Show">Report Show</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+
+							<Button
+								onClick={handleBookAppointment}
+								disabled={booking || !selectedReason}
+								className="w-full"
+							>
+								{booking ? 'Booking...' : 'Book Appointment'}
+							</Button>
+						</>
+					)}
+				</CardContent>
+			</Card>
 		</div>
 	);
 }

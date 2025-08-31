@@ -18,7 +18,11 @@ interface Doctor {
 	location?: string;
 }
 
-export const DoctorList = () => {
+interface DoctorListProps {
+	onDoctorSelect?: (doctorId: string) => void;
+}
+
+export const DoctorList = ({ onDoctorSelect }: DoctorListProps) => {
 	const [doctors, setDoctors] = useState<Doctor[]>([]);
 	const [loading, setLoading] = useState(true);
 	const navigate = useNavigate();
@@ -132,12 +136,18 @@ export const DoctorList = () => {
 								</div>
 							</div>
 
+							{/* Book Appointment */}
 							<Button
 								className="w-full h-12 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02]"
 								onClick={() => {
-									// Store doctor ID in localStorage and navigate to clean URL
-									localStorage.setItem('selectedDoctorId', doctor.id);
-									navigate('/book-appointment');
+									if (onDoctorSelect) {
+										// If callback is provided, use it (for inline display)
+										onDoctorSelect(doctor.id);
+									} else {
+										// Otherwise, navigate to the booking page
+										localStorage.setItem('selectedDoctorId', doctor.id);
+										navigate('/book-appointment');
+									}
 								}}
 								disabled={!doctor.next_availability}
 							>
