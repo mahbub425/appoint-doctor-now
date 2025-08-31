@@ -168,8 +168,9 @@ export const NotificationIcon = ({
 		<Popover open={isOpen} onOpenChange={setIsOpen}>
 			<PopoverTrigger asChild>
 				<Button
+					variant="secondary"
 					size="sm"
-					className="relative bg-primary/10 text-primary hover:text-white rounded-full size-10"
+					className="relative rounded-full size-10"
 				>
 					<Bell className="h-5 w-5" />
 					{unreadCount > 0 && (

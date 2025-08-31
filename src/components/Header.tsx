@@ -69,8 +69,9 @@ export const Header = () => {
 									</AvatarFallback>
 								</Avatar>
 								<Button
+									variant="secondary"
 									onClick={handleLogout}
-									className="min-w-20 h-10 px-3 bg-primary/10 text-primary hover:text-white"
+									className="min-w-20 h-10 px-3"
 									size="sm"
 								>
 									Logout

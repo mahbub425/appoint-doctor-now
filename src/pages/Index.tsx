@@ -135,10 +135,10 @@ const DoctorListWithLoginCheck = () => {
 
 							{/* Location - Prominent Display */}
 							{doctor.location && (
-								<div className="bg-gradient-to-r from-secondary/20 to-secondary/10 p-4 rounded-lg border-l-4 border-secondary flex items-center gap-3">
-									<MapPin className="size-8 text-secondary" />
+								<div className="bg-gradient-to-r from-success/20 to-success/10 p-4 rounded-lg border-l-4 border-success flex items-center gap-3">
+									<MapPin className="size-8 text-success" />
 									<div>
-										<p className="font-semibold text-secondary text-base mb-1">
+										<p className="font-semibold text-success text-base mb-1">
 											Location
 										</p>
 										<p className="text-lg font-bold text-foreground">
