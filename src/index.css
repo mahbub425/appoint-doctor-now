@@ -21,17 +21,20 @@ All colors MUST be HSL.
 		--popover: 0 0% 100%;
 		--popover-foreground: 215 25% 27%;
 
-		--primary: 210 59% 46%; /* Medical blue */
+		--primary: 210 59% 46%;
 		--primary-foreground: 0 0% 100%;
 
-		--secondary: 140 40% 55%; /* Medical green */
-		--secondary-foreground: 0 0% 100%;
+		--secondary: 210 50% 95%;
+		--secondary-foreground: 210 59% 46%;
+
+		--success: 140 40% 55%; /* success green */
+		--success-foreground: 215 21% 39%;
 
 		--muted: 210 17% 95%; /* Light blue-gray */
 		--muted-foreground: 0 0% 48%;
 
-		--accent: 195 100% 85%; /* Light medical cyan */
-		--accent-foreground: 215 25% 27%;
+		--accent: 210 50% 95%; /* Light medical cyan */
+		--accent-foreground: 215 21% 39%;
 
 		--destructive: 0 84% 60%; /* Medical red */
 		--destructive-foreground: 0 0% 100%;
@@ -102,5 +105,10 @@ All colors MUST be HSL.
 
 	body {
 		@apply bg-background text-foreground font-sans;
+	}
+
+	[data-component-name='Button'].bg-secondary:hover {
+		background-color: hsl(var(--primary));
+		color: white;
 	}
 }

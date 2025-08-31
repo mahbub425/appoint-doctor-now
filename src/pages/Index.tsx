@@ -2,12 +2,9 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { Header } from '@/components/Header';
 import { NoticeSection } from '@/components/NoticeSection';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { MapPin, Calendar } from 'lucide-react';
 
 interface Doctor {
@@ -92,8 +89,6 @@ const DoctorListWithLoginCheck = () => {
 
 	return (
 		<div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
-			{/* <h2 className="text-xl sm:text-2xl font-bold text-foreground">Available Doctors</h2> */}
-
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
 				{doctors.map((doctor) => (
 					<Card
@@ -127,35 +122,29 @@ const DoctorListWithLoginCheck = () => {
 							<div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-lg border-l-4 border-primary flex items-center gap-3">
 								<Calendar className="size-8 text-primary" />
 								<div>
-									<div className="flex items-center gap-2 mb-2">
-										<span className="text-base font-semibold text-primary">
-											Next Availability
-										</span>
-									</div>
+									<p className=" text-base mb-1 font-semibold text-primary">
+										Next Availability
+									</p>
 									<p className="text-xl font-bold text-foreground">
 										{doctor.next_availability
 											? formatDate(doctor.next_availability)
-											: 'No upcoming availability'}
+											: 'N/A'}
 									</p>
 								</div>
 							</div>
 
 							{/* Location - Prominent Display */}
-							{doctor.location && (
-								<div className="bg-gradient-to-r from-secondary/20 to-secondary/10 p-4 rounded-lg border-l-4 border-secondary flex items-center gap-3">
-									<MapPin className="size-8 text-secondary" />
-									<div>
-										<div className="flex items-center gap-2 mb-2">
-											<span className="font-semibold text-secondary text-lg">
-												Location
-											</span>
-										</div>
-										<p className="text-lg font-bold text-foreground">
-											{doctor.location}
-										</p>
-									</div>
+							<div className="bg-gradient-to-r from-success/20 to-success/10 p-4 rounded-lg border-l-4 border-success flex items-center gap-3">
+								<MapPin className="size-8 text-success" />
+								<div>
+									<p className="font-semibold text-success text-base mb-1">
+										Location
+									</p>
+									<p className="text-lg font-bold text-foreground">
+										{doctor.location ? doctor.location : 'N/A'}
+									</p>
 								</div>
-							)}
+							</div>
 
 							<Button
 								className="w-full h-12 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02]"
@@ -221,7 +210,6 @@ const Index = () => {
 
 	return (
 		<div className="min-h-screen bg-background">
-			<Header />
 			<NoticeSection />
 
 			<div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">

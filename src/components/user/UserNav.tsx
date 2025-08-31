@@ -24,7 +24,7 @@ export const UserNav = ({ activeTab, setActiveTab }: UserNavProps) => {
             return (
               <Button
                 key={item.id}
-                variant={activeTab === item.id ? "default" : "ghost"}
+                variant={activeTab === item.id ? "secondary" : "ghost"}
                 className="w-full justify-start"
                 onClick={() => setActiveTab(item.id as any)}
               >
