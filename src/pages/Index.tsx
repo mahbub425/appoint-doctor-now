@@ -91,9 +91,7 @@ const DoctorListWithLoginCheck = () => {
 	}
 
 	return (
-		<div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
-			{/* <h2 className="text-xl sm:text-2xl font-bold text-foreground">Available Doctors</h2> */}
-
+		<div className="tsx-index space-y-4 sm:space-y-6 px-2 sm:px-0">
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
 				{doctors.map((doctor) => (
 					<Card
@@ -127,11 +125,9 @@ const DoctorListWithLoginCheck = () => {
 							<div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-lg border-l-4 border-primary flex items-center gap-3">
 								<Calendar className="size-8 text-primary" />
 								<div>
-									<div className="flex items-center gap-2 mb-2">
-										<span className="text-base font-semibold text-primary">
-											Next Availability
-										</span>
-									</div>
+									<p className=" text-base mb-1 font-semibold text-primary">
+										Next Availability
+									</p>
 									<p className="text-xl font-bold text-foreground">
 										{doctor.next_availability
 											? formatDate(doctor.next_availability)
@@ -145,11 +141,9 @@ const DoctorListWithLoginCheck = () => {
 								<div className="bg-gradient-to-r from-secondary/20 to-secondary/10 p-4 rounded-lg border-l-4 border-secondary flex items-center gap-3">
 									<MapPin className="size-8 text-secondary" />
 									<div>
-										<div className="flex items-center gap-2 mb-2">
-											<span className="font-semibold text-secondary text-lg">
-												Location
-											</span>
-										</div>
+										<p className="font-semibold text-secondary text-base mb-1">
+											Location
+										</p>
 										<p className="text-lg font-bold text-foreground">
 											{doctor.location}
 										</p>
