@@ -57,7 +57,7 @@ export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorSchedul
     
     if (schedule) {
       setFormData({
-        doctor_id: "",
+        doctor_id: schedule.doctor_id,
         availability_date: schedule.availability_date,
         location: schedule.location || "",
         start_time: schedule.start_time.slice(0, 5),
@@ -74,6 +74,60 @@ export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorSchedul
     setIsSubmitting(true);
 
     try {
+      const doctorId = schedule ? schedule.doctor_id : formData.doctor_id;
+
+      // --- Start Validation ---
+      // 1. Check if the same doctor is already scheduled on the same day at any other location.
+      let doctorQuery = supabase
+        .from('doctor_schedules')
+        .select('id, location')
+        .eq('doctor_id', doctorId)
+        .eq('availability_date', formData.availability_date);
+      
+      if (schedule) {
+        doctorQuery = doctorQuery.neq('id', schedule.id);
+      }
+
+      const { data: doctorExistingSchedule, error: doctorCheckError } = await doctorQuery.maybeSingle();
+
+      if (doctorCheckError) throw doctorCheckError;
+
+      if (doctorExistingSchedule) {
+        toast({
+          title: "Scheduling Conflict",
+          description: `এই ডাক্তার ইতিমধ্যে ${formData.availability_date} তারিখে ${doctorExistingSchedule.location} লোকেশনে সময় দিয়েছেন। একজন ডাক্তার একই দিনে একাধিক লোকেশনে সময় দিতে পারবেন না।`,
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // 2. Check if the same location is already booked on the same day by any other doctor.
+      let locationQuery = supabase
+        .from('doctor_schedules')
+        .select('id, doctor:doctors(name)')
+        .eq('location', formData.location)
+        .eq('availability_date', formData.availability_date);
+
+      if (schedule) {
+        locationQuery = locationQuery.neq('id', schedule.id);
+      }
+
+      const { data: locationExistingSchedule, error: locationCheckError } = await locationQuery.maybeSingle();
+
+      if (locationCheckError) throw locationCheckError;
+
+      if (locationExistingSchedule) {
+        toast({
+          title: "Scheduling Conflict",
+          description: `এই লোকেশনটি (${formData.location}) ইতিমধ্যে ${formData.availability_date} তারিখে Dr. ${locationExistingSchedule.doctor?.name || 'another doctor'} এর জন্য নির্ধারিত। একটি লোকেশনে একই দিনে একাধিক ডাক্তারের অ্যাপয়েন্টমেন্ট দেওয়া যাবে না।`,
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      // --- End Validation ---
+
       // If updating existing schedule
       if (schedule) {
         const { data, error } = await supabase
@@ -104,13 +158,7 @@ export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorSchedul
 
         onScheduleUpdate();
       } else {
-        // Creating new schedule - only delete appointments for this doctor/date
-        await supabase
-          .from("appointments")
-          .delete()
-          .eq("doctor_id", formData.doctor_id)
-          .eq("appointment_date", formData.availability_date);
-
+        // Creating new schedule
         const { data, error } = await supabase
           .from("doctor_schedules")
           .insert({
@@ -162,6 +210,7 @@ export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorSchedul
               value={formData.doctor_id}
               onValueChange={(value) => setFormData(prev => ({ ...prev, doctor_id: value }))}
               required
+              disabled={!!schedule} // Disable if editing
             >
               <SelectTrigger>
                 <SelectValue placeholder="Choose a doctor" />
