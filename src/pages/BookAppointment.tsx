@@ -42,6 +42,7 @@ interface Appointment {
 	reason: string;
 	appointment_time: string;
 	user_id: string;
+	doctor_id: string; // Added doctor_id
 }
 
 interface BookAppointmentProps {
@@ -186,9 +187,9 @@ export default function BookAppointment({
 			return;
 		}
 
-		// Check if user already has an appointment with this doctor on this date
+		// Check if user already has an appointment with this specific doctor on this date
 		const existingAppointment = appointments.find(
-			(apt) => apt.user_id === userProfile.id,
+			(apt) => apt.user_id === userProfile.id && apt.doctor_id === doctor.id,
 		);
 		if (existingAppointment) {
 			toast({
