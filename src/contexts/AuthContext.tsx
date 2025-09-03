@@ -13,7 +13,6 @@ interface UserProfile {
   is_blocked?: boolean;
   created_at: string;
   username?: string;
-  auth_user_id?: string; // Added this line
 }
 
 interface DoctorProfile {
@@ -229,13 +228,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setDoctorProfile(null);
           setAdminProfile(null);
           fetchUserProfile(session.user.id);
-        } else if (event === 'SIGNED_OUT') {
-          // This handles Supabase session expiry or explicit Supabase sign-out.
-          // We only clear the userProfile if it's linked to a Supabase auth user.
-          // This prevents wiping doctor/admin/pin sessions.
-          if (userProfile?.auth_user_id) {
-            setUserProfile(null);
-          }
+        } else {
+          setUserProfile(null);
+          setDoctorProfile(null);
+          setAdminProfile(null);
         }
       }
     );
