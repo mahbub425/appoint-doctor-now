@@ -238,38 +238,23 @@ export default function BookAppointment({
 				.single();
 
 			if (error) {
+				console.error('Error booking appointment:', error);
 				toast({
 					title: 'Error',
-					description: 'Failed to book appointment',
+					description: error.message || 'Failed to book appointment.',
 					variant: 'destructive',
 				});
-				return;
-			}
-
-			toast({
-				title: 'Success',
-				description: `Appointment booked successfully! Your appointment is scheduled for ${appointmentTime} on ${new Date(
-					schedule.availability_date,
-				).toLocaleDateString('en-GB')}`,
-			});
-
-			// Handle navigation based on mode
-			if (!isInline) {
-				// Navigate to appointment details page with appointment data
-				navigate('/appointment-details', {
-					state: {
-						appointmentData: {
-							...data,
-							doctor_name: doctor.name,
-							location: schedule.location,
-						},
-					},
-				});
 			} else {
-				// In inline mode, navigate to appointments tab
-				navigate('/user', { state: { activeTab: 'appointments' } });
+				toast({
+					title: 'Success',
+					description: 'Appointment booked successfully!',
+				});
+				// Clear the selected doctor ID from localStorage after successful booking
+				localStorage.removeItem('selectedDoctorId');
+				navigate('/user/appointments'); // Redirect to user's appointments list
 			}
 		} catch (error) {
+			console.error('Unexpected error:', error);
 			toast({
 				title: 'Error',
 				description: 'An unexpected error occurred',
