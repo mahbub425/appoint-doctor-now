@@ -13,7 +13,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { AuthWrapper } from '../AuthWrapper';
 
 // Removed AdminLoginProps interface as onLoginSuccess is no longer passed
 // interface AdminLoginProps {
@@ -106,7 +105,6 @@ export const AdminLogin = () => {
 
 				// Only call refreshAuth, let AuthContext and Index.tsx handle navigation
 				await refreshAuth();
-				// onLoginSuccess is removed
 			} else {
 				setError(
 					"Invalid credentials or you don't have admin access. Please check your username, password, and ensure your account has the 'admin' role and is not blocked.",
@@ -121,7 +119,7 @@ export const AdminLogin = () => {
 	};
 
 	return (
-		<AuthWrapper>
+		<div className="min-h-screen flex items-center justify-center bg-background">
 			<Card className="w-full max-w-md mx-auto lg:px-1 rounded-[16px]">
 				<CardHeader className="text-center">
 					<CardTitle className="md:text-xl font-bold">Admin Portal</CardTitle>
@@ -194,6 +192,6 @@ export const AdminLogin = () => {
 					</form>
 				</CardContent>
 			</Card>
-		</AuthWrapper>
+		</div>
 	);
 };

@@ -208,7 +208,7 @@ const Auth = () => {
 	};
 
 	return (
-		<AuthWrapper>
+		<div className="min-h-screen flex items-center justify-center bg-background">
 			<Card className="w-full max-w-md mx-auto lg:px-1 rounded-[16px]">
 				<CardHeader className="text-center">
 					<CardTitle className="md:text-xl font-bold">
@@ -461,7 +461,7 @@ const Auth = () => {
 					</div>
 				</CardContent>
 			</Card>
-		</AuthWrapper>
+		</div>
 	);
 };
 
