@@ -74,13 +74,17 @@ const DoctorListWithLoginCheck = () => {
 	};
 
 	const handleBookAppointment = (doctorId: string) => {
-		if (!user) {
-			navigate('/auth');
-			return;
-		}
-		// Store doctor ID in localStorage and navigate to clean URL
+		// Always store the selected doctor ID first.
 		localStorage.setItem('selectedDoctorId', doctorId);
-		navigate('/book-appointment');
+
+		if (!user) {
+			// If not logged in, go to auth page.
+			// After login, the auth page will handle the redirect.
+			navigate('/auth');
+		} else {
+			// If already logged in, go directly to booking.
+			navigate('/book-appointment');
+		}
 	};
 
 	if (loading) {

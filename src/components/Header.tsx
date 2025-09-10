@@ -37,6 +37,12 @@ export const Header = () => {
 		}
 	};
 
+	const handleHeaderLogin = () => {
+		// Clear any pending doctor selection when using the main login button
+		localStorage.removeItem('selectedDoctorId');
+		navigate('/auth');
+	};
+
 	return (
 		<header className="bg-background border-b border-border sticky top-0">
 			<div className="container mx-auto px-4 py-3 md:py-4 sm:py-4">
@@ -79,7 +85,7 @@ export const Header = () => {
 							</div>
 						) : (
 							<Button
-								onClick={() => navigate('/auth')}
+								onClick={handleHeaderLogin}
 								className="min-w-20 h-10 px-3 "
 								size="sm"
 							>

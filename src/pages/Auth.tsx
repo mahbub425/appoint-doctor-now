@@ -184,7 +184,13 @@ const Auth = () => {
 						title: 'Success',
 						description: 'Signed in successfully!',
 					});
-					navigate('/user'); // Redirect directly to user dashboard
+					// Check for a pending appointment booking
+					const selectedDoctorId = localStorage.getItem('selectedDoctorId');
+					if (selectedDoctorId) {
+						navigate('/book-appointment');
+					} else {
+						navigate('/user'); // Redirect to user dashboard
+					}
 				}
 			}
 		} catch (error) {
@@ -441,7 +447,7 @@ const Auth = () => {
 					)}
 
 					<div className="text-center font-semibold text-sm">
-						{isSignUp ? 'Already have an account? ' : "Don't have an account? "}
+						{isSignUp ? 'Already have an account? ' : "Don't have an account? " }
 						<Button
 							variant="link"
 							onClick={() => setIsSignUp(!isSignUp)}
