@@ -123,7 +123,7 @@ export const DoctorLogin = () => {
 	};
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-background">
+		<AuthWrapper>
 			<Card className="w-full max-w-md mx-auto lg:px-1 rounded-[16px]">
 				<CardHeader className="text-center">
 					<CardTitle className="md:text-xl font-bold">Doctor Portal</CardTitle>
@@ -213,6 +213,6 @@ export const DoctorLogin = () => {
 					</form>
 				</CardContent>
 			</Card>
-		</div>
+		</AuthWrapper>
 	);
 };
