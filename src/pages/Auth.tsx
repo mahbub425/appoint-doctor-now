@@ -184,13 +184,16 @@ const Auth = () => {
 						title: 'Success',
 						description: 'Signed in successfully!',
 					});
-					// Check for a pending appointment booking
+
+					// Check if this login is part of a booking flow
 					const selectedDoctorId = localStorage.getItem('selectedDoctorId');
 					if (selectedDoctorId) {
-						navigate('/book-appointment');
-					} else {
-						navigate('/user'); // Redirect to user dashboard
+						// Set a flag for the dashboard to pick up
+						sessionStorage.setItem('isBookingRedirect', 'true');
 					}
+
+					// Always redirect to the user dashboard after login
+					navigate('/user');
 				}
 			}
 		} catch (error) {

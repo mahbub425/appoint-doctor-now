@@ -21,8 +21,18 @@ const UserDashboard = () => {
 	const navigate = useNavigate();
 
 	useEffect(() => {
-		// Check if activeTab is passed from navigation state
-		if (location.state?.activeTab) {
+		// Check for a one-time redirect from the login page for booking
+		const isBookingRedirect = sessionStorage.getItem('isBookingRedirect');
+		const storedDoctorId = localStorage.getItem('selectedDoctorId');
+
+		if (isBookingRedirect && storedDoctorId) {
+			// This is the specific flow: logged in to book an appointment.
+			setSelectedDoctorId(storedDoctorId);
+			setActiveTab('book-appointment');
+			// Important: Consume the flag so this doesn't run again on refresh
+			sessionStorage.removeItem('isBookingRedirect');
+		} else if (location.state?.activeTab) {
+			// This handles normal navigation to a specific tab
 			setActiveTab(location.state.activeTab);
 		}
 	}, [location.state]);
