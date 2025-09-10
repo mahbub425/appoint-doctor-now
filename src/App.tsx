@@ -36,8 +36,6 @@ const App = () => (
             <Route path="/" element={<Layout />}>
               <Route index element={<Index />} />
               <Route path="user" element={<UserDashboard />} />
-              <Route path="book-appointment" element={<BookAppointment />} />
-              <Route path="appointment-details" element={<AppointmentDetails />} />
               <Route path="doctor" element={<DoctorDashboard />} />
               <Route path="admin" element={<Admin />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

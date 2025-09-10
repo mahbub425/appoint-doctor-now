@@ -79,11 +79,12 @@ const DoctorListWithLoginCheck = () => {
 
 		if (!user) {
 			// If not logged in, go to auth page.
-			// After login, the auth page will handle the redirect.
+			// The auth page will handle redirecting to the user dashboard.
 			navigate('/auth');
 		} else {
-			// If already logged in, go directly to booking.
-			navigate('/book-appointment');
+			// If already logged in, go to the user dashboard and tell it to open the booking tab.
+			sessionStorage.setItem('isBookingRedirect', 'true');
+			navigate('/user');
 		}
 	};
 

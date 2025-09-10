@@ -68,25 +68,30 @@ const UserDashboard = () => {
 		setActiveTab('doctors');
 	};
 
+	const handleBookingSuccess = () => {
+		setActiveTab('appointments');
+	};
+
 	const renderContent = () => {
 		switch (activeTab) {
 			case 'doctors':
 				return <DoctorList onDoctorSelect={handleDoctorSelect} />;
 			case 'appointments':
 				return <UserAppointmentsList />;
-			case 'profile':
-				return <ProfileManagement />;
-			case 'history':
-				return <MedicalHistory />;
 			case 'book-appointment':
 				return selectedDoctorId ? (
-					<BookAppointment 
-						isInline={true} 
-						onBack={handleBackToDoctors} 
+					<BookAppointment
+						isInline={true}
+						onBack={handleBackToDoctors}
+						onBookingSuccess={handleBookingSuccess}
 					/>
 				) : (
 					<DoctorList onDoctorSelect={handleDoctorSelect} />
 				);
+			case 'profile':
+				return <ProfileManagement />;
+			case 'history':
+				return <MedicalHistory />;
 			default:
 				return <DoctorList onDoctorSelect={handleDoctorSelect} />;
 		}
