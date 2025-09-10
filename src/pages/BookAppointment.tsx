@@ -48,13 +48,13 @@ interface Appointment {
 interface BookAppointmentProps {
 	isInline?: boolean;
 	onBack?: () => void;
-	onBookingSuccess?: () => void;
+	onBookingSuccess?: () => void; // This prop is no longer strictly needed for navigation
 }
 
 export default function BookAppointment({
 	isInline = false,
 	onBack,
-	onBookingSuccess,
+	onBookingSuccess, // Keep for potential future use or if other components rely on it
 }: BookAppointmentProps = {}) {
 	const navigate = useNavigate();
 	const { userProfile } = useAuth();
@@ -253,11 +253,16 @@ export default function BookAppointment({
 				});
 				// Clear the selected doctor ID from localStorage after successful booking
 				localStorage.removeItem('selectedDoctorId');
-				if (onBookingSuccess) {
-					onBookingSuccess();
-				} else {
-					navigate('/user/appointments'); // Redirect to user's appointments list
-				}
+
+				// Construct the full appointment data to pass to the details page
+				const fullAppointmentData = {
+					...data,
+					doctor_name: doctor.name,
+					location: schedule.location,
+				};
+
+				// Navigate to the AppointmentDetails page
+				navigate('/appointment-details', { state: { appointmentData: fullAppointmentData } });
 			}
 		} catch (error) {
 			console.error('Unexpected error:', error);

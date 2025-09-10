@@ -83,7 +83,6 @@ const UserDashboard = () => {
 					<BookAppointment
 						isInline={true}
 						onBack={handleBackToDoctors}
-						onBookingSuccess={handleBookingSuccess}
 					/>
 				) : (
 					<DoctorList onDoctorSelect={handleDoctorSelect} />
