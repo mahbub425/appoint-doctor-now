@@ -75,6 +75,8 @@ const DoctorListWithLoginCheck = () => {
 
 	const handleBookAppointment = (doctorId: string) => {
 		if (!user) {
+			// Store doctor ID in localStorage to redirect after login
+			localStorage.setItem('selectedDoctorId', doctorId);
 			navigate('/auth');
 			return;
 		}
