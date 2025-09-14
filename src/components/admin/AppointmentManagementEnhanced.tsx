@@ -476,85 +476,101 @@ export const AppointmentManagementEnhanced = () => {
 						<CardTitle>Appointments ({filteredAppointments.length})</CardTitle>
 					</CardHeader>
 					<CardContent className="md:ps-4 md:pb-0">
-						<div className="relative overflow-x-auto">
-							<div className="max-h-[calc(100vh-260px)] overflow-y-auto">
-								<Table>
-									<TableHeader className="sticky top-0 bg-background z-10 shadow-sm">
-										<TableRow>
-											<TableHead className="md:ps-0 bg-background">
-												Date
-											</TableHead>
-											<TableHead className="bg-background">Time</TableHead>
-											<TableHead className="bg-background">Serial</TableHead>
-											<TableHead className="bg-background">PIN</TableHead>
-											<TableHead className="bg-background">Patient</TableHead>
-											<TableHead className="bg-background">Phone</TableHead>
-											<TableHead className="bg-background">Doctor</TableHead>
-											<TableHead className="bg-background">Concern</TableHead>
-											<TableHead className="bg-background">Reason</TableHead>
-											<TableHead className="bg-background">Status</TableHead>
-											<TableHead className="md:pe-0 bg-background">
-												Actions
-											</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{currentAppointments.map((appointment) => (
-											<TableRow key={appointment.id}>
-												<TableCell className="md:ps-0">
-													{formatDate(appointment.appointment_date)}
-												</TableCell>
-												<TableCell>{appointment.appointment_time}</TableCell>
-												<TableCell>{appointment.serial_number}</TableCell>
-												<TableCell>{appointment.pin}</TableCell>
-												<TableCell>{appointment.name}</TableCell>
-												<TableCell>{appointment.phone}</TableCell>
-												<TableCell>
-													{appointment.doctor?.name || "Unknown"}
-												</TableCell>
-												<TableCell>{appointment.concern}</TableCell>
-												<TableCell>{appointment.reason}</TableCell>
-												<TableCell>{getStatusBadge(appointment)}</TableCell>
-												<TableCell className="md:pe-0">
-													<DropdownMenu>
-														<DropdownMenuTrigger asChild>
-															<Button variant="ghost" className="h-8 w-8 p-0">
-																<MoreHorizontal className="h-4 w-4" />
-															</Button>
-														</DropdownMenuTrigger>
-														<DropdownMenuContent align="end">
-															{canMarkAbsent(appointment) && (
-																<DropdownMenuItem
-																	onClick={() =>
-																		handleMarkAbsent(appointment.id)
-																	}
-																	className="text-orange-600"
-																>
-																	<UserMinus className="mr-2 h-4 w-4" />
-																	Mark as Absent
-																</DropdownMenuItem>
-															)}
+						<div className="relative max-h-[calc(100vh-260px)] overflow-auto">
+							<table className="w-full caption-bottom text-sm">
+								<thead className="sticky top-0 z-50 bg-background shadow-sm">
+									<tr className="border-b transition-colors hover:bg-transparent">
+										<th className="h-10 px-2 text-left align-middle font-medium text-muted-foreground md:ps-0">
+											Date
+										</th>
+										<th className="h-10 px-2 text-left align-middle font-medium text-muted-foreground">
+											Time
+										</th>
+										<th className="h-10 px-2 text-left align-middle font-medium text-muted-foreground">
+											Serial
+										</th>
+										<th className="h-10 px-2 text-left align-middle font-medium text-muted-foreground">
+											PIN
+										</th>
+										<th className="h-10 px-2 text-left align-middle font-medium text-muted-foreground">
+											Patient
+										</th>
+										<th className="h-10 px-2 text-left align-middle font-medium text-muted-foreground">
+											Phone
+										</th>
+										<th className="h-10 px-2 text-left align-middle font-medium text-muted-foreground">
+											Doctor
+										</th>
+										<th className="h-10 px-2 text-left align-middle font-medium text-muted-foreground">
+											Concern
+										</th>
+										<th className="h-10 px-2 text-left align-middle font-medium text-muted-foreground">
+											Reason
+										</th>
+										<th className="h-10 px-2 text-left align-middle font-medium text-muted-foreground">
+											Status
+										</th>
+										<th className="h-10 px-2 text-left align-middle font-medium text-muted-foreground md:pe-0">
+											Actions
+										</th>
+									</tr>
+								</thead>
+								<tbody className="[&_tr:last-child]:border-0">
+									{currentAppointments.map((appointment) => (
+										<tr key={appointment.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+											<td className="p-2 align-middle md:ps-0">
+												{formatDate(appointment.appointment_date)}
+											</td>
+											<td className="p-2 align-middle">{appointment.appointment_time}</td>
+											<td className="p-2 align-middle">{appointment.serial_number}</td>
+											<td className="p-2 align-middle">{appointment.pin}</td>
+											<td className="p-2 align-middle">{appointment.name}</td>
+											<td className="p-2 align-middle">{appointment.phone}</td>
+											<td className="p-2 align-middle">
+												{appointment.doctor?.name || "Unknown"}
+											</td>
+											<td className="p-2 align-middle">{appointment.concern}</td>
+											<td className="p-2 align-middle">{appointment.reason}</td>
+											<td className="p-2 align-middle">{getStatusBadge(appointment)}</td>
+											<td className="p-2 align-middle md:pe-0">
+												<DropdownMenu>
+													<DropdownMenuTrigger asChild>
+														<Button variant="ghost" className="h-8 w-8 p-0">
+															<MoreHorizontal className="h-4 w-4" />
+														</Button>
+													</DropdownMenuTrigger>
+													<DropdownMenuContent align="end">
+														{canMarkAbsent(appointment) && (
 															<DropdownMenuItem
-																onClick={() => handleEdit(appointment)}
+																onClick={() =>
+																	handleMarkAbsent(appointment.id)
+																}
+																className="text-orange-600"
 															>
-																<Edit className="mr-2 h-4 w-4" />
-																Edit
+																<UserMinus className="mr-2 h-4 w-4" />
+																Mark as Absent
 															</DropdownMenuItem>
-															<DropdownMenuItem
-																onClick={() => handleDelete(appointment.id)}
-																className="text-red-600"
-															>
-																<Trash2 className="mr-2 h-4 w-4" />
-																Delete
-															</DropdownMenuItem>
-														</DropdownMenuContent>
-													</DropdownMenu>
-												</TableCell>
-											</TableRow>
-										))}
-									</TableBody>
-								</Table>
-							</div>
+														)}
+														<DropdownMenuItem
+															onClick={() => handleEdit(appointment)}
+														>
+															<Edit className="mr-2 h-4 w-4" />
+															Edit
+														</DropdownMenuItem>
+														<DropdownMenuItem
+															onClick={() => handleDelete(appointment.id)}
+															className="text-red-600"
+														>
+															<Trash2 className="mr-2 h-4 w-4" />
+															Delete
+														</DropdownMenuItem>
+													</DropdownMenuContent>
+												</DropdownMenu>
+											</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
 						</div>
 
 						<div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
