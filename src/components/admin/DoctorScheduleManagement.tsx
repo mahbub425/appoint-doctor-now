@@ -283,20 +283,26 @@ export const DoctorScheduleManagement = () => {
 
 		if (scheduleDate.toDateString() === now.toDateString()) {
 			const currentTime = now.getHours() * 60 + now.getMinutes();
-			
-			const [startHour, startMin] = schedule.start_time.split(':').map(Number);
-			const [endHour, endMin] = schedule.end_time.split(':').map(Number);
-			const [breakStartHour, breakStartMin] = schedule.break_start.split(':').map(Number);
-			const [breakEndHour, breakEndMin] = schedule.break_end.split(':').map(Number);
-			
+
+			const [startHour, startMin] = schedule.start_time.split(":").map(Number);
+			const [endHour, endMin] = schedule.end_time.split(":").map(Number);
+			const [breakStartHour, breakStartMin] = schedule.break_start
+				.split(":")
+				.map(Number);
+			const [breakEndHour, breakEndMin] = schedule.break_end
+				.split(":")
+				.map(Number);
+
 			const startTimeMinutes = startHour * 60 + startMin;
 			const endTimeMinutes = endHour * 60 + endMin;
 			const breakStartMinutes = breakStartHour * 60 + breakStartMin;
 			const breakEndMinutes = breakEndHour * 60 + breakEndMin;
-			
-			const isWithinSchedule = currentTime >= startTimeMinutes && currentTime <= endTimeMinutes;
-			const isDuringBreak = currentTime >= breakStartMinutes && currentTime <= breakEndMinutes;
-			
+
+			const isWithinSchedule =
+				currentTime >= startTimeMinutes && currentTime <= endTimeMinutes;
+			const isDuringBreak =
+				currentTime >= breakStartMinutes && currentTime <= breakEndMinutes;
+
 			if (isWithinSchedule && !isDuringBreak) {
 				return <Badge variant="destructive">Live</Badge>;
 			} else if (currentTime < startTimeMinutes) {
