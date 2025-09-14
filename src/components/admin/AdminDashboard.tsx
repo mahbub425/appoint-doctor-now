@@ -40,14 +40,14 @@ export const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
 					handleLogout={onLogout}
 				/>
 
-				<main className="flex-1 flex flex-col max-w-full overflow-x-auto">
+				<div className="flex-1 flex flex-col max-w-full overflow-x-auto">
 					<div className="md:hidden fixed top-2.5 right-2 size-8 p-0 content-center text-center hover:bg-transparent z-50">
 						<SidebarTrigger />
 					</div>
 					<div className="flex-1 p-4 md:p-6 bg-background">
 						{renderContent()}
 					</div>
-				</main>
+				</div>
 			</div>
 		</SidebarProvider>
 	);
