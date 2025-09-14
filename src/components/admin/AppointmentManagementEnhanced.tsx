@@ -475,77 +475,87 @@ export const AppointmentManagementEnhanced = () => {
 					<CardHeader className="sr-only">
 						<CardTitle>Appointments ({filteredAppointments.length})</CardTitle>
 					</CardHeader>
-					<CardContent className="md:ps-4">
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead className="md:ps-0">Date</TableHead>
-									<TableHead>Time</TableHead>
-									<TableHead>Serial</TableHead>
-									<TableHead>PIN</TableHead>
-									<TableHead>Patient</TableHead>
-									<TableHead>Phone</TableHead>
-									<TableHead>Doctor</TableHead>
-									<TableHead>Concern</TableHead>
-									<TableHead>Reason</TableHead>
-									<TableHead>Status</TableHead>
-									<TableHead className="md:pe-0">Actions</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{currentAppointments.map((appointment) => (
-									<TableRow key={appointment.id}>
-										<TableCell className="md:ps-0">
-											{formatDate(appointment.appointment_date)}
-										</TableCell>
-										<TableCell>{appointment.appointment_time}</TableCell>
-										<TableCell>{appointment.serial_number}</TableCell>
-										<TableCell>{appointment.pin}</TableCell>
-										<TableCell>{appointment.name}</TableCell>
-										<TableCell>{appointment.phone}</TableCell>
-										<TableCell>
-											{appointment.doctor?.name || "Unknown"}
-										</TableCell>
-										<TableCell>{appointment.concern}</TableCell>
-										<TableCell>{appointment.reason}</TableCell>
-										<TableCell>{getStatusBadge(appointment)}</TableCell>
-										<TableCell className="md:pe-0">
-											<DropdownMenu>
-												<DropdownMenuTrigger asChild>
-													<Button variant="ghost" className="h-8 w-8 p-0">
-														<MoreHorizontal className="h-4 w-4" />
-													</Button>
-												</DropdownMenuTrigger>
-												<DropdownMenuContent align="end">
-													{canMarkAbsent(appointment) && (
-														<DropdownMenuItem
-															onClick={() => handleMarkAbsent(appointment.id)}
-															className="text-orange-600"
-														>
-															<UserMinus className="mr-2 h-4 w-4" />
-															Mark as Absent
-														</DropdownMenuItem>
-													)}
-													<DropdownMenuItem
-														onClick={() => handleEdit(appointment)}
-													>
-														<Edit className="mr-2 h-4 w-4" />
-														Edit
-													</DropdownMenuItem>
-													<DropdownMenuItem
-														onClick={() => handleDelete(appointment.id)}
-														className="text-red-600"
-													>
-														<Trash2 className="mr-2 h-4 w-4" />
-														Delete
-													</DropdownMenuItem>
-												</DropdownMenuContent>
-											</DropdownMenu>
-										</TableCell>
-									</TableRow>
-								))}
-							</TableBody>
-						</Table>
+					<CardContent className="md:ps-4 md:pb-0">
+						<div className="relative overflow-x-auto">
+							<div className="max-h-[calc(100vh-260px)] overflow-y-auto">
+								<Table>
+									<TableHeader className="sticky top-0 bg-background z-10 shadow-sm">
+										<TableRow>
+											<TableHead className="md:ps-0 bg-background">
+												Date
+											</TableHead>
+											<TableHead className="bg-background">Time</TableHead>
+											<TableHead className="bg-background">Serial</TableHead>
+											<TableHead className="bg-background">PIN</TableHead>
+											<TableHead className="bg-background">Patient</TableHead>
+											<TableHead className="bg-background">Phone</TableHead>
+											<TableHead className="bg-background">Doctor</TableHead>
+											<TableHead className="bg-background">Concern</TableHead>
+											<TableHead className="bg-background">Reason</TableHead>
+											<TableHead className="bg-background">Status</TableHead>
+											<TableHead className="md:pe-0 bg-background">
+												Actions
+											</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{currentAppointments.map((appointment) => (
+											<TableRow key={appointment.id}>
+												<TableCell className="md:ps-0">
+													{formatDate(appointment.appointment_date)}
+												</TableCell>
+												<TableCell>{appointment.appointment_time}</TableCell>
+												<TableCell>{appointment.serial_number}</TableCell>
+												<TableCell>{appointment.pin}</TableCell>
+												<TableCell>{appointment.name}</TableCell>
+												<TableCell>{appointment.phone}</TableCell>
+												<TableCell>
+													{appointment.doctor?.name || "Unknown"}
+												</TableCell>
+												<TableCell>{appointment.concern}</TableCell>
+												<TableCell>{appointment.reason}</TableCell>
+												<TableCell>{getStatusBadge(appointment)}</TableCell>
+												<TableCell className="md:pe-0">
+													<DropdownMenu>
+														<DropdownMenuTrigger asChild>
+															<Button variant="ghost" className="h-8 w-8 p-0">
+																<MoreHorizontal className="h-4 w-4" />
+															</Button>
+														</DropdownMenuTrigger>
+														<DropdownMenuContent align="end">
+															{canMarkAbsent(appointment) && (
+																<DropdownMenuItem
+																	onClick={() =>
+																		handleMarkAbsent(appointment.id)
+																	}
+																	className="text-orange-600"
+																>
+																	<UserMinus className="mr-2 h-4 w-4" />
+																	Mark as Absent
+																</DropdownMenuItem>
+															)}
+															<DropdownMenuItem
+																onClick={() => handleEdit(appointment)}
+															>
+																<Edit className="mr-2 h-4 w-4" />
+																Edit
+															</DropdownMenuItem>
+															<DropdownMenuItem
+																onClick={() => handleDelete(appointment.id)}
+																className="text-red-600"
+															>
+																<Trash2 className="mr-2 h-4 w-4" />
+																Delete
+															</DropdownMenuItem>
+														</DropdownMenuContent>
+													</DropdownMenu>
+												</TableCell>
+											</TableRow>
+										))}
+									</TableBody>
+								</Table>
+							</div>
+						</div>
 
 						<div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
 							<div className="flex gap-2 items-center">
