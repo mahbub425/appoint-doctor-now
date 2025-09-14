@@ -123,6 +123,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         } catch (error) {
           console.error('Error parsing admin session:', error);
           localStorage.removeItem('adminSession');
+          localStorage.removeItem("adminRememberedCredentials");
         }
       }
 
@@ -201,6 +202,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           // If a Supabase user logs in, clear other local storage sessions
           localStorage.removeItem('doctorSession');
           localStorage.removeItem('adminSession');
+          localStorage.removeItem("adminRememberedCredentials");
           localStorage.removeItem('userSession');
           localStorage.removeItem('rememberedCredentials'); // Clear old PIN credentials too
           setDoctorProfile(null);
@@ -342,6 +344,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       localStorage.removeItem('doctorSession');
       localStorage.removeItem('adminSession');
+      localStorage.removeItem("adminRememberedCredentials");
       localStorage.removeItem('userSession');
       localStorage.removeItem('rememberedCredentials'); // Clean up old data
       

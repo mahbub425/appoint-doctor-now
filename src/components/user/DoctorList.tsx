@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
-import { MapPin, Calendar } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { MapPin, Calendar } from "lucide-react";
 
 interface Doctor {
 	id: string;
@@ -16,6 +16,7 @@ interface Doctor {
 	is_active: boolean;
 	next_availability?: string;
 	location?: string;
+	original_doctor_id?: string;
 }
 
 interface DoctorListProps {
@@ -33,46 +34,84 @@ export const DoctorList = ({ onDoctorSelect }: DoctorListProps) => {
 
 	const fetchDoctors = async () => {
 		try {
+			// First fetch all active doctors
 			const { data: doctorsData, error } = await supabase
-				.from('doctors')
-				.select('*')
-				.eq('is_active', true);
+				.from("doctors")
+				.select("*")
+				.eq("is_active", true);
 
 			if (error) {
-				console.error('Error fetching doctors:', error);
+				console.error("Error fetching doctors:", error);
 				return;
 			}
 
-			// Fetch next availability for each doctor
-			const doctorsWithAvailability = await Promise.all(
-				(doctorsData || []).map(async (doctor) => {
-					const { data: schedule } = await supabase
-						.from('doctor_schedules')
-						.select('availability_date, location')
-						.eq('doctor_id', doctor.id)
-						.gte('availability_date', new Date().toISOString().split('T')[0])
-						.order('availability_date', { ascending: true })
-						.limit(1)
-						.single();
+			// Then fetch ALL upcoming schedules for ALL doctors
+			const { data: allSchedules, error: schedulesError } = await supabase
+				.from("doctor_schedules")
+				.select("*")
+				.gte("availability_date", new Date().toISOString().split("T")[0])
+				.order("availability_date", { ascending: true });
 
-					return {
+			if (schedulesError) {
+				console.error("Error fetching schedules:", schedulesError);
+			}
+
+			// Create a map of doctor schedules
+			const doctorSchedulesMap = new Map();
+			(allSchedules || []).forEach((schedule) => {
+				if (!doctorSchedulesMap.has(schedule.doctor_id)) {
+					doctorSchedulesMap.set(schedule.doctor_id, []);
+				}
+				doctorSchedulesMap.get(schedule.doctor_id).push(schedule);
+			});
+
+			// Now create doctor entries for each unique schedule
+			const doctorsWithAllSchedules = [];
+			(doctorsData || []).forEach((doctor) => {
+				const doctorSchedules = doctorSchedulesMap.get(doctor.id) || [];
+
+				if (doctorSchedules.length === 0) {
+					// No schedules for this doctor
+					doctorsWithAllSchedules.push({
 						...doctor,
-						next_availability: schedule?.availability_date || null,
-						location: schedule?.location || null,
-					};
-				}),
-			);
+						next_availability: null,
+						location: null,
+					});
+				} else {
+					// Create separate entries for each schedule date
+					doctorSchedules.forEach((schedule) => {
+						doctorsWithAllSchedules.push({
+							...doctor,
+							// Create unique ID for each doctor-schedule combination
+							id: `${doctor.id}_${schedule.availability_date}`,
+							original_doctor_id: doctor.id,
+							next_availability: schedule.availability_date,
+							location: schedule.location,
+						});
+					});
+				}
+			});
 
-			setDoctors(doctorsWithAvailability);
+			// Sort by availability date
+			doctorsWithAllSchedules.sort((a, b) => {
+				if (!a.next_availability) return 1;
+				if (!b.next_availability) return 1;
+				return (
+					new Date(a.next_availability).getTime() -
+					new Date(b.next_availability).getTime()
+				);
+			});
+
+			setDoctors(doctorsWithAllSchedules);
 		} catch (error) {
-			console.error('Error fetching doctors:', error);
+			console.error("Error fetching doctors:", error);
 		} finally {
 			setLoading(false);
 		}
 	};
 
 	const formatDate = (dateString: string) => {
-		return new Date(dateString).toLocaleDateString('en-GB');
+		return new Date(dateString).toLocaleDateString("en-GB");
 	};
 
 	if (loading) {
@@ -85,24 +124,24 @@ export const DoctorList = ({ onDoctorSelect }: DoctorListProps) => {
 				{doctors.map((doctor) => (
 					<Card
 						key={doctor.id}
-						className="group hover:shadow-xl transition-all duration-300 border hover:border-primary/20 bg-gradient-to-br from-card to-card/80"
+						className="group flex flex-col hover:shadow-xl transition-all duration-300 border hover:border-primary/20"
 					>
-						<CardHeader className="pb-4">
-							<CardTitle className="text-xl font-bold text-primary mb-2">
+						<CardHeader className="flex-grow pb-4">
+							<CardTitle className="text-2xl font-bold text-primary mb-2">
 								{doctor.name}
 							</CardTitle>
-							<div className="space-y-1">
-								<p className="text-muted-foreground text-sm">
+							<div className="space-y-2 text-sm">
+								<p>
 									<strong>Degree: </strong> {doctor.degree}
 								</p>
-								<p className="text-muted-foreground text-sm">
+								<p>
 									<strong>Designation: </strong> {doctor.designation}
 								</p>
-								<p className="text-muted-foreground text-sm">
-									<strong>Specialties: </strong>{' '}
-									{doctor.specialties?.join(', ')}
+								<p>
+									<strong>Specialties: </strong>{" "}
+									{doctor.specialties?.join(", ")}
 								</p>
-								<p className="text-muted-foreground text-sm">
+								<p>
 									<strong>Experience: </strong> {doctor.experience}
 								</p>
 							</div>
@@ -118,7 +157,7 @@ export const DoctorList = ({ onDoctorSelect }: DoctorListProps) => {
 									<p className="text-xl font-bold text-foreground">
 										{doctor.next_availability
 											? formatDate(doctor.next_availability)
-											: 'N/A'}
+											: "N/A"}
 									</p>
 								</div>
 							</div>
@@ -131,29 +170,43 @@ export const DoctorList = ({ onDoctorSelect }: DoctorListProps) => {
 										Location
 									</p>
 									<p className="text-lg font-bold text-foreground">
-										{doctor.location ? doctor.location : 'N/A'}
+										{doctor.location ? doctor.location : "N/A"}
 									</p>
 								</div>
 							</div>
 
 							{/* Book Appointment */}
 							<Button
-								className="w-full h-12 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02]"
+								className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02]"
 								onClick={() => {
+									// Extract original doctor ID if it's a composite ID
+									const originalDoctorId =
+										doctor.original_doctor_id || doctor.id;
+
+									// Always store schedule data in localStorage for consistency
+									const scheduleData = {
+										doctorId: originalDoctorId,
+										date: doctor.next_availability,
+										location: doctor.location,
+									};
+									localStorage.setItem(
+										"selectedSchedule",
+										JSON.stringify(scheduleData),
+									);
+
 									if (onDoctorSelect) {
 										// If callback is provided, use it (for inline display)
-										onDoctorSelect(doctor.id);
+										onDoctorSelect(originalDoctorId);
 									} else {
-										// Otherwise, navigate to the booking page
-										localStorage.setItem('selectedDoctorId', doctor.id);
-										navigate('/book-appointment');
+										// Navigate to book appointment page
+										navigate("/book-appointment");
 									}
 								}}
 								disabled={!doctor.next_availability}
 							>
 								{doctor.next_availability
-									? 'Book Appointment'
-									: 'Not Available'}
+									? "Book Appointment"
+									: "Not Available"}
 							</Button>
 						</CardContent>
 					</Card>

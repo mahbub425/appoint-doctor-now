@@ -31,6 +31,7 @@ const DoctorListWithLoginCheck = () => {
 
 	const fetchDoctors = async () => {
 		try {
+			// First fetch all active doctors
 			const { data: doctorsData, error } = await supabase
 				.from('doctors')
 				.select('*')
@@ -41,27 +42,61 @@ const DoctorListWithLoginCheck = () => {
 				return;
 			}
 
-			// Fetch next availability for each doctor
-			const doctorsWithAvailability = await Promise.all(
-				(doctorsData || []).map(async (doctor) => {
-					const { data: schedule } = await supabase
-						.from('doctor_schedules')
-						.select('availability_date, location')
-						.eq('doctor_id', doctor.id)
-						.gte('availability_date', new Date().toISOString().split('T')[0])
-						.order('availability_date', { ascending: true })
-						.limit(1)
-						.single();
+			// Then fetch ALL upcoming schedules for ALL doctors
+			const { data: allSchedules, error: schedulesError } = await supabase
+				.from('doctor_schedules')
+				.select('*')
+				.gte('availability_date', new Date().toISOString().split('T')[0])
+				.order('availability_date', { ascending: true });
 
-					return {
+			if (schedulesError) {
+				console.error('Error fetching schedules:', schedulesError);
+			}
+
+			// Create a map of doctor schedules
+			const doctorSchedulesMap = new Map();
+			(allSchedules || []).forEach(schedule => {
+				if (!doctorSchedulesMap.has(schedule.doctor_id)) {
+					doctorSchedulesMap.set(schedule.doctor_id, []);
+				}
+				doctorSchedulesMap.get(schedule.doctor_id).push(schedule);
+			});
+
+			// Now create doctor entries for each unique schedule
+			const doctorsWithAllSchedules = [];
+			(doctorsData || []).forEach(doctor => {
+				const doctorSchedules = doctorSchedulesMap.get(doctor.id) || [];
+				
+				if (doctorSchedules.length === 0) {
+					// No schedules for this doctor
+					doctorsWithAllSchedules.push({
 						...doctor,
-						next_availability: schedule?.availability_date || null,
-						location: schedule?.location || null,
-					};
-				}),
-			);
+						next_availability: null,
+						location: null,
+					});
+				} else {
+					// Create separate entries for each schedule date
+					doctorSchedules.forEach(schedule => {
+						doctorsWithAllSchedules.push({
+							...doctor,
+							// Create unique ID for each doctor-schedule combination
+							id: `${doctor.id}_${schedule.availability_date}`,
+							original_doctor_id: doctor.id,
+							next_availability: schedule.availability_date,
+							location: schedule.location,
+						});
+					});
+				}
+			});
 
-			setDoctors(doctorsWithAvailability);
+			// Sort by availability date
+			doctorsWithAllSchedules.sort((a, b) => {
+				if (!a.next_availability) return 1;
+				if (!b.next_availability) return 1;
+				return new Date(a.next_availability).getTime() - new Date(b.next_availability).getTime();
+			});
+
+			setDoctors(doctorsWithAllSchedules);
 		} catch (error) {
 			console.error('Error fetching doctors:', error);
 		} finally {
@@ -73,19 +108,24 @@ const DoctorListWithLoginCheck = () => {
 		return new Date(dateString).toLocaleDateString('en-GB');
 	};
 
-	const handleBookAppointment = (doctorId: string) => {
-		// Always store the selected doctor ID first.
-		localStorage.setItem('selectedDoctorId', doctorId);
-
+	const handleBookAppointment = (doctorId: string, scheduleDate?: string, location?: string) => {
 		if (!user) {
-			// If not logged in, go to auth page.
-			// The auth page will handle redirecting to the user dashboard.
 			navigate('/auth');
-		} else {
-			// If already logged in, go to the user dashboard and tell it to open the booking tab.
-			sessionStorage.setItem('isBookingRedirect', 'true');
-			navigate('/user');
+			return;
 		}
+		// Extract original doctor ID if it's a composite ID
+		const originalDoctorId = doctorId.includes('_') 
+			? doctorId.split('_')[0] 
+			: doctorId;
+		
+		// Store doctor ID and schedule details in localStorage
+		const scheduleData = {
+			doctorId: originalDoctorId,
+			date: scheduleDate,
+			location: location
+		};
+		localStorage.setItem('selectedSchedule', JSON.stringify(scheduleData));
+		navigate('/book-appointment');
 	};
 
 	if (loading) {
@@ -93,30 +133,30 @@ const DoctorListWithLoginCheck = () => {
 	}
 
 	return (
-		<div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
+		<div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 px-2 sm:px-0">
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
 				{doctors.map((doctor) => (
 					<Card
 						key={doctor.id}
-						className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/20 bg-gradient-to-br from-card to-card/80"
+						className="group flex flex-col hover:shadow-xl transition-all duration-300 border hover:border-primary/20"
 					>
-						<CardHeader className="pb-4">
-							<CardTitle className="text-xl font-bold text-primary mb-2">
+						<CardHeader className="flex-grow pb-4">
+							<CardTitle className="text-xl text-primary md:text-2xl font-bold mb-2">
 								{doctor.name}
 							</CardTitle>
-							<div className="space-y-1">
-								<p className="text-muted-foreground text-sm">
+							<div className="space-y-2 text-sm">
+								<p>
 									<strong>Degree: </strong> {doctor.degree}
 								</p>
-								<p className="text-muted-foreground text-sm">
+								<p>
 									<strong>Designation: </strong>
 									{doctor.designation}
 								</p>
-								<p className="text-muted-foreground text-sm">
+								<p>
 									<strong>Specialties: </strong>
 									{doctor.experience}
 								</p>
-								<p className="text-muted-foreground text-sm">
+								<p>
 									<strong>Experience: </strong>
 									{doctor.specialties?.join(', ')}
 								</p>
@@ -152,8 +192,8 @@ const DoctorListWithLoginCheck = () => {
 							</div>
 
 							<Button
-								className="w-full h-12 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02]"
-								onClick={() => handleBookAppointment(doctor.id)}
+								className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02]"
+								onClick={() => handleBookAppointment(doctor.id, doctor.next_availability, doctor.location)}
 								disabled={!doctor.next_availability}
 							>
 								{doctor.next_availability
@@ -207,14 +247,14 @@ const Index = () => {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen flex items-center justify-center">
+			<div className="flex items-center justify-center py-14">
 				<div className="text-lg">Loading...</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="min-h-screen bg-background">
+		<div className="bg-background">
 			<NoticeSection />
 
 			<div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">

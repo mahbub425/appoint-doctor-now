@@ -28,7 +28,7 @@ export const AuthWrapper = ({ children, ...props }) => {
 					<img
 						src={authLeftImagePath}
 						alt="Auth left image"
-						className="h-full max-h-dvh w-full object-cover object-left-top hidden lg:block"
+						className="min-h-full max-h-dvh w-full object-cover object-left-top hidden lg:block"
 						onError={() => setImageError(true)}
 					/>
 				)}

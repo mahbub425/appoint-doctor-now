@@ -367,153 +367,163 @@ export const AnalyticsDashboardEnhanced = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
-        
-        <div className="flex flex-col sm:flex-row gap-4">
-            <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Filter by doctor" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Doctors</SelectItem>
-              {doctors.map((doctor) => (
-                <SelectItem key={doctor.id} value={doctor.id}>
-                  {doctor.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+		<div className="space-y-6">
+			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+				<h2 className="text-xl md:text-2xl font-bold">Analytics Dashboard</h2>
 
-          <Select value={selectedDateRange} onValueChange={setSelectedDateRange}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select date range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="today">Today</SelectItem>
-              <SelectItem value="last_7_days">Last 7 Days</SelectItem>
-              <SelectItem value="last_1_month">Last 1 Month</SelectItem>
-              <SelectItem value="last_3_months">Last 3 Months</SelectItem>
-              <SelectItem value="last_6_months">Last 6 Months</SelectItem>
-            </SelectContent>
-          </Select>
+				<div className="flex flex-col sm:flex-row gap-4">
+					<Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
+						<SelectTrigger className="w-[200px]">
+							<SelectValue placeholder="Filter by doctor" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="all">All Doctors</SelectItem>
+							{doctors.map((doctor) => (
+								<SelectItem key={doctor.id} value={doctor.id}>
+									{doctor.name}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 
-          <Button onClick={exportToCSV}>
-            Export CSV
-          </Button>
-        </div>
-      </div>
+					<Select
+						value={selectedDateRange}
+						onValueChange={setSelectedDateRange}
+					>
+						<SelectTrigger className="w-[200px]">
+							<SelectValue placeholder="Select date range" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="today">Today</SelectItem>
+							<SelectItem value="last_7_days">Last 7 Days</SelectItem>
+							<SelectItem value="last_1_month">Last 1 Month</SelectItem>
+							<SelectItem value="last_3_months">Last 3 Months</SelectItem>
+							<SelectItem value="last_6_months">Last 6 Months</SelectItem>
+						</SelectContent>
+					</Select>
 
-      {/* Analytics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalPatients}</div>
-          </CardContent>
-        </Card>
+					<Button onClick={exportToCSV}>Export CSV</Button>
+				</div>
+			</div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Visits</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalVisits}</div>
-          </CardContent>
-        </Card>
+			{/* Analytics Cards */}
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-sm font-medium">
+							Total Patients
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="text-2xl font-bold">{analytics.totalPatients}</div>
+					</CardContent>
+				</Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Schedules</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalSchedules}</div>
-          </CardContent>
-        </Card>
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-sm font-medium">Total Visits</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="text-2xl font-bold">{analytics.totalVisits}</div>
+					</CardContent>
+				</Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Rating</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.rating}</div>
-          </CardContent>
-        </Card>
-      </div>
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-sm font-medium">
+							Total Schedules
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="text-2xl font-bold">{analytics.totalSchedules}</div>
+					</CardContent>
+				</Card>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Visits by Doctor</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={analytics.visitsByDoctor}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip formatter={(value) => [`${value} Visits`, 'Visits']} />
-                <Bar dataKey="visits" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-sm font-medium">Rating</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="text-2xl font-bold">{analytics.rating}</div>
+					</CardContent>
+				</Card>
+			</div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Visits by Reason</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={analytics.visitsByReason}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {analytics.visitsByReason.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
+			{/* Charts */}
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+				<Card>
+					<CardHeader>
+						<CardTitle>Visits by Doctor</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<ResponsiveContainer width="100%" height={300}>
+							<BarChart data={analytics.visitsByDoctor}>
+								<CartesianGrid strokeDasharray="3 3" />
+								<XAxis dataKey="name" />
+								<YAxis />
+								<Tooltip formatter={(value) => [`${value} Visits`, "Visits"]} />
+								<Bar dataKey="visits" fill="#8884d8" />
+							</BarChart>
+						</ResponsiveContainer>
+					</CardContent>
+				</Card>
 
-      {/* Monthly Growth Line Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Monthly Growth Trend</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={analytics.monthlyGrowth}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip formatter={(value) => [`${value} Visits`, 'Visits']} />
-              <Line 
-                type="monotone" 
-                dataKey="visits" 
-                stroke="#8884d8" 
-                strokeWidth={2}
-                name="Visits"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-    </div>
-  );
+				<Card>
+					<CardHeader>
+						<CardTitle>Visits by Reason</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<ResponsiveContainer width="100%" height={300}>
+							<PieChart>
+								<Pie
+									data={analytics.visitsByReason}
+									cx="50%"
+									cy="50%"
+									labelLine={false}
+									label={({ name, percent }) =>
+										`${name} ${(percent * 100).toFixed(0)}%`
+									}
+									outerRadius={80}
+									fill="#8884d8"
+									dataKey="value"
+								>
+									{analytics.visitsByReason.map((entry, index) => (
+										<Cell
+											key={`cell-${index}`}
+											fill={COLORS[index % COLORS.length]}
+										/>
+									))}
+								</Pie>
+								<Tooltip />
+							</PieChart>
+						</ResponsiveContainer>
+					</CardContent>
+				</Card>
+			</div>
+
+			{/* Monthly Growth Line Chart */}
+			<Card>
+				<CardHeader>
+					<CardTitle>Monthly Growth Trend</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<ResponsiveContainer width="100%" height={400}>
+						<LineChart data={analytics.monthlyGrowth}>
+							<CartesianGrid strokeDasharray="3 3" />
+							<XAxis dataKey="month" />
+							<YAxis />
+							<Tooltip formatter={(value) => [`${value} Visits`, "Visits"]} />
+							<Line
+								type="monotone"
+								dataKey="visits"
+								stroke="#8884d8"
+								strokeWidth={2}
+								name="Visits"
+							/>
+						</LineChart>
+					</ResponsiveContainer>
+				</CardContent>
+			</Card>
+		</div>
+	);
 };

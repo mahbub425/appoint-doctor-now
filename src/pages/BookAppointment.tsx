@@ -1,20 +1,20 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, MapPin, Calendar, Clock, Users } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { MapPin, Calendar, Clock, Users } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { AppointmentDetailsCard } from "./AppointmentDetails";
 
 interface Doctor {
 	id: string;
@@ -42,38 +42,75 @@ interface Appointment {
 	reason: string;
 	appointment_time: string;
 	user_id: string;
-	doctor_id: string; // Added doctor_id
 }
 
 interface BookAppointmentProps {
 	isInline?: boolean;
 	onBack?: () => void;
-	onBookingSuccess?: () => void; // This prop is no longer strictly needed for navigation
+}
+
+interface AppointmentDetailsData {
+	id: string;
+	name: string;
+	pin: number;
+	appointment_date: string;
+	appointment_time: string;
+	serial_number: number;
+	reason: string;
+	doctor_name: string;
+	location: string;
 }
 
 export default function BookAppointment({
 	isInline = false,
 	onBack,
-	onBookingSuccess, // Keep for potential future use or if other components rely on it
 }: BookAppointmentProps = {}) {
 	const navigate = useNavigate();
 	const { userProfile } = useAuth();
 
-	// Get doctor ID from localStorage instead of URL params
-	const doctorId = localStorage.getItem('selectedDoctorId');
+	// Get schedule data from localStorage
+	const [scheduleInfo, setScheduleInfo] = useState<{doctorId: string, date?: string, location?: string} | null>(null);
+	const [doctorId, setDoctorId] = useState<string | null>(null);
+	
+	useEffect(() => {
+		const scheduleDataStr = localStorage.getItem("selectedSchedule");
+		if (scheduleDataStr) {
+			try {
+				const parsedData = JSON.parse(scheduleDataStr);
+				setScheduleInfo(parsedData);
+				setDoctorId(parsedData.doctorId);
+			} catch (error) {
+				console.error("Error parsing schedule data:", error);
+				// Fallback to old method if parsing fails
+				const oldDoctorId = localStorage.getItem("selectedDoctorId");
+				if (oldDoctorId) {
+					setDoctorId(oldDoctorId);
+				}
+			}
+		} else {
+			// Fallback to old method if new data not available
+			const oldDoctorId = localStorage.getItem("selectedDoctorId");
+			if (oldDoctorId) {
+				setDoctorId(oldDoctorId);
+			}
+		}
+	}, []);
 
 	const [doctor, setDoctor] = useState<Doctor | null>(null);
 	const [schedule, setSchedule] = useState<DoctorSchedule | null>(null);
 	const [appointments, setAppointments] = useState<Appointment[]>([]);
-	const [selectedReason, setSelectedReason] = useState<string>('');
+	const [selectedReason, setSelectedReason] = useState<string>("");
 	const [loading, setLoading] = useState(true);
 	const [booking, setBooking] = useState(false);
+	const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
+	const [appointmentData, setAppointmentData] =
+		useState<AppointmentDetailsData | null>(null);
 
 	useEffect(() => {
 		if (!doctorId) {
 			// If no doctor ID in localStorage, handle based on mode
 			if (!isInline) {
-				navigate('/user');
+				navigate("/user");
 			}
 			return;
 		}
@@ -81,27 +118,38 @@ export default function BookAppointment({
 		if (doctorId && userProfile) {
 			fetchDoctorData();
 		}
-	}, [doctorId, userProfile, navigate, isInline]);
+		
+		// Cleanup localStorage when component unmounts
+		return () => {
+			if (!isInline) {
+				localStorage.removeItem("selectedSchedule");
+				localStorage.removeItem("selectedDoctorId");
+			}
+		};
+	}, [doctorId, userProfile, scheduleInfo]);
 
 	const fetchDoctorData = async () => {
 		if (!doctorId) return;
 
 		try {
+			setLoading(true);
+			
 			// Fetch doctor details
 			const { data: doctorData, error: doctorError } = await supabase
-				.from('doctors')
-				.select('*')
-				.eq('id', doctorId)
+				.from("doctors")
+				.select("*")
+				.eq("id", doctorId)
 				.single();
 
 			if (doctorError || !doctorData) {
+				console.error("Doctor fetch error:", doctorError);
 				toast({
-					title: 'Error',
-					description: 'Doctor not found',
-					variant: 'destructive',
+					title: "Error",
+					description: "Doctor not found",
+					variant: "destructive",
 				});
 				if (!isInline) {
-					navigate('/user');
+					navigate("/user");
 				} else if (onBack) {
 					onBack();
 				}
@@ -110,52 +158,106 @@ export default function BookAppointment({
 
 			setDoctor(doctorData);
 
-			// Fetch doctor's next availability
-			const { data: scheduleData, error: scheduleError } = await supabase
-				.from('doctor_schedules')
-				.select('*')
-				.eq('doctor_id', doctorId)
-				.gte('availability_date', new Date().toISOString().split('T')[0])
-				.order('availability_date', { ascending: true })
-				.limit(1)
-				.single();
+			// Fetch specific schedule if we have date and location, otherwise fetch next availability
+			let scheduleData = null;
+			let scheduleError = null;
+
+			if (scheduleInfo?.date && scheduleInfo?.location) {
+				// Fetch specific schedule using date and location
+				console.log("Fetching specific schedule:", {
+					doctorId,
+					date: scheduleInfo.date,
+					location: scheduleInfo.location
+				});
+				
+				const result = await supabase
+					.from("doctor_schedules")
+					.select("*")
+					.eq("doctor_id", doctorId)
+					.eq("availability_date", scheduleInfo.date)
+					.eq("location", scheduleInfo.location)
+					.single();
+				
+				scheduleData = result.data;
+				scheduleError = result.error;
+				
+				if (!scheduleData || scheduleError) {
+					console.log("Specific schedule not found, fetching next available");
+					// If specific schedule not found, try to get next available
+					const fallbackResult = await supabase
+						.from("doctor_schedules")
+						.select("*")
+						.eq("doctor_id", doctorId)
+						.gte("availability_date", new Date().toISOString().split("T")[0])
+						.order("availability_date", { ascending: true })
+						.limit(1)
+						.single();
+					
+					scheduleData = fallbackResult.data;
+					scheduleError = fallbackResult.error;
+				}
+			} else {
+				// Fallback to fetching next availability
+				console.log("No schedule info provided, fetching next available");
+				const result = await supabase
+					.from("doctor_schedules")
+					.select("*")
+					.eq("doctor_id", doctorId)
+					.gte("availability_date", new Date().toISOString().split("T")[0])
+					.order("availability_date", { ascending: true })
+					.limit(1)
+					.single();
+				
+				scheduleData = result.data;
+				scheduleError = result.error;
+			}
 
 			if (scheduleError || !scheduleData) {
+				console.error("Schedule fetch error:", scheduleError);
 				setSchedule(null);
-				setLoading(false);
-				return;
-			}
-
-			setSchedule(scheduleData);
-
-			// Fetch existing appointments for this date
-			const { data: appointmentsData, error: appointmentsError } =
-				await supabase
-					.from('appointments')
-					.select('*')
-					.eq('doctor_id', doctorId)
-					.eq('appointment_date', scheduleData.availability_date)
-					.order('serial_number', { ascending: true });
-
-			if (appointmentsError) {
-				console.error('Error fetching appointments:', appointmentsError);
+				toast({
+					title: "Notice",
+					description: "No schedule available for this doctor at the moment",
+				});
 			} else {
-				setAppointments(appointmentsData || []);
+				setSchedule(scheduleData);
+				console.log("Schedule loaded:", scheduleData);
+
+				// Fetch existing appointments for this date
+				const { data: appointmentsData, error: appointmentsError } =
+					await supabase
+						.from("appointments")
+						.select("*")
+						.eq("doctor_id", doctorId)
+						.eq("appointment_date", scheduleData.availability_date)
+						.order("serial_number", { ascending: true });
+
+				if (appointmentsError) {
+					console.error("Error fetching appointments:", appointmentsError);
+				} else {
+					setAppointments(appointmentsData || []);
+					console.log("Appointments loaded:", appointmentsData?.length || 0);
+				}
 			}
 		} catch (error) {
-			console.error('Error fetching doctor data:', error);
+			console.error("Error fetching doctor data:", error);
+			toast({
+				title: "Error",
+				description: "Failed to load appointment data",
+				variant: "destructive",
+			});
 		} finally {
 			setLoading(false);
 		}
 	};
 
 	const calculateAppointmentTime = (serialNumber: number, reason: string) => {
-		if (!schedule) return '';
+		if (!schedule) return "";
 
 		const durations: { [key: string]: number } = {
-			'New Patient': 10,
-			'Follow Up': 7,
-			'Report Show': 12,
+			"New Patient": 10,
+			"Follow Up": 7,
+			"Report Show": 12,
 		};
 
 		let currentTime = new Date(`2000-01-01T${schedule.start_time}`);
@@ -182,22 +284,22 @@ export default function BookAppointment({
 	const handleBookAppointment = async () => {
 		if (!userProfile || !doctor || !schedule || !selectedReason) {
 			toast({
-				title: 'Error',
-				description: 'Please select a reason for your appointment',
-				variant: 'destructive',
+				title: "Error",
+				description: "Please select a reason for your appointment",
+				variant: "destructive",
 			});
 			return;
 		}
 
-		// Check if user already has an appointment with this specific doctor on this date
+		// Check if user already has an appointment with this doctor on this date
 		const existingAppointment = appointments.find(
-			(apt) => apt.user_id === userProfile.id && apt.doctor_id === doctor.id,
+			(apt) => apt.user_id === userProfile.id,
 		);
 		if (existingAppointment) {
 			toast({
-				title: 'Error',
-				description: 'You can only book one appointment per doctor per day',
-				variant: 'destructive',
+				title: "Error",
+				description: "You can only book one appointment per doctor per day",
+				variant: "destructive",
 			});
 			return;
 		}
@@ -205,9 +307,9 @@ export default function BookAppointment({
 		// Check if max appointments reached
 		if (appointments.length >= schedule.max_appointments) {
 			toast({
-				title: 'Error',
-				description: 'Maximum appointments for this date have been reached',
-				variant: 'destructive',
+				title: "Error",
+				description: "Maximum appointments for this date have been reached",
+				variant: "destructive",
 			});
 			return;
 		}
@@ -222,7 +324,7 @@ export default function BookAppointment({
 			);
 
 			const { data, error } = await supabase
-				.from('appointments')
+				.from("appointments")
 				.insert({
 					user_id: userProfile.id,
 					doctor_id: doctor.id,
@@ -234,42 +336,53 @@ export default function BookAppointment({
 					appointment_date: schedule.availability_date,
 					serial_number: nextSerial,
 					appointment_time: appointmentTime,
-					status: 'upcoming',
+					status: "upcoming",
 				})
 				.select()
 				.single();
 
 			if (error) {
-				console.error('Error booking appointment:', error);
 				toast({
-					title: 'Error',
-					description: error.message || 'Failed to book appointment.',
-					variant: 'destructive',
+					title: "Error",
+					description: "Failed to book appointment",
+					variant: "destructive",
+				});
+				return;
+			}
+
+			toast({
+				title: "Success",
+				description: `Appointment booked successfully! Your appointment is scheduled for ${appointmentTime} on ${new Date(
+					schedule.availability_date,
+				).toLocaleDateString("en-GB")}`,
+			});
+
+			// Handle navigation based on mode
+			if (!isInline) {
+				// Navigate to appointment details page with appointment data
+				navigate("/appointment-details", {
+					state: {
+						appointmentData: {
+							...data,
+							doctor_name: doctor.name,
+							location: schedule.location,
+						},
+					},
 				});
 			} else {
-				toast({
-					title: 'Success',
-					description: 'Appointment booked successfully!',
-				});
-				// Clear the selected doctor ID from localStorage after successful booking
-				localStorage.removeItem('selectedDoctorId');
-
-				// Construct the full appointment data to pass to the details page
-				const fullAppointmentData = {
+				// In inline mode, show appointment details instead of navigating
+				setAppointmentData({
 					...data,
 					doctor_name: doctor.name,
 					location: schedule.location,
-				};
-
-				// Navigate to the AppointmentDetails page
-				navigate('/appointment-details', { state: { appointmentData: fullAppointmentData } });
+				});
+				setShowAppointmentDetails(true);
 			}
 		} catch (error) {
-			console.error('Unexpected error:', error);
 			toast({
-				title: 'Error',
-				description: 'An unexpected error occurred',
-				variant: 'destructive',
+				title: "Error",
+				description: "An unexpected error occurred",
+				variant: "destructive",
 			});
 		} finally {
 			setBooking(false);
@@ -277,12 +390,35 @@ export default function BookAppointment({
 	};
 
 	const formatDate = (dateString: string) => {
-		return new Date(dateString).toLocaleDateString('en-GB');
+		return new Date(dateString).toLocaleDateString("en-GB");
 	};
+
+	// If showing appointment details in inline mode, render same UI as AppointmentDetails
+	if (showAppointmentDetails && isInline && appointmentData) {
+		return (
+			<AppointmentDetailsCard
+				appointmentData={appointmentData}
+				onViewMyAppointments={() =>
+					navigate("/user", { state: { activeTab: "appointments" } })
+				}
+				onFindAnotherDoctor={() => {
+					setShowAppointmentDetails(false);
+					setAppointmentData(null);
+					navigate("/user", { state: { activeTab: "doctors" } });
+				}}
+				title="Appointment Confirmed"
+				description="Your appointment has been successfully booked"
+			/>
+		);
+	}
 
 	if (loading) {
 		return (
-			<div className={`${isInline ? '' : 'min-h-screen'} flex items-center justify-center py-8`}>
+			<div
+				className={`${
+					isInline ? "" : "min-h-screen"
+				} flex items-center justify-center py-8`}
+			>
 				<div className="text-lg">Loading...</div>
 			</div>
 		);
@@ -290,36 +426,43 @@ export default function BookAppointment({
 
 	if (!doctor) {
 		return (
-			<div className={`${isInline ? '' : 'min-h-screen'} flex items-center justify-center py-8`}>
+			<div
+				className={`${
+					isInline ? "" : "min-h-screen"
+				} flex items-center justify-center py-8`}
+			>
 				<div className="text-lg">Doctor not found</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+		<div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 			{/* Doctor Details */}
-			<Card className="border bg-gradient-to-br from-card to-card/80 h-fit">
-				<CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 border-b sr-only">
-					<CardTitle className="text-xl text-primary">Doctor Details</CardTitle>
+			<Card>
+				<CardHeader className="p-5 pb-0">
+					<CardTitle className="text-xl text-accent-foreground md:text-2xl font-bold">
+						{doctor.name}
+					</CardTitle>
 				</CardHeader>
-				<CardContent className={`${isInline ? 'space-y-4 p-4' : 'space-y-6 p-6'}`}>
-					<div className="space-y-2">
-						<h3 className="text-xl md:text-2xl font-bold">{doctor.name}</h3>
-						<div className="space-y-1 text-sm">
-							<p>
-								<strong>Degree: </strong> {doctor.degree}
-							</p>
-							<p>
-								<strong>Designation: </strong> {doctor.designation}
-							</p>
-							<p>
-								<strong>Specialties: </strong> {doctor.specialties}
-							</p>
-							<p>
-								<strong>Experience: </strong> {doctor.experience}
-							</p>
-						</div>
+				<CardContent
+					className={`${
+						isInline ? "space-y-4 p-5 pt-4" : "space-y-6 p-5 pt-4"
+					}`}
+				>
+					<div className="space-y-2 text-sm">
+						<p>
+							<strong>Degree: </strong> {doctor.degree}
+						</p>
+						<p>
+							<strong>Designation: </strong> {doctor.designation}
+						</p>
+						<p>
+							<strong>Specialties: </strong> {doctor.specialties}
+						</p>
+						<p>
+							<strong>Experience: </strong> {doctor.experience}
+						</p>
 					</div>
 
 					{schedule && (
@@ -330,12 +473,24 @@ export default function BookAppointment({
 							</h2>
 							<div className="space-y-4">
 								{/* Date Section */}
-								<div className={`flex items-center gap-4 ${isInline ? 'p-3' : 'p-4'} bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]`}>
-									<div className={`${isInline ? 'p-2' : 'p-3'} bg-blue-500/10 rounded-full`}>
-										<Calendar className={`${isInline ? 'h-4 w-4' : 'h-5 w-5'} text-blue-600`} />
+								<div
+									className={`flex items-center gap-4 ${
+										isInline ? "p-3" : "p-4"
+									} rounded-lg bg-ring/5 border border-border/50`}
+								>
+									<div
+										className={`${
+											isInline ? "p-3" : "p-2"
+										} bg-blue-500/10 rounded-full`}
+									>
+										<Calendar
+											className={`${
+												isInline ? "h-4 w-4" : "h-5 w-5"
+											} text-blue-600`}
+										/>
 									</div>
 									<div>
-										<p className="text-sm font-normal text-muted-foreground uppercase tracking-wide">
+										<p className="text-sm font-normal text-muted-foreground tracking-wide">
 											Date
 										</p>
 										<p className="text-lg font-bold card-foreground">
@@ -345,12 +500,24 @@ export default function BookAppointment({
 								</div>
 
 								{/* Chamber Time Section */}
-								<div className={`flex items-center gap-4 ${isInline ? 'p-3' : 'p-4'} bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]`}>
-									<div className={`${isInline ? 'p-2' : 'p-3'} bg-teal-500/10 rounded-full`}>
-										<Clock className={`${isInline ? 'h-4 w-4' : 'h-5 w-5'} text-teal-400`} />
+								<div
+									className={`flex items-center gap-4 ${
+										isInline ? "p-3" : "p-4"
+									} rounded-lg bg-ring/5 border border-border/50`}
+								>
+									<div
+										className={`${
+											isInline ? "p-3" : "p-2"
+										} bg-teal-500/10 rounded-full`}
+									>
+										<Clock
+											className={`${
+												isInline ? "h-4 w-4" : "h-5 w-5"
+											} text-teal-400`}
+										/>
 									</div>
 									<div>
-										<p className="text-sm font-normal text-muted-foreground uppercase tracking-wide">
+										<p className="text-sm font-normal text-muted-foreground tracking-wide">
 											Chamber Time
 										</p>
 										<p className="text-lg font-bold card-foreground">
@@ -360,12 +527,24 @@ export default function BookAppointment({
 								</div>
 
 								{/* Available Slots */}
-								<div className={`flex items-center gap-4 ${isInline ? 'p-3' : 'p-4'} bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]`}>
-									<div className={`${isInline ? 'p-2' : 'p-3'} bg-purple-500/10 rounded-full`}>
-										<Users className={`${isInline ? 'h-4 w-4' : 'h-5 w-5'} text-purple-600`} />
+								<div
+									className={`flex items-center gap-4 ${
+										isInline ? "p-3" : "p-4"
+									} rounded-lg bg-ring/5 border border-border/50`}
+								>
+									<div
+										className={`${
+											isInline ? "p-3" : "p-2"
+										} bg-purple-500/10 rounded-full`}
+									>
+										<Users
+											className={`${
+												isInline ? "h-4 w-4" : "h-5 w-5"
+											} text-purple-600`}
+										/>
 									</div>
 									<div>
-										<p className="text-sm font-normal text-muted-foreground uppercase tracking-wide">
+										<p className="text-sm font-normal text-muted-foreground tracking-wide">
 											Available Slots
 										</p>
 										<p className="text-lg font-bold card-foreground">
@@ -376,12 +555,24 @@ export default function BookAppointment({
 								</div>
 
 								{/* Location */}
-								<div className={`flex items-center gap-4 ${isInline ? 'p-3' : 'p-4'} bg-card/50 rounded-lg bg-[#F6FBFE] border border-[#F6FBFE/50]`}>
-									<div className={`${isInline ? 'p-2' : 'p-3'} bg-emerald-500/10 rounded-full`}>
-										<MapPin className={`${isInline ? 'h-4 w-4' : 'h-5 w-5'} text-emerald-500`} />
+								<div
+									className={`flex items-center gap-4 ${
+										isInline ? "p-3" : "p-4"
+									} rounded-lg bg-ring/5 border border-border/50`}
+								>
+									<div
+										className={`${
+											isInline ? "p-3" : "p-2"
+										} bg-emerald-500/10 rounded-full`}
+									>
+										<MapPin
+											className={`${
+												isInline ? "h-4 w-4" : "h-5 w-5"
+											} text-emerald-500`}
+										/>
 									</div>
 									<div>
-										<p className="text-sm font-normal text-muted-foreground uppercase tracking-wide">
+										<p className="text-sm font-normal text-muted-foreground tracking-wide">
 											Location
 										</p>
 										<p className="text-lg font-bold card-foreground">
@@ -396,13 +587,19 @@ export default function BookAppointment({
 			</Card>
 
 			{/* Booking Form */}
-			<Card className="h-fit">
-				<CardHeader className={isInline ? 'pb-4' : ''}>
-					<CardTitle className={`text-primary font-bold ${isInline ? 'text-lg' : 'text-xl md:text-2xl'}`}>
+			<Card>
+				<CardHeader className={isInline ? "pb-4" : ""}>
+					<CardTitle
+						className={`text-xl text-primary md:text-2xl font-bold ${
+							isInline ? "text-lg" : "text-xl md:text-2xl"
+						}`}
+					>
 						Book Your Appointment
 					</CardTitle>
 				</CardHeader>
-				<CardContent className={`${isInline ? 'space-y-3' : 'space-y-4'}`}>
+				<CardContent
+					className={`text-sm ${isInline ? "space-y-5" : "space-y-4"}`}
+				>
 					{!schedule ? (
 						<div className="text-center py-8">
 							<p className="text-muted-foreground">
@@ -419,56 +616,65 @@ export default function BookAppointment({
 					) : (
 						<>
 							<div>
-								<Label className="text-sm font-medium">Name</Label>
-								<p className="text-sm text-muted-foreground mt-1">
+								<Label className="font-normal">Name</Label>
+								<p className="text-accent-foreground font-semibold mt-2">
 									{userProfile?.name}
 								</p>
 							</div>
 
 							<div>
-								<Label className="text-sm font-medium">PIN</Label>
-								<p className="text-sm text-muted-foreground mt-1">
+								<Label className="font-normal">PIN</Label>
+								<p className="text-accent-foreground font-semibold mt-2">
 									{userProfile?.pin}
 								</p>
 							</div>
 
 							<div>
-								<Label className="text-sm font-medium">Concern</Label>
-								<p className="text-sm text-muted-foreground mt-1">
+								<Label className="font-normal">Concern</Label>
+								<p className="text-accent-foreground font-semibold mt-2">
 									{userProfile?.concern}
 								</p>
 							</div>
 
 							<div>
-								<Label className="text-sm font-medium">Phone Number</Label>
-								<p className="text-sm text-muted-foreground mt-1">
+								<Label className="font-normal">Phone Number</Label>
+								<p className="text-accent-foreground font-semibold mt-2">
 									{userProfile?.phone}
 								</p>
 							</div>
 
 							<div>
-								<Label htmlFor="reason">Reason for Visit</Label>
+								<Label htmlFor="reason" className="font-normal">
+									Reason for Visit
+								</Label>
 								<Select
 									value={selectedReason}
 									onValueChange={setSelectedReason}
 								>
-									<SelectTrigger>
+									<SelectTrigger className="mt-2 min-h-11 text-accent-foreground font-semibold">
 										<SelectValue placeholder="Select reason" />
 									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="New Patient">New Patient</SelectItem>
-										<SelectItem value="Follow Up">Follow Up</SelectItem>
-										<SelectItem value="Report Show">Report Show</SelectItem>
+									<SelectContent className="text-accent-foreground font-semibold">
+										<SelectItem className="min-h-11" value="New Patient">
+											New Patient
+										</SelectItem>
+										<SelectItem className="min-h-11" value="Follow Up">
+											Follow Up
+										</SelectItem>
+										<SelectItem className="min-h-11" value="Report Show">
+											Report Show
+										</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
 
+							{/* Book Appointment */}
 							<Button
 								onClick={handleBookAppointment}
 								disabled={booking || !selectedReason}
-								className="w-full"
+								className="w-full min-h-12"
 							>
-								{booking ? 'Booking...' : 'Book Appointment'}
+								{booking ? "Booking..." : "Book Appointment"}
 							</Button>
 
 							{/* Cancel Button */}
@@ -476,7 +682,7 @@ export default function BookAppointment({
 								<Button
 									variant="outline"
 									onClick={onBack}
-									className="w-full"
+									className="w-full min-h-12 text-base border-primary text-primary"
 									disabled={booking}
 								>
 									Cancel

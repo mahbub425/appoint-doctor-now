@@ -13,7 +13,7 @@ All colors MUST be HSL.
 		--foreground: 215 25% 27%; /* Deep medical blue-gray */
 
 		--card: 0 0% 100%; /* Pure white for cards */
-		--card-foreground: 215 21% 39%;
+		--card-foreground: 215 16% 47%;
 
 		/* --title: 215, 21%, 39%;
 		--title-foreground: 215 25% 27%; */
@@ -39,7 +39,7 @@ All colors MUST be HSL.
 		--destructive: 0 84% 60%; /* Medical red */
 		--destructive-foreground: 0 0% 100%;
 
-		--border: 210 20% 90%; /* Soft medical border */
+		--border: 207 22% 90%; /* Soft medical border */
 		--input: 210 20% 95%; /* Light input background */
 		--ring: 210 82% 51%; /* Primary blue for focus rings */
 

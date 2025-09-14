@@ -3,325 +3,373 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Calendar, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 interface DoctorSchedule {
-  id: string;
-  doctor_id: string;
-  availability_date: string;
-  location?: string;
-  start_time: string;
-  break_start: string;
-  break_end: string;
-  end_time: string;
-  max_appointments: number;
+	id: string;
+	doctor_id: string;
+	availability_date: string;
+	location?: string;
+	start_time: string;
+	break_start: string;
+	break_end: string;
+	end_time: string;
+	max_appointments: number;
 }
 
 interface DoctorScheduleFormProps {
-  schedule?: DoctorSchedule | null;
-  onScheduleUpdate: () => void;
+	schedule?: DoctorSchedule | null;
+	onScheduleUpdate: () => void;
+	onClose?: () => void;
 }
 
-export const DoctorScheduleForm = ({ schedule, onScheduleUpdate }: DoctorScheduleFormProps) => {
-  const [formData, setFormData] = useState({
-    doctor_id: "",
-    availability_date: "",
-    location: "",
-    start_time: "11:00",
-    break_start: "13:15",
-    break_end: "14:30",
-    end_time: "16:30",
-    max_appointments: 17
-  });
-  const [doctors, setDoctors] = useState<any[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export const DoctorScheduleForm = ({
+	schedule,
+	onScheduleUpdate,
+	onClose,
+}: DoctorScheduleFormProps) => {
+	const [formData, setFormData] = useState({
+		doctor_id: "",
+		availability_date: "",
+		location: "",
+		start_time: "11:00",
+		break_start: "13:15",
+		break_end: "14:30",
+		end_time: "16:30",
+		max_appointments: 17,
+	});
+	const [doctors, setDoctors] = useState<any[]>([]);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    // Fetch active doctors
-    const fetchDoctors = async () => {
-      const { data, error } = await supabase
-        .from("doctors")
-        .select("id, name, degree")
-        .eq("is_active", true)
-        .order("name");
-      
-      if (!error && data) {
-        setDoctors(data);
-      }
-    };
-    
-    fetchDoctors();
-    
-    if (schedule) {
-      setFormData({
-        doctor_id: schedule.doctor_id,
-        availability_date: schedule.availability_date,
-        location: schedule.location || "",
-        start_time: schedule.start_time.slice(0, 5),
-        break_start: schedule.break_start.slice(0, 5),
-        break_end: schedule.break_end.slice(0, 5),
-        end_time: schedule.end_time.slice(0, 5),
-        max_appointments: schedule.max_appointments
-      });
-    }
-  }, [schedule]);
+	useEffect(() => {
+		// Fetch active doctors
+		const fetchDoctors = async () => {
+			const { data, error } = await supabase
+				.from("doctors")
+				.select("id, name, degree")
+				.eq("is_active", true)
+				.order("name");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+			if (!error && data) {
+				setDoctors(data);
+			}
+		};
 
-    try {
-      const doctorId = schedule ? schedule.doctor_id : formData.doctor_id;
+		fetchDoctors();
 
-      // --- Start Validation ---
-      // 1. Check if the same doctor is already scheduled on the same day at any other location.
-      let doctorQuery = supabase
-        .from('doctor_schedules')
-        .select('id, location')
-        .eq('doctor_id', doctorId)
-        .eq('availability_date', formData.availability_date);
-      
-      if (schedule) {
-        doctorQuery = doctorQuery.neq('id', schedule.id);
-      }
+		if (schedule) {
+			setFormData({
+				doctor_id: schedule.doctor_id,
+				availability_date: schedule.availability_date,
+				location: schedule.location || "",
+				start_time: schedule.start_time.slice(0, 5),
+				break_start: schedule.break_start.slice(0, 5),
+				break_end: schedule.break_end.slice(0, 5),
+				end_time: schedule.end_time.slice(0, 5),
+				max_appointments: schedule.max_appointments,
+			});
+		}
+	}, [schedule]);
 
-      const { data: doctorExistingSchedule, error: doctorCheckError } = await doctorQuery.maybeSingle();
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setIsSubmitting(true);
 
-      if (doctorCheckError) throw doctorCheckError;
+		try {
+			const doctorId = schedule ? schedule.doctor_id : formData.doctor_id;
 
-      if (doctorExistingSchedule) {
-        toast({
-          title: "Scheduling Conflict",
-          description: `এই ডাক্তার ইতিমধ্যে ${formData.availability_date} তারিখে ${doctorExistingSchedule.location} লোকেশনে সময় দিয়েছেন। একজন ডাক্তার একই দিনে একাধিক লোকেশনে সময় দিতে পারবেন না।`,
-          variant: "destructive"
-        });
-        setIsSubmitting(false);
-        return;
-      }
+			// --- Start Validation ---
+			// 1. Check if the same doctor is already scheduled on the same day at any other location.
+			let doctorQuery = supabase
+				.from("doctor_schedules")
+				.select("id, location")
+				.eq("doctor_id", doctorId)
+				.eq("availability_date", formData.availability_date);
 
-      // 2. Check if the same location is already booked on the same day by any other doctor.
-      let locationQuery = supabase
-        .from('doctor_schedules')
-        .select('id, doctor:doctors(name)')
-        .eq('location', formData.location)
-        .eq('availability_date', formData.availability_date);
+			if (schedule) {
+				doctorQuery = doctorQuery.neq("id", schedule.id);
+			}
 
-      if (schedule) {
-        locationQuery = locationQuery.neq('id', schedule.id);
-      }
+			const { data: doctorExistingSchedule, error: doctorCheckError } =
+				await doctorQuery.maybeSingle();
 
-      const { data: locationExistingSchedule, error: locationCheckError } = await locationQuery.maybeSingle();
+			if (doctorCheckError) throw doctorCheckError;
 
-      if (locationCheckError) throw locationCheckError;
+			if (doctorExistingSchedule) {
+				toast({
+					title: "Scheduling Conflict",
+					description: `এই ডাক্তার ইতিমধ্যে ${formData.availability_date} তারিখে ${doctorExistingSchedule.location} লোকেশনে সময় দিয়েছেন। একজন ডাক্তার একই দিনে একাধিক লোকেশনে সময় দিতে পারবেন না।`,
+					variant: "destructive",
+				});
+				setIsSubmitting(false);
+				return;
+			}
 
-      if (locationExistingSchedule) {
-        toast({
-          title: "Scheduling Conflict",
-          description: `এই লোকেশনটি (${formData.location}) ইতিমধ্যে ${formData.availability_date} তারিখে Dr. ${locationExistingSchedule.doctor?.name || 'another doctor'} এর জন্য নির্ধারিত। একটি লোকেশনে একই দিনে একাধিক ডাক্তারের অ্যাপয়েন্টমেন্ট দেওয়া যাবে না।`,
-          variant: "destructive"
-        });
-        setIsSubmitting(false);
-        return;
-      }
-      // --- End Validation ---
+			// 2. Check if the same location is already booked on the same day by any other doctor.
+			let locationQuery = supabase
+				.from("doctor_schedules")
+				.select("id, doctor:doctors(name)")
+				.eq("location", formData.location)
+				.eq("availability_date", formData.availability_date);
 
-      // If updating existing schedule
-      if (schedule) {
-        const { data, error } = await supabase
-          .from("doctor_schedules")
-          .update({
-            availability_date: formData.availability_date,
-            location: formData.location,
-            start_time: formData.start_time + ":00",
-            break_start: formData.break_start + ":00",
-            break_end: formData.break_end + ":00",
-            end_time: formData.end_time + ":00",
-            max_appointments: formData.max_appointments
-          })
-          .eq("id", schedule.id)
-          .select()
-          .single();
+			if (schedule) {
+				locationQuery = locationQuery.neq("id", schedule.id);
+			}
 
-        if (error) throw error;
+			const { data: locationExistingSchedule, error: locationCheckError } =
+				await locationQuery.maybeSingle();
 
-        // Reschedule appointments only for this doctor and date
-        await supabase.rpc('reschedule_appointments_for_doctor', {
-          p_doctor_id: schedule.doctor_id,
-          p_availability_date: formData.availability_date,
-          p_start_time: formData.start_time + ":00",
-          p_break_start: formData.break_start + ":00",
-          p_break_end: formData.break_end + ":00"
-        });
+			if (locationCheckError) throw locationCheckError;
 
-        onScheduleUpdate();
-      } else {
-        // Creating new schedule
-        const { data, error } = await supabase
-          .from("doctor_schedules")
-          .insert({
-            doctor_id: formData.doctor_id,
-            availability_date: formData.availability_date,
-            location: formData.location,
-            start_time: formData.start_time + ":00",
-            break_start: formData.break_start + ":00",
-            break_end: formData.break_end + ":00",
-            end_time: formData.end_time + ":00",
-            max_appointments: formData.max_appointments
-          })
-          .select()
-          .single();
+			if (locationExistingSchedule) {
+				toast({
+					title: "Scheduling Conflict",
+					description: `এই লোকেশনটি (${formData.location}) ইতিমধ্যে ${
+						formData.availability_date
+					} তারিখে Dr. ${
+						locationExistingSchedule.doctor?.name || "another doctor"
+					} এর জন্য নির্ধারিত। একটি লোকেশনে একই দিনে একাধিক ডাক্তারের অ্যাপয়েন্টমেন্ট দেওয়া যাবে না।`,
+					variant: "destructive",
+				});
+				setIsSubmitting(false);
+				return;
+			}
+			// --- End Validation ---
 
-        if (error) throw error;
-        onScheduleUpdate();
-      }
+			// If updating existing schedule
+			if (schedule) {
+				const { data, error } = await supabase
+					.from("doctor_schedules")
+					.update({
+						availability_date: formData.availability_date,
+						location: formData.location,
+						start_time: formData.start_time + ":00",
+						break_start: formData.break_start + ":00",
+						break_end: formData.break_end + ":00",
+						end_time: formData.end_time + ":00",
+						max_appointments: formData.max_appointments,
+					})
+					.eq("id", schedule.id)
+					.select()
+					.single();
 
-      toast({
-        title: "Schedule Saved",
-        description: "Doctor schedule has been saved successfully",
-      });
+				if (error) throw error;
 
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save schedule",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+				// Reschedule appointments only for this doctor and date
+				await supabase.rpc("reschedule_appointments_for_doctor", {
+					p_doctor_id: schedule.doctor_id,
+					p_availability_date: formData.availability_date,
+					p_start_time: formData.start_time + ":00",
+					p_break_start: formData.break_start + ":00",
+					p_break_end: formData.break_end + ":00",
+				});
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Doctor Schedule Management
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="doctor">Select Doctor</Label>
-            <Select
-              value={formData.doctor_id}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, doctor_id: value }))}
-              required
-              disabled={!!schedule} // Disable if editing
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a doctor" />
-              </SelectTrigger>
-              <SelectContent>
-                {doctors.map((doctor) => (
-                  <SelectItem key={doctor.id} value={doctor.id}>
-                    Dr. {doctor.name} - {doctor.degree}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+				onScheduleUpdate();
+			} else {
+				// Creating new schedule
+				const { data, error } = await supabase
+					.from("doctor_schedules")
+					.insert({
+						doctor_id: formData.doctor_id,
+						availability_date: formData.availability_date,
+						location: formData.location,
+						start_time: formData.start_time + ":00",
+						break_start: formData.break_start + ":00",
+						break_end: formData.break_end + ":00",
+						end_time: formData.end_time + ":00",
+						max_appointments: formData.max_appointments,
+					})
+					.select()
+					.single();
 
-          <div className="space-y-2">
-            <Label htmlFor="availability_date">Doctor Availability Date</Label>
-            <Input
-              id="availability_date"
-              type="date"
-              value={formData.availability_date}
-              onChange={(e) => setFormData(prev => ({ ...prev, availability_date: e.target.value }))}
-              required
-            />
-          </div>
+				if (error) throw error;
+				onScheduleUpdate();
+			}
 
-          <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
-            <Select
-              value={formData.location}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select location" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Karwan Bazar">Karwan Bazar</SelectItem>
-                <SelectItem value="Motijheel">Motijheel</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+			toast({
+				title: "Schedule Saved",
+				description: "Doctor schedule has been saved successfully",
+			});
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="start_time">Start Time</Label>
-              <Input
-                id="start_time"
-                type="time"
-                value={formData.start_time}
-                onChange={(e) => setFormData(prev => ({ ...prev, start_time: e.target.value }))}
-                required
-              />
-            </div>
+			// Close modal after successful submission
+			if (onClose) {
+				onClose();
+			}
+		} catch (error: any) {
+			toast({
+				title: "Error",
+				description: error.message || "Failed to save schedule",
+				variant: "destructive",
+			});
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
 
-            <div className="space-y-2">
-              <Label htmlFor="end_time">End Time</Label>
-              <Input
-                id="end_time"
-                type="time"
-                value={formData.end_time}
-                onChange={(e) => setFormData(prev => ({ ...prev, end_time: e.target.value }))}
-                required
-              />
-            </div>
-          </div>
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle className="flex items-center gap-2">
+					<Calendar className="h-5 w-5" />
+					Doctor Schedule Management
+				</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<form onSubmit={handleSubmit} className="space-y-4">
+					<div className="space-y-2">
+						<Label htmlFor="doctor">Select Doctor</Label>
+						<Select
+							value={formData.doctor_id}
+							onValueChange={(value) =>
+								setFormData((prev) => ({ ...prev, doctor_id: value }))
+							}
+							required
+							disabled={!!schedule} // Disable if editing
+						>
+							<SelectTrigger>
+								<SelectValue placeholder="Choose a doctor" />
+							</SelectTrigger>
+							<SelectContent>
+								{doctors.map((doctor) => (
+									<SelectItem key={doctor.id} value={doctor.id}>
+										Dr. {doctor.name} - {doctor.degree}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="break_start">Break Start</Label>
-              <Input
-                id="break_start"
-                type="time"
-                value={formData.break_start}
-                onChange={(e) => setFormData(prev => ({ ...prev, break_start: e.target.value }))}
-                required
-              />
-            </div>
+					<div className="space-y-2">
+						<Label htmlFor="availability_date">Doctor Availability Date</Label>
+						<Input
+							id="availability_date"
+							type="date"
+							value={formData.availability_date}
+							onChange={(e) =>
+								setFormData((prev) => ({
+									...prev,
+									availability_date: e.target.value,
+								}))
+							}
+							required
+						/>
+					</div>
 
-            <div className="space-y-2">
-              <Label htmlFor="break_end">Break End</Label>
-              <Input
-                id="break_end"
-                type="time"
-                value={formData.break_end}
-                onChange={(e) => setFormData(prev => ({ ...prev, break_end: e.target.value }))}
-                required
-              />
-            </div>
-          </div>
+					<div className="space-y-2">
+						<Label htmlFor="location">Location</Label>
+						<Select
+							value={formData.location}
+							onValueChange={(value) =>
+								setFormData((prev) => ({ ...prev, location: value }))
+							}
+							required
+						>
+							<SelectTrigger>
+								<SelectValue placeholder="Select location" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="Karwan Bazar">Karwan Bazar</SelectItem>
+								<SelectItem value="Motijheel">Motijheel</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
 
-          <div className="space-y-2">
-            <Label htmlFor="max_appointments">Maximum Appointments</Label>
-            <Input
-              id="max_appointments"
-              type="number"
-              min="1"
-              value={formData.max_appointments}
-              onChange={(e) => setFormData(prev => ({ ...prev, max_appointments: parseInt(e.target.value) }))}
-              required
-            />
-          </div>
+					<div className="grid grid-cols-2 gap-4">
+						<div className="space-y-2">
+							<Label htmlFor="start_time">Start Time</Label>
+							<Input
+								id="start_time"
+								type="time"
+								value={formData.start_time}
+								onChange={(e) =>
+									setFormData((prev) => ({
+										...prev,
+										start_time: e.target.value,
+									}))
+								}
+								required
+							/>
+						</div>
 
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Saving..." : "Save Schedule"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
-  );
+						<div className="space-y-2">
+							<Label htmlFor="end_time">End Time</Label>
+							<Input
+								id="end_time"
+								type="time"
+								value={formData.end_time}
+								onChange={(e) =>
+									setFormData((prev) => ({ ...prev, end_time: e.target.value }))
+								}
+								required
+							/>
+						</div>
+					</div>
+
+					<div className="grid grid-cols-2 gap-4">
+						<div className="space-y-2">
+							<Label htmlFor="break_start">Break Start</Label>
+							<Input
+								id="break_start"
+								type="time"
+								value={formData.break_start}
+								onChange={(e) =>
+									setFormData((prev) => ({
+										...prev,
+										break_start: e.target.value,
+									}))
+								}
+								required
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="break_end">Break End</Label>
+							<Input
+								id="break_end"
+								type="time"
+								value={formData.break_end}
+								onChange={(e) =>
+									setFormData((prev) => ({
+										...prev,
+										break_end: e.target.value,
+									}))
+								}
+								required
+							/>
+						</div>
+					</div>
+
+					<div className="space-y-2">
+						<Label htmlFor="max_appointments">Maximum Appointments</Label>
+						<Input
+							id="max_appointments"
+							type="number"
+							min="1"
+							value={formData.max_appointments}
+							onChange={(e) =>
+								setFormData((prev) => ({
+									...prev,
+									max_appointments: parseInt(e.target.value),
+								}))
+							}
+							required
+						/>
+					</div>
+
+					<Button type="submit" className="w-full" disabled={isSubmitting}>
+						{isSubmitting ? "Saving..." : "Save Schedule"}
+					</Button>
+				</form>
+			</CardContent>
+		</Card>
+	);
 };

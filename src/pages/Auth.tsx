@@ -1,38 +1,38 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
-import { AuthWrapper } from '@/components/AuthWrapper';
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
+import { AuthWrapper } from "@/components/AuthWrapper";
 
 const Auth = () => {
 	const [isSignUp, setIsSignUp] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [formData, setFormData] = useState({
-		name: '',
-		pin: '',
-		concern: '',
-		phone: '',
-		password: '',
-		confirmPassword: '',
+		name: "",
+		pin: "",
+		concern: "",
+		phone: "",
+		password: "",
+		confirmPassword: "",
 	});
 
 	const [showPassword, setShowPassword] = useState(false);
@@ -45,25 +45,25 @@ const Auth = () => {
 
 	useEffect(() => {
 		if (user) {
-			navigate('/');
+			navigate("/");
 		}
 	}, [user, navigate]);
 
 	// Load remembered credentials on component mount
 	useEffect(() => {
-		const rememberedCredentials = localStorage.getItem('rememberedCredentials');
+		const rememberedCredentials = localStorage.getItem("rememberedCredentials");
 		if (rememberedCredentials) {
 			try {
 				const credentials = JSON.parse(rememberedCredentials);
 				setFormData((prev) => ({
 					...prev,
-					pin: credentials.pin || '',
-					password: credentials.password || '',
+					pin: credentials.pin || "",
+					password: credentials.password || "",
 				}));
 				setRememberPassword(true);
 			} catch (error) {
-				console.error('Error parsing remembered credentials:', error);
-				localStorage.removeItem('rememberedCredentials');
+				console.error("Error parsing remembered credentials:", error);
+				localStorage.removeItem("rememberedCredentials");
 			}
 		}
 	}, []);
@@ -81,9 +81,9 @@ const Auth = () => {
 				!formData.confirmPassword
 			) {
 				toast({
-					title: 'Error',
-					description: 'All fields are required for registration',
-					variant: 'destructive',
+					title: "Error",
+					description: "All fields are required for registration",
+					variant: "destructive",
 				});
 				return;
 			}
@@ -92,9 +92,9 @@ const Auth = () => {
 			const phoneRegex = /^[0-9]{11}$/;
 			if (!phoneRegex.test(formData.phone)) {
 				toast({
-					title: 'Error',
-					description: 'Please enter a valid 11-digit phone number',
-					variant: 'destructive',
+					title: "Error",
+					description: "Please enter a valid 11-digit phone number",
+					variant: "destructive",
 				});
 				return;
 			}
@@ -102,9 +102,9 @@ const Auth = () => {
 			// Validate password confirmation
 			if (formData.password !== formData.confirmPassword) {
 				toast({
-					title: 'Error',
-					description: 'Passwords do not match',
-					variant: 'destructive',
+					title: "Error",
+					description: "Passwords do not match",
+					variant: "destructive",
 				});
 				return;
 			}
@@ -112,18 +112,18 @@ const Auth = () => {
 			// Validate password length
 			if (formData.password.length < 6) {
 				toast({
-					title: 'Error',
-					description: 'Password must be at least 6 characters long',
-					variant: 'destructive',
+					title: "Error",
+					description: "Password must be at least 6 characters long",
+					variant: "destructive",
 				});
 				return;
 			}
 		} else {
 			if (!formData.pin || !formData.password) {
 				toast({
-					title: 'Error',
-					description: 'PIN and Password are required',
-					variant: 'destructive',
+					title: "Error",
+					description: "PIN and Password are required",
+					variant: "destructive",
 				});
 				return;
 			}
@@ -142,23 +142,23 @@ const Auth = () => {
 				});
 
 				if (error) {
-					if (error.message.includes('PIN already exists')) {
+					if (error.message.includes("PIN already exists")) {
 						toast({
-							title: 'Error',
-							description: 'PIN already exists. Please choose a different PIN.',
-							variant: 'destructive',
+							title: "Error",
+							description: "PIN already exists. Please choose a different PIN.",
+							variant: "destructive",
 						});
 					} else {
 						toast({
-							title: 'Error',
+							title: "Error",
 							description: error.message,
-							variant: 'destructive',
+							variant: "destructive",
 						});
 					}
 				} else {
 					toast({
-						title: 'Success',
-						description: 'Account created successfully!',
+						title: "Success",
+						description: "Account created successfully!",
 					});
 					setIsSignUp(false);
 				}
@@ -170,37 +170,28 @@ const Auth = () => {
 				);
 
 				if (error) {
-					if (error.message.includes('Invalid PIN or password')) {
+					if (error.message.includes("Invalid PIN or password")) {
 						setWrongPasswordError(true);
 					} else {
 						toast({
-							title: 'Error',
-							description: error.message || 'Invalid PIN or password',
-							variant: 'destructive',
+							title: "Error",
+							description: error.message || "Invalid PIN or password",
+							variant: "destructive",
 						});
 					}
 				} else {
 					toast({
-						title: 'Success',
-						description: 'Signed in successfully!',
+						title: "Success",
+						description: "Signed in successfully!",
 					});
-
-					// Check if this login is part of a booking flow
-					const selectedDoctorId = localStorage.getItem('selectedDoctorId');
-					if (selectedDoctorId) {
-						// Set a flag for the dashboard to pick up
-						sessionStorage.setItem('isBookingRedirect', 'true');
-					}
-
-					// Always redirect to the user dashboard after login
-					navigate('/user');
+					navigate("/user"); // Redirect directly to user dashboard
 				}
 			}
 		} catch (error) {
 			toast({
-				title: 'Error',
-				description: 'An unexpected error occurred',
-				variant: 'destructive',
+				title: "Error",
+				description: "An unexpected error occurred",
+				variant: "destructive",
 			});
 		} finally {
 			setLoading(false);
@@ -209,15 +200,15 @@ const Auth = () => {
 
 	return (
 		<AuthWrapper>
-			<Card className="w-full max-w-md mx-auto lg:px-1 rounded-[16px]">
+			<Card className="w-full max-w-md max-h-[90vh] overflow-auto mx-auto lg:px-1 rounded-[16px]">
 				<CardHeader className="text-center">
 					<CardTitle className="md:text-xl font-bold">
-						{isSignUp ? 'Sign Up' : 'Sign In'}
+						{isSignUp ? "Sign Up" : "Sign In"}
 					</CardTitle>
 					<CardDescription>
 						{isSignUp
-							? 'Create a new account to book appointments'
-							: 'Sign in to your account'}
+							? "Create a new account to book appointments"
+							: "Sign in to your account"}
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
@@ -309,7 +300,7 @@ const Auth = () => {
 								<div className="relative">
 									<Input
 										id="password"
-										type={showPassword ? 'text' : 'password'}
+										type={showPassword ? "text" : "password"}
 										value={formData.password}
 										onChange={(e) =>
 											setFormData((prev) => ({
@@ -341,7 +332,7 @@ const Auth = () => {
 								<div className="relative">
 									<Input
 										id="confirmPassword"
-										type={showConfirmPassword ? 'text' : 'password'}
+										type={showConfirmPassword ? "text" : "password"}
 										value={formData.confirmPassword}
 										onChange={(e) =>
 											setFormData((prev) => ({
@@ -390,7 +381,7 @@ const Auth = () => {
 								<div className="relative">
 									<Input
 										id="loginPassword"
-										type={showPassword ? 'text' : 'password'}
+										type={showPassword ? "text" : "password"}
 										value={formData.password}
 										onChange={(e) =>
 											setFormData((prev) => ({
@@ -440,7 +431,7 @@ const Auth = () => {
 						disabled={loading}
 						className="w-full min-h-11 rounded-md"
 					>
-						{loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
+						{loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
 					</Button>
 
 					{wrongPasswordError && !isSignUp && (
@@ -450,13 +441,13 @@ const Auth = () => {
 					)}
 
 					<div className="text-center font-semibold text-sm">
-						{isSignUp ? 'Already have an account? ' : "Don't have an account? " }
+						{isSignUp ? "Already have an account? " : "Don't have an account? "}
 						<Button
 							variant="link"
 							onClick={() => setIsSignUp(!isSignUp)}
 							className="text-sm p-0"
 						>
-							{isSignUp ? 'Sign in' : 'Sign up'}
+							{isSignUp ? "Sign in" : "Sign up"}
 						</Button>
 					</div>
 				</CardContent>

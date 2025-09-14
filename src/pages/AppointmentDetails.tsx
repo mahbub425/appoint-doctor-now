@@ -1,179 +1,225 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Calendar, Clock, MapPin, User, Hash, FileText } from "lucide-react";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import {
+	Calendar,
+	Clock,
+	MapPin,
+	Check,
+	ArrowDown10,
+	HeartPulse,
+	UserPlus,
+} from "lucide-react";
 import { useEffect } from "react";
 
 interface AppointmentData {
-  id: string;
-  name: string;
-  pin: number;
-  appointment_date: string;
-  appointment_time: string;
-  serial_number: number;
-  reason: string;
-  doctor_name: string;
-  location: string;
+	id: string;
+	name: string;
+	pin: number;
+	appointment_date: string;
+	appointment_time: string;
+	serial_number: number;
+	reason: string;
+	doctor_name?: string;
+	doctor?: { name: string };
+	location: string;
 }
 
+interface AppointmentDetailsCardProps {
+	appointmentData: AppointmentData;
+	onViewMyAppointments?: () => void;
+	onFindAnotherDoctor?: () => void;
+	title?: string;
+	description?: string;
+}
+
+export const AppointmentDetailsCard = ({
+	appointmentData,
+	onViewMyAppointments,
+	onFindAnotherDoctor,
+	title = "Appointment Confirmed",
+	description = "Your appointment has been successfully booked",
+}: AppointmentDetailsCardProps) => {
+	const formatDate = (dateString: string) => {
+		return new Date(dateString).toLocaleDateString("en-GB");
+	};
+
+	const doctorName =
+		appointmentData.doctor_name || appointmentData.doctor?.name || "Unknown";
+
+	return (
+		<Card className="max-w-3xl mx-auto">
+			<CardHeader>
+				{/* Success Header */}
+				<div className="text-center space-y-4">
+					<div className="size-12 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto">
+						<Check className="size-6" />
+					</div>
+					<div>
+						<CardTitle className="text-2xl font-semibold text-gray-800 mb-2">
+							{title}
+						</CardTitle>
+						<CardDescription className="text-gray-500">
+							{description}
+						</CardDescription>
+					</div>
+				</div>
+			</CardHeader>
+			<CardContent className="p-6 space-y-6">
+				{/* Details Grid */}
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+					{/* Serial Number */}
+					<div className="flex items-start gap-3">
+						<div className="size-10 content-center text-center border rounded-md">
+							<ArrowDown10 className="size-4 text-primary mx-auto" />
+						</div>
+						<div>
+							<p className="text-gray-500 mb-0.5">Serial No.</p>
+							<p className="font-semibold">
+								#{appointmentData.serial_number.toString().padStart(2, "0")}
+							</p>
+						</div>
+					</div>
+
+					{/* Reason */}
+					<div className="flex items-start gap-3">
+						<div className="size-10 content-center text-center border rounded-md">
+							<HeartPulse className="size-4 text-primary mx-auto" />
+						</div>
+						<div>
+							<p className="text-gray-500 mb-0.5">Reason</p>
+							<p className="font-semibold">{appointmentData.reason}</p>
+						</div>
+					</div>
+
+					{/* Time */}
+					<div className="flex items-start gap-3">
+						<div className="size-10 content-center text-center rounded-md border">
+							<Clock className="size-4 text-primary mx-auto" />
+						</div>
+						<div>
+							<p className="text-gray-500 mb-0.5">Time</p>
+							<p className="font-semibold">
+								{appointmentData.appointment_time}
+							</p>
+						</div>
+					</div>
+
+					{/* Doctor */}
+					<div className="flex items-start gap-3">
+						<div className="size-10 content-center text-center border rounded-md">
+							<UserPlus className="size-4 text-primary mx-auto" />
+						</div>
+						<div>
+							<p className="text-gray-500 mb-0.5">Doctor</p>
+							<p className="font-semibold">{doctorName}</p>
+						</div>
+					</div>
+
+					{/* Date */}
+					<div className="flex items-start gap-3">
+						<div className="size-10 content-center text-center border rounded-md">
+							<Calendar className="size-4 text-primary mx-auto" />
+						</div>
+						<div>
+							<p className="text-gray-500 mb-0.5">Date</p>
+							<p className="font-semibold">
+								{formatDate(appointmentData.appointment_date)}
+							</p>
+						</div>
+					</div>
+
+					{/* Location */}
+					<div className="flex items-start gap-3">
+						<div className="size-10 content-center text-center rounded-md border">
+							<MapPin className="size-4 text-primary mx-auto" />
+						</div>
+						<div>
+							<p className="text-gray-500 mb-0.5">Location</p>
+							<p className="font-semibold">{appointmentData.location}</p>
+						</div>
+					</div>
+				</div>
+
+				{/* Important Note */}
+				<div className="bg-secondary text-primary border border-primary/15 rounded-lg p-4 flex gap-3">
+					<div className="flex-shrink-0">
+						<svg
+							className="w-5 h-5 mt-0.5"
+							fill="currentColor"
+							viewBox="0 0 20 20"
+						>
+							<path
+								fillRule="evenodd"
+								d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+								clipRule="evenodd"
+							/>
+						</svg>
+					</div>
+					<div className="flex-1">
+						<p className="font-semibold text-sm mb-1">Important Note</p>
+						<p className="text-sm">
+							Please arrive 15 minutes before your scheduled time. Bring your
+							identification and any relevant medical documents.
+						</p>
+					</div>
+				</div>
+
+				{/* Action Buttons */}
+				<div className="flex flex-col sm:flex-row gap-3 pt-2">
+					<Button
+						variant="outline"
+						onClick={onViewMyAppointments}
+						className="flex-1 min-h-12 border-primary text-primary"
+					>
+						View My Appointments
+					</Button>
+					<Button
+						onClick={onFindAnotherDoctor}
+						className="flex-1 min-h-12 text-base font-medium"
+					>
+						Find Another Doctor
+					</Button>
+				</div>
+			</CardContent>
+		</Card>
+	);
+};
+
 export default function AppointmentDetails() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const appointmentData = location.state?.appointmentData as AppointmentData;
+	const location = useLocation();
+	const navigate = useNavigate();
+	const appointmentData = location.state?.appointmentData as AppointmentData;
 
-  useEffect(() => {
-    if (!appointmentData) {
-      navigate("/user");
-    }
-  }, [appointmentData, navigate]);
+	useEffect(() => {
+		if (!appointmentData) {
+			navigate("/user");
+		}
+	}, [appointmentData, navigate]);
 
-  if (!appointmentData) {
-    return null;
-  }
+	if (!appointmentData) {
+		return null;
+	}
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-GB');
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <header className="bg-background/80 backdrop-blur-sm border-b border-border sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate("/user")}
-              className="hover:bg-primary/10"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
-            </Button>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              Appointment Details
-            </h1>
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          {/* Success Banner */}
-          <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-lg mb-8 shadow-lg">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Calendar className="h-8 w-8" />
-              </div>
-              <h2 className="text-2xl font-bold mb-2">Appointment Confirmed!</h2>
-              <p className="text-green-100">Your appointment has been successfully booked</p>
-            </div>
-          </div>
-
-          {/* Appointment Details Card */}
-          <Card className="shadow-xl border-2 border-primary/20 bg-gradient-to-br from-card to-card/80">
-            <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 border-b">
-              <CardTitle className="text-2xl text-center text-primary">Appointment Information</CardTitle>
-            </CardHeader>
-            <CardContent className="p-8 space-y-6">
-              {/* Date and Time */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/20 dark:to-blue-800/10 p-4 rounded-lg border-l-4 border-blue-500">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Calendar className="h-6 w-6 text-blue-600" />
-                    <span className="font-bold text-lg text-blue-700 dark:text-blue-400">Date</span>
-                  </div>
-                  <p className="text-2xl font-bold text-foreground">{formatDate(appointmentData.appointment_date)}</p>
-                </div>
-
-                <div className="bg-gradient-to-r from-orange-100 to-orange-50 dark:from-orange-900/20 dark:to-orange-800/10 p-4 rounded-lg border-l-4 border-orange-500">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Clock className="h-6 w-6 text-orange-600" />
-                    <span className="font-bold text-lg text-orange-700 dark:text-orange-400">Expected Time</span>
-                  </div>
-                  <p className="text-2xl font-bold text-foreground">{appointmentData.appointment_time}</p>
-                </div>
-              </div>
-
-              {/* Serial Number and Doctor */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gradient-to-r from-purple-100 to-purple-50 dark:from-purple-900/20 dark:to-purple-800/10 p-4 rounded-lg border-l-4 border-purple-500">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Hash className="h-6 w-6 text-purple-600" />
-                    <span className="font-bold text-lg text-purple-700 dark:text-purple-400">Serial Number</span>
-                  </div>
-                  <p className="text-2xl font-bold text-foreground">{appointmentData.serial_number}</p>
-                </div>
-
-                <div className="bg-gradient-to-r from-green-100 to-green-50 dark:from-green-900/20 dark:to-green-800/10 p-4 rounded-lg border-l-4 border-green-500">
-                  <div className="flex items-center gap-3 mb-2">
-                    <User className="h-6 w-6 text-green-600" />
-                    <span className="font-bold text-lg text-green-700 dark:text-green-400">Doctor</span>
-                  </div>
-                  <p className="text-xl font-bold text-foreground">{appointmentData.doctor_name}</p>
-                </div>
-              </div>
-
-              {/* Location */}
-              <div className="bg-gradient-to-r from-red-100 to-red-50 dark:from-red-900/20 dark:to-red-800/10 p-6 rounded-lg border-l-4 border-red-500">
-                <div className="flex items-center gap-3 mb-3">
-                  <MapPin className="h-7 w-7 text-red-600" />
-                  <span className="font-bold text-2xl text-red-700 dark:text-red-400">Location</span>
-                </div>
-                <p className="text-3xl font-bold text-foreground">{appointmentData.location}</p>
-              </div>
-
-              {/* Patient Details */}
-              <div className="bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800/20 dark:to-gray-700/10 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h3 className="font-bold text-lg text-gray-700 dark:text-gray-300 mb-3">Patient Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-sm font-medium text-muted-foreground">Name:</span>
-                    <p className="font-semibold">{appointmentData.name}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-muted-foreground">PIN:</span>
-                    <p className="font-semibold">{appointmentData.pin}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Reason for Visit */}
-              <div className="bg-gradient-to-r from-indigo-100 to-indigo-50 dark:from-indigo-900/20 dark:to-indigo-800/10 p-4 rounded-lg border-l-4 border-indigo-500">
-                <div className="flex items-center gap-3 mb-2">
-                  <FileText className="h-6 w-6 text-indigo-600" />
-                  <span className="font-bold text-lg text-indigo-700 dark:text-indigo-400">Reason for Visit</span>
-                </div>
-                <p className="text-xl font-bold text-foreground">{appointmentData.reason}</p>
-              </div>
-
-              {/* Important Note */}
-              <div className="bg-gradient-to-r from-yellow-100 to-yellow-50 dark:from-yellow-900/20 dark:to-yellow-800/10 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                <h4 className="font-bold text-yellow-800 dark:text-yellow-400 mb-2">Important Note:</h4>
-                <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                  Please arrive 15 minutes before your scheduled time. Bring your identification and any relevant medical documents.
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                <Button 
-                  variant="outline" 
-                  onClick={() => navigate("/user", { state: { activeTab: "appointments" } })}
-                  className="flex-1 h-12 text-lg font-semibold"
-                >
-                  View My Appointments
-                </Button>
-                <Button 
-                  onClick={() => navigate("/user")}
-                  className="flex-1 h-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
-                >
-                  Back to Dashboard
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
-  );
+	return (
+		<div className="min-h-screen bg-gray-50">
+			<div className="container mx-auto px-4 py-8">
+				<div className="max-w-2xl mx-auto">
+					<AppointmentDetailsCard
+						appointmentData={appointmentData}
+						onViewMyAppointments={() =>
+							navigate("/user", { state: { activeTab: "appointments" } })
+						}
+						onFindAnotherDoctor={() => navigate("/user")}
+					/>
+				</div>
+			</div>
+		</div>
+	);
 }

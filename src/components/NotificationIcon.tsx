@@ -170,7 +170,7 @@ export const NotificationIcon = ({
 				<Button
 					variant="secondary"
 					size="sm"
-					className="relative rounded-full size-10"
+					className="relative rounded-full size-8 md:size-10"
 				>
 					<Bell className="h-5 w-5" />
 					{unreadCount > 0 && (
@@ -183,7 +183,7 @@ export const NotificationIcon = ({
 					)}
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="w-80 p-0" side="bottom" align="end">
+			<PopoverContent className="w-80 p-0" side="bottom" align={window.innerWidth >= 768 ? "end" : "center"}>
 				<div className="flex items-center justify-between p-4 border-b">
 					<h3 className="font-semibold">Notifications</h3>
 					{unreadCount > 0 && (
